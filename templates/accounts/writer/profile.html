@@ -1,0 +1,489 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Writer Profile - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Profile Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h1 class="h2 mb-1">Writer Profile</h1>
+                            <p class="text-muted mb-0">Manage your professional information and settings</p>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                                    data-bs-toggle="dropdown">
+                                <i class="fas fa-cog me-2"></i>Actions
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'accounts:verification_status' %}">
+                                        <i class="fas fa-user-check me-2"></i>Verification Status
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'accounts:writer_documents' %}">
+                                        <i class="fas fa-file-upload me-2"></i>Upload Documents
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" 
+                                       data-bs-target="#availabilityModal">
+                                        <i class="fas fa-toggle-on me-2"></i>
+                                        {% if writer_profile.is_available %}
+                                        Set as Unavailable
+                                        {% else %}
+                                        Set as Available
+                                        {% endif %}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column: Profile Info -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Profile Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            <!-- Basic Information -->
+                            <div class="col-md-6">
+                                <label for="id_first_name" class="form-label">First Name</label>
+                                <input type="text" name="first_name" id="id_first_name" 
+                                       class="form-control" 
+                                       value="{{ user.first_name|default:'' }}" 
+                                       placeholder="Enter your first name">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="id_last_name" class="form-label">Last Name</label>
+                                <input type="text" name="last_name" id="id_last_name" 
+                                       class="form-control" 
+                                       value="{{ user.last_name|default:'' }}" 
+                                       placeholder="Enter your last name">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="id_phone_number" class="form-label">Phone Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">+</span>
+                                    <input type="text" name="phone_number" id="id_phone_number" 
+                                           class="form-control" 
+                                           value="{{ user.phone_number|default:'' }}" 
+                                           placeholder="Country code and number">
+                                </div>
+                                <div class="form-text">International format (e.g., 1234567890)</div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <hr class="my-4">
+                                <h6 class="mb-3">Professional Information</h6>
+                            </div>
+                            
+                            <!-- Education -->
+                            <div class="col-md-6">
+                                <label for="id_education_level" class="form-label">Highest Education</label>
+                                <select name="education_level" id="id_education_level" class="form-select">
+                                    <option value="">Select education level</option>
+                                    {% for value, label in form.education_level.field.choices %}
+                                    <option value="{{ value }}" 
+                                        {% if form.education_level.value == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="id_institution" class="form-label">Institution</label>
+                                <input type="text" name="institution" id="id_institution" 
+                                       class="form-control" 
+                                       value="{{ form.institution.value|default:'' }}" 
+                                       placeholder="University or college name">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="id_graduation_year" class="form-label">Graduation Year</label>
+                                <input type="number" name="graduation_year" id="id_graduation_year" 
+                                       class="form-control" 
+                                       value="{{ form.graduation_year.value|default:'' }}" 
+                                       min="1900" max="2100" 
+                                       placeholder="e.g., 2020">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="id_years_of_experience" class="form-label">Years of Experience</label>
+                                <input type="number" name="years_of_experience" id="id_years_of_experience" 
+                                       class="form-control" 
+                                       value="{{ form.years_of_experience.value|default:0 }}" 
+                                       min="0" max="50">
+                            </div>
+                            
+                            <!-- Hourly Rate -->
+                            <div class="col-md-6">
+                                <label for="id_hourly_rate" class="form-label">Hourly Rate (USD)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="hourly_rate" id="id_hourly_rate" 
+                                           class="form-control" 
+                                           value="{{ form.hourly_rate.value|default:'25.00' }}" 
+                                           step="0.01" min="5" max="500">
+                                </div>
+                                <div class="form-text">Recommended: $15-50 per hour</div>
+                            </div>
+                            
+                            <!-- Max Orders -->
+                            <div class="col-md-6">
+                                <label for="id_max_orders" class="form-label">Max Concurrent Orders</label>
+                                <input type="number" name="max_orders" id="id_max_orders" 
+                                       class="form-control" 
+                                       value="{{ form.max_orders.value|default:3 }}" 
+                                       min="1" max="10">
+                                <div class="form-text">How many orders can you handle at once?</div>
+                            </div>
+                            
+                            <!-- Specialization -->
+                            <div class="col-12">
+                                <label for="id_specialization" class="form-label">Areas of Specialization</label>
+                                <textarea name="specialization" id="id_specialization" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          placeholder="e.g., Computer Science, Business Management, Psychology, Literature">{{ form.specialization.value|default:'' }}</textarea>
+                                <div class="form-text">Comma-separated list of your expertise areas</div>
+                            </div>
+                            
+                            <!-- Biography -->
+                            <div class="col-12">
+                                <label for="id_bio" class="form-label">Professional Biography</label>
+                                <textarea name="bio" id="id_bio" 
+                                          class="form-control" 
+                                          rows="5" 
+                                          placeholder="Tell us about your academic background, writing experience, and qualifications...">{{ form.bio.value|default:'' }}</textarea>
+                                <div class="form-text">Maximum 2000 characters. This helps clients understand your expertise.</div>
+                                <div class="mt-1 text-end">
+                                    <small class="text-muted char-count" data-target="id_bio">0/2000</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Availability -->
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="is_available" id="id_is_available" 
+                                           {% if form.is_available.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_is_available">
+                                        Available for new assignments
+                                    </label>
+                                    <div class="form-text">
+                                        Uncheck if you're not currently accepting new work
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Form Errors -->
+                            {% if form.errors %}
+                            <div class="col-12">
+                                <div class="alert alert-danger">
+                                    <h6 class="alert-heading">Please fix the following errors:</h6>
+                                    <ul class="mb-0">
+                                        {% for field in form %}
+                                        {% if field.errors %}
+                                        <li><strong>{{ field.label }}:</strong> {{ field.errors|first }}</li>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Submit Button -->
+                            <div class="col-12 mt-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+                                        Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Stats & Documents -->
+        <div class="col-lg-4">
+            <!-- Stats Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Statistics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Completion Rate</span>
+                            <span class="fw-bold">{{ writer_profile.success_rate|floatformat:1 }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" 
+                                 style="width: {{ writer_profile.success_rate }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Order Capacity</span>
+                            <span class="fw-bold">{{ writer_profile.current_orders }}/{{ writer_profile.max_orders }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar 
+                                {% if writer_profile.current_orders < writer_profile.max_orders %}bg-primary
+                                {% else %}bg-warning{% endif %}" 
+                                 style="width: {% widthratio writer_profile.current_orders writer_profile.max_orders 100 %}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-check-circle text-success me-2"></i>Completed</span>
+                                <span class="fw-bold">{{ writer_profile.completed_orders }}</span>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-dollar-sign text-primary me-2"></i>Total Earnings</span>
+                                <span class="fw-bold">${{ writer_profile.total_earnings|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-star text-warning me-2"></i>Average Rating</span>
+                                <span class="fw-bold">{{ writer_profile.average_rating|floatformat:1 }}/5.0</span>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-clock text-info me-2"></i>Years Experience</span>
+                                <span class="fw-bold">{{ writer_profile.years_of_experience }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Status -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-check me-2"></i>Verification Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if verification_status %}
+                    <div class="text-center mb-3">
+                        <div class="status-badge status-{{ verification_status.state }} mb-3">
+                            {{ verification_status.get_state_display }}
+                        </div>
+                        
+                        {% if verification_status.state == 'approved' %}
+                        <p class="text-success mb-0">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Verified on {{ verification_status.verified_at|date:"M d, Y" }}
+                        </p>
+                        {% elif verification_status.state == 'rejected' %}
+                        <p class="text-danger mb-2">
+                            <i class="fas fa-times-circle me-2"></i>
+                            Application Rejected
+                        </p>
+                        <a href="{% url 'accounts:verification_status' %}" class="btn btn-sm btn-outline-danger">
+                            View Details
+                        </a>
+                        {% elif verification_status.state == 'documents_submitted' %}
+                        <p class="text-info mb-0">
+                            <i class="fas fa-clock me-2"></i>
+                            Under Review
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid">
+                        <a href="{% url 'accounts:verification_status' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-info-circle me-2"></i>View Full Status
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Availability Modal -->
+<div class="modal fade" id="availabilityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {% if writer_profile.is_available %}
+                    <i class="fas fa-toggle-on text-success me-2"></i>Set as Unavailable
+                    {% else %}
+                    <i class="fas fa-toggle-off text-danger me-2"></i>Set as Available
+                    {% endif %}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% if writer_profile.is_available %}
+                <p>Are you sure you want to set yourself as unavailable? This will:</p>
+                <ul>
+                    <li>Hide you from new order searches</li>
+                    <li>Prevent new order assignments</li>
+                    <li>Allow you to complete existing orders</li>
+                </ul>
+                {% else %}
+                <p>Are you ready to accept new orders? This will:</p>
+                <ul>
+                    <li>Make you visible in order searches</li>
+                    <li>Allow clients to assign you orders</li>
+                    <li>Increase your earning potential</li>
+                </ul>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'accounts:writer_profile' %}" id="availabilityForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="is_available" 
+                           value="{% if writer_profile.is_available %}off{% else %}on{% endif %}">
+                    <button type="submit" class="btn btn-primary">
+                        {% if writer_profile.is_available %}
+                        Set Unavailable
+                        {% else %}
+                        Set Available
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter for biography
+    const bioTextarea = document.getElementById('id_bio');
+    const charCount = document.querySelector('.char-count[data-target="id_bio"]');
+    
+    if (bioTextarea && charCount) {
+        function updateCharCount() {
+            const count = bioTextarea.value.length;
+            charCount.textContent = count + '/2000';
+            
+            if (count > 2000) {
+                charCount.classList.add('text-danger');
+                charCount.classList.remove('text-muted');
+            } else {
+                charCount.classList.remove('text-danger');
+                charCount.classList.add('text-muted');
+            }
+        }
+        
+        bioTextarea.addEventListener('input', updateCharCount);
+        updateCharCount(); // Initial count
+    }
+    
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+
+<style>
+.status-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+
+.status-registered { background-color: #e3f2fd; color: #1565c0; }
+.status-profile_completed { background-color: #fff3e0; color: #f57c00; }
+.status-documents_submitted { background-color: #e8f5e8; color: #388e3c; }
+.status-under_admin_review { background-color: #f3e5f5; color: #7b1fa2; }
+.status-approved { background-color: #e8f5e8; color: #2e7d32; }
+.status-rejected { background-color: #ffebee; color: #c62828; }
+.status-revision_required { background-color: #fff3e0; color: #f57c00; }
+
+.stats-card {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.stats-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stats-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.stats-icon i {
+    font-size: 1.5rem;
+}
+
+.specialization-tags .badge {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+}
+</style>
+{% endblock %}

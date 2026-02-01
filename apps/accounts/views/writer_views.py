@@ -4,14 +4,52 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.views.generic import ListView
+from django.contrib.auth import get_user_model
+from django.db.models import Q, Count
+
+
+
+User = get_user_model()
 
 from apps.accounts.forms import (
     WriterProfileForm, DocumentUploadForm, OnboardingStep1Form, OnboardingStep2Form
 )
-from apps.accounts.models import WriterProfile, WriterDocument
+from apps.accounts.models import WriterProfile, WriterDocument, WriterVerificationStatus
 from apps.accounts.services import (
     OnboardingService, DocumentService, VerificationService
 )
+
+class AdminClientListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    """Admin view to list and manage all clients (customers)."""
+    model = User
+    template_name = 'accounts/admin/client_list.html'
+    context_object_name = 'clients'
+    paginate_by = 20
+
+    def test_func(self):
+        """Restrict access to staff members."""
+        return self.request.user.is_staff
+
+    def get_queryset(self):
+        # FIX: Changed is_writer=False to user_type='client'
+        # We exclude staff to ensure we only see customers
+        queryset = User.objects.filter(user_type='client').order_by('-date_joined')
+        
+        search_query = self.request.GET.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(email__icontains=search_query) |
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query)
+            )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        """Pass search query back to template for the search input value."""
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search', '')
+        return context
 
 
 class WriterAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -447,3 +485,53 @@ class WriterOnboardingStep2View(WriterAccessMixin, TemplateView):
         except Exception as e:
             messages.error(request, f'Error submitting for review: {str(e)}')
             return redirect('accounts:writer_onboarding_step2')
+        
+class AdminWriterListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    """Admin view to list and manage all writers in the system."""
+    model = User
+    template_name = 'accounts/admin/writer_list.html'
+    context_object_name = 'writers'
+    paginate_by = 20
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You do not have permission to access the writer management panel.')
+        return redirect('accounts:dashboard')
+
+    def get_queryset(self):
+        # Base queryset for writers
+        queryset = User.objects.filter(user_type='writer').select_related('verification_status').order_by('-date_joined')
+        
+        search_query = self.request.GET.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(email__icontains=search_query) |
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query)
+            )
+        
+        status_filter = self.request.GET.get('status')
+        if status_filter:
+            queryset = queryset.filter(verification_status__state=status_filter)
+            
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # 1. Provide status choices for the filter dropdown
+        context['status_choices'] = WriterVerificationStatus.STATE_CHOICES
+        
+        # 2. Get counts for the stats cards (The "Logic" fix)
+        # This counts how many writers exist for each verification state
+        status_counts = WriterVerificationStatus.objects.values('state').annotate(total=Count('state'))
+        
+        # Convert list of dicts to a simple dict for template access: e.g., {'pending': 5, 'approved': 10}
+        counts_dict = {item['state']: item['total'] for item in status_counts}
+        context['status_totals'] = counts_dict
+        
+        context['search_query'] = self.request.GET.get('search', '')
+        context['current_status'] = self.request.GET.get('status', '')
+        return context

@@ -4,6 +4,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
+from django.shortcuts import render, redirect, get_object_or_404
 
 from apps.accounts.forms import (
     AccountSettingsForm, PrivacySettingsForm, TwoFactorSetupForm

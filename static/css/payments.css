@@ -1,0 +1,403 @@
+/* Payments App Specific Styles */
+
+/* Payment Method Cards */
+.payment-method-card {
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.payment-method-card:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.payment-method-card.selected {
+    border-color: #007bff;
+    background-color: #e7f1ff;
+}
+
+.payment-method-icon {
+    font-size: 2rem;
+    color: #6c757d;
+}
+
+/* Stripe Elements */
+.stripe-card-element {
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.stripe-card-errors {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Payment Summary */
+.payment-summary {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+/* Receipt Styles */
+.receipt-box {
+    border-left: 4px solid #28a745;
+    background-color: #f8f9fa;
+}
+
+.status-badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+
+/* Timeline */
+.payment-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.payment-timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #007bff;
+    border: 2px solid white;
+    z-index: 1;
+}
+
+.timeline-item.completed::before {
+    background-color: #28a745;
+}
+
+.timeline-item.current::before {
+    background-color: #ffc107;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+}
+
+/* Detail Cards */
+.detail-card {
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    overflow: hidden;
+}
+
+.detail-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem;
+}
+
+.detail-body {
+    padding: 1.5rem;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+/* Refund Steps */
+.refund-step {
+    padding: 1rem;
+    border-left: 4px solid #dee2e6;
+    margin-bottom: 1rem;
+}
+
+.refund-step.active {
+    border-left-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.refund-step.completed {
+    border-left-color: #28a745;
+}
+
+.amount-input-group {
+    max-width: 300px;
+}
+
+.reason-options .form-check {
+    padding: 0.75rem;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s;
+}
+
+.reason-options .form-check:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.reason-options .form-check-input:checked ~ .form-check-label {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.refund-amount-preview {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #28a745;
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.refund-amount-slider {
+    width: 100%;
+    margin: 1rem 0;
+}
+
+/* Status Badges */
+.payment-status-badge,
+.refund-status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Card Variations */
+.payment-card,
+.refund-card {
+    border-left: 4px solid;
+    transition: all 0.3s;
+}
+
+.payment-card:hover,
+.refund-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.payment-card.success,
+.refund-card.completed {
+    border-left-color: #28a745;
+}
+
+.payment-card.pending,
+.refund-card.requested {
+    border-left-color: #ffc107;
+}
+
+.payment-card.failed,
+.refund-card.rejected {
+    border-left-color: #dc3545;
+}
+
+.payment-card.refunded {
+    border-left-color: #6c757d;
+}
+
+.refund-card.approved {
+    border-left-color: #28a745;
+}
+
+/* Progress Tracker */
+.progress-tracker {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 20px 0;
+}
+
+.progress-tracker::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #dee2e6;
+    z-index: 1;
+}
+
+.progress-step {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    flex: 1;
+}
+
+.progress-step.completed .step-icon {
+    background-color: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.progress-step.active .step-icon {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    animation: pulse 2s infinite;
+}
+
+.step-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-size: 12px;
+}
+
+.step-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* Error States */
+.error-icon {
+    font-size: 5rem;
+    animation: errorShake 0.5s ease-in-out;
+}
+
+@keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.error-details {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    border-left: 4px solid #dc3545;
+}
+
+.solution-card {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 1.5rem;
+    height: 100%;
+    transition: all 0.3s;
+}
+
+.solution-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.solution-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Animations */
+.success-animation {
+    animation: successPulse 2s ease-in-out;
+}
+
+@keyframes successPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.cancel-animation {
+    animation: cancelShake 0.5s ease-in-out;
+}
+
+@keyframes cancelShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+/* Filter Forms */
+.filter-form .form-control,
+.filter-form .form-select {
+    height: calc(1.5em + 0.75rem + 2px);
+    font-size: 0.875rem;
+}
+
+/* Stats Cards */
+.stats-card {
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.stats-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .payment-method-card {
+        padding: 1rem;
+    }
+    
+    .payment-method-icon {
+        font-size: 1.5rem;
+    }
+    
+    .refund-step {
+        padding: 0.75rem;
+    }
+    
+    .progress-tracker {
+        flex-wrap: wrap;
+    }
+    
+    .progress-step {
+        flex: 0 0 50%;
+        margin-bottom: 20px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .payment-summary {
+        break-inside: avoid;
+    }
+    
+    .card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+    }
+}

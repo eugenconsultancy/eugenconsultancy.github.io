@@ -1,0 +1,482 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Data Request - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Data Request Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h2 mb-1">GDPR Data Request</h1>
+                            <p class="text-muted mb-0">
+                                Submit requests regarding your personal data in accordance with GDPR regulations
+                            </p>
+                        </div>
+                        <div>
+                            <span class="badge bg-info fs-6 px-3 py-2">
+                                <i class="fas fa-shield-alt me-2"></i>GDPR Compliant
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column: Request Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i>Submit Data Request
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Request Type -->
+                        <div class="mb-4">
+                            <label for="id_request_type" class="form-label">Request Type *</label>
+                            <select name="request_type" id="id_request_type" 
+                                    class="form-select" required>
+                                <option value="">Select request type</option>
+                                {% for value, label in form.request_type.field.choices %}
+                                <option value="{{ value }}" 
+                                    {% if form.request_type.value == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                Choose the type of data request you wish to make
+                            </div>
+                            {% if form.request_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.request_type.errors|first }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="id_description" class="form-label">Description *</label>
+                            <textarea name="description" id="id_description" 
+                                      class="form-control" 
+                                      rows="5" 
+                                      placeholder="Please describe your request in detail. Include any specific information you're looking for, time periods, or specific data points..." 
+                                      required>{{ form.description.value|default:'' }}</textarea>
+                            <div class="form-text">
+                                Provide as much detail as possible to help us process your request accurately
+                            </div>
+                            {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.description.errors|first }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Custom Reason (for "Other" requests) -->
+                        <div class="mb-4" id="customReasonSection" style="display: none;">
+                            <label for="id_custom_reason" class="form-label">
+                                Additional Details *
+                            </label>
+                            <textarea name="custom_reason" id="id_custom_reason" 
+                                      class="form-control" 
+                                      rows="3" 
+                                      placeholder="Please specify your request..."></textarea>
+                            <div class="form-text">
+                                Required when "Other" request type is selected
+                            </div>
+                            {% if form.custom_reason.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.custom_reason.errors|first }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Confirmations -->
+                        <div class="mb-4">
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-info-circle me-2"></i>Important Information
+                                </h6>
+                                <ul class="mb-0 small">
+                                    <li>Requests are processed within 30 days as required by GDPR</li>
+                                    <li>We may need to verify your identity before processing</li>
+                                    <li>Some requests may require additional documentation</li>
+                                    <li>Data will be provided in a machine-readable format</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="confirm_identity" id="id_confirm_identity" required>
+                                <label class="form-check-label" for="id_confirm_identity">
+                                    I confirm I am the account holder or their authorized representative
+                                </label>
+                                {% if form.confirm_identity.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.confirm_identity.errors|first }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="agree_to_verification" id="id_agree_to_verification" required>
+                                <label class="form-check-label" for="id_agree_to_verification">
+                                    I agree to provide additional verification if required
+                                </label>
+                                {% if form.agree_to_verification.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.agree_to_verification.errors|first }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="understand_timeline" id="id_understand_timeline" required>
+                                <label class="form-check-label" for="id_understand_timeline">
+                                    I understand this request may take up to 30 days to process
+                                </label>
+                                {% if form.understand_timeline.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.understand_timeline.errors|first }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Form Errors -->
+                        {% if form.errors %}
+                        <div class="alert alert-danger mb-4">
+                            <h6 class="alert-heading">Please fix the following errors:</h6>
+                            <ul class="mb-0">
+                                {% for field, errors in form.errors.items %}
+                                {% if field != '__all__' %}
+                                {% for error in errors %}
+                                <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                                {% endif %}
+                                {% endfor %}
+                                {% if form.non_field_errors %}
+                                {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                                {% endif %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'accounts:dashboard' %}" 
+                               class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Information & Previous Requests -->
+        <div class="col-lg-4">
+            <!-- GDPR Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>GDPR Rights
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="gdprRightsAccordion">
+                        <!-- Right to Access -->
+                        <div class="accordion-item">
+                            <h6 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" data-bs-target="#accessRight">
+                                    <i class="fas fa-download me-2 text-primary"></i>
+                                    Right to Access
+                                </button>
+                            </h6>
+                            <div id="accessRight" class="accordion-collapse collapse" 
+                                 data-bs-parent="#gdprRightsAccordion">
+                                <div class="accordion-body">
+                                    <p class="small mb-0">
+                                        You have the right to obtain confirmation as to whether 
+                                        or not personal data concerning you are being processed, 
+                                        and, where that is the case, access to the personal data.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right to Rectification -->
+                        <div class="accordion-item">
+                            <h6 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" data-bs-target="#rectificationRight">
+                                    <i class="fas fa-edit me-2 text-success"></i>
+                                    Right to Rectification
+                                </button>
+                            </h6>
+                            <div id="rectificationRight" class="accordion-collapse collapse" 
+                                 data-bs-parent="#gdprRightsAccordion">
+                                <div class="accordion-body">
+                                    <p class="small mb-0">
+                                        You have the right to obtain without undue delay the 
+                                        rectification of inaccurate personal data concerning you.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right to Erasure -->
+                        <div class="accordion-item">
+                            <h6 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" data-bs-target="#erasureRight">
+                                    <i class="fas fa-trash-alt me-2 text-danger"></i>
+                                    Right to Erasure
+                                </button>
+                            </h6>
+                            <div id="erasureRight" class="accordion-collapse collapse" 
+                                 data-bs-parent="#gdprRightsAccordion">
+                                <div class="accordion-body">
+                                    <p class="small mb-0">
+                                        You have the right to obtain the erasure of personal 
+                                        data concerning you without undue delay.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right to Restriction -->
+                        <div class="accordion-item">
+                            <h6 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" data-bs-target="#restrictionRight">
+                                    <i class="fas fa-pause me-2 text-warning"></i>
+                                    Right to Restriction
+                                </button>
+                            </h6>
+                            <div id="restrictionRight" class="accordion-collapse collapse" 
+                                 data-bs-parent="#gdprRightsAccordion">
+                                <div class="accordion-body">
+                                    <p class="small mb-0">
+                                        You have the right to obtain restriction of processing 
+                                        in certain circumstances.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Previous Requests -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Previous Requests
+                    </h5>
+                    <span class="badge bg-primary">{{ previous_requests|length }}</span>
+                </div>
+                <div class="card-body">
+                    {% if previous_requests %}
+                    <div class="list-group list-group-flush">
+                        {% for request in previous_requests %}
+                        <div class="list-group-item border-0 px-0 py-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">{{ request.get_request_type_display }}</h6>
+                                    <small class="text-muted">ID: {{ request.request_id }}</small>
+                                </div>
+                                <span class="badge bg-{{ request.status|request_status_color }}">
+                                    {{ request.get_status_display }}
+                                </span>
+                            </div>
+                            <p class="small text-muted mb-2">
+                                {{ request.description|truncatechars:80 }}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    {{ request.received_at|date:"M d, Y" }}
+                                </small>
+                                {% if request.response_due_date %}
+                                <small class="{% if request.is_overdue %}text-danger{% else %}text-warning{% endif %}">
+                                    Due: {{ request.response_due_date|date:"M d" }}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if previous_requests|length > 5 %}
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-sm btn-outline-primary">
+                            View All Requests
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No previous requests</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Show/hide custom reason based on request type
+    const requestTypeSelect = document.getElementById('id_request_type');
+    const customReasonSection = document.getElementById('customReasonSection');
+    const customReasonTextarea = document.getElementById('id_custom_reason');
+    
+    if (requestTypeSelect && customReasonSection) {
+        function toggleCustomReason() {
+            if (requestTypeSelect.value === 'other') {
+                customReasonSection.style.display = 'block';
+                if (customReasonTextarea) {
+                    customReasonTextarea.required = true;
+                }
+            } else {
+                customReasonSection.style.display = 'none';
+                if (customReasonTextarea) {
+                    customReasonTextarea.required = false;
+                }
+            }
+        }
+        
+        requestTypeSelect.addEventListener('change', toggleCustomReason);
+        toggleCustomReason(); // Initial check
+    }
+    
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+
+<style>
+.accordion-item {
+    border: none;
+    margin-bottom: 0.5rem;
+}
+
+.accordion-button {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem !important;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    border-color: #0d6efd;
+}
+
+.accordion-body {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem;
+}
+
+/* Status badge colors */
+.bg-received { background-color: #6c757d !important; }
+.bg-verifying { background-color: #ffc107 !important; color: #000 !important; }
+.bg-processing { background-color: #0dcaf0 !important; }
+.bg-completed { background-color: #198754 !important; }
+.bg-rejected { background-color: #dc3545 !important; }
+.bg-cancelled { background-color: #6c757d !important; }
+
+/* List Group Items */
+.list-group-item {
+    transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.list-group-item:not(:last-child) {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Badge styling */
+.badge {
+    font-size: 0.75em;
+    padding: 0.35em 0.65em;
+    font-weight: 600;
+}
+
+/* Form textarea */
+#id_description {
+    resize: vertical;
+    min-height: 150px;
+}
+
+/* Alert styling */
+.alert {
+    border: none;
+    border-left: 4px solid #0dcaf0;
+}
+
+.alert .alert-heading {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.alert ul {
+    margin-bottom: 0;
+}
+
+.alert li {
+    margin-bottom: 0.25rem;
+}
+
+.alert li:last-child {
+    margin-bottom: 0;
+}
+</style>
+{% endblock %}

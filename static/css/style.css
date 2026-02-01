@@ -1,30 +1,26 @@
-/* Main Styles for EBWriting Platform */
+/* Main Styles for EBWriting Platform with Nice School Template Integration */
 
 :root {
     --primary-color: #4361ee;
     --secondary-color: #3a0ca3;
-    --success-color: #4cc9f0;
+    --success-color: #5fcf80; /* Updated to match Nice School green */
     --warning-color: #f8961e;
     --danger-color: #f72585;
-    --light-color: #f8f9fa;
+    --light-color: #bedcfb;
     --dark-color: #212529;
     --border-radius: 8px;
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --transition: all 0.3s ease;
 }
 
-/* Base Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/*--------------------------------------------------------------
+# General
+--------------------------------------------------------------*/
 body {
-    font-family: 'Roboto', sans-serif;
+    font-family: "Open Sans", sans-serif;
+    color: #444444;
+    background-color: #91ffc8;
     line-height: 1.6;
-    color: var(--dark-color);
-    background-color: #f8f9fa;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -34,24 +30,122 @@ main {
     flex: 1;
 }
 
-/* Typography */
+a {
+    color: #5fcf80;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #3ac162;
+    text-decoration: none;
+}
+
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', sans-serif;
+    font-family: "Raleway", sans-serif;
     font-weight: 600;
     margin-bottom: 1rem;
 }
 
 .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
-    font-family: 'Poppins', sans-serif;
+    font-family: "Raleway", sans-serif;
 }
 
-/* Navigation */
+/*--------------------------------------------------------------
+# Header
+--------------------------------------------------------------*/
+#header {
+    transition: all 0.5s;
+    background: #fff;
+    z-index: 997;
+    padding: 20px 0;
+    box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.1);
+}
+
+#header.header-scrolled {
+    background: #fff;
+    box-shadow: 0px 2px 20px rgba(0, 0, 0, 0.1);
+}
+
+#header .logo {
+    font-size: 28px;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+#header .logo a {
+    color: #343a40;
+}
+
+#header .logo a span {
+    color: #5fcf80;
+}
+
+/*--------------------------------------------------------------
+# Navigation Menu
+--------------------------------------------------------------*/
 .navbar {
-    padding: 1rem 0;
-    transition: var(--transition);
+    padding: 0;
     z-index: 1030;
+    transition: var(--transition);
 }
 
+.navbar ul {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    list-style: none;
+    align-items: center;
+}
+
+.navbar li {
+    position: relative;
+}
+
+.navbar a, .navbar a:focus {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    font-family: "Poppins", sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #343a40;
+    white-space: nowrap;
+    transition: 0.3s;
+}
+
+.navbar a i, .navbar a:focus i {
+    font-size: 12px;
+    line-height: 0;
+    margin-left: 5px;
+}
+
+.navbar a:hover, .navbar .active, .navbar .active:focus, .navbar li:hover > a {
+    color: #5fcf80;
+}
+
+.navbar .getstarted, .navbar .getstarted:focus {
+    background: #5fcf80;
+    padding: 10px 25px;
+    margin-left: 30px;
+    border-radius: 50px;
+    color: #fff;
+    border: none;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.navbar .getstarted:hover, .navbar .getstarted:focus:hover {
+    background: #3ac162;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow);
+}
+
+/* EBWriting Navigation Overrides */
 .navbar-brand {
     font-size: 1.5rem;
     font-weight: 700;
@@ -61,14 +155,15 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 500;
     padding: 0.5rem 1rem !important;
     transition: var(--transition);
+    font-family: "Poppins", sans-serif;
 }
 
 .nav-link:hover {
-    color: var(--primary-color) !important;
+    color: #5fcf80 !important;
 }
 
 .nav-link.active {
-    color: var(--primary-color) !important;
+    color: #5fcf80 !important;
     font-weight: 600;
 }
 
@@ -105,6 +200,18 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: var(--box-shadow);
 }
 
+.btn-success {
+    background-color: #5fcf80;
+    border-color: #5fcf80;
+}
+
+.btn-success:hover {
+    background-color: #3ac162;
+    border-color: #3ac162;
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow);
+}
+
 /* Cards */
 .card {
     border: none;
@@ -136,22 +243,24 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.75rem 1rem;
     border: 1px solid #dee2e6;
     transition: var(--transition);
+    font-family: "Open Sans", sans-serif;
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    border-color: #5fcf80;
+    box-shadow: 0 0 0 0.25rem rgba(95, 207, 128, 0.25);
 }
 
 .form-label {
     font-weight: 500;
     margin-bottom: 0.5rem;
     color: var(--dark-color);
+    font-family: "Raleway", sans-serif;
 }
 
 .form-check-input:checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: #5fcf80;
+    border-color: #5fcf80;
 }
 
 /* Alerts */
@@ -160,12 +269,13 @@ h1, h2, h3, h4, h5, h6 {
     border: none;
     padding: 1rem 1.25rem;
     margin-bottom: 1rem;
+    font-family: "Open Sans", sans-serif;
 }
 
 .alert-success {
     background-color: #d1e7dd;
     color: #0f5132;
-    border-left: 4px solid #198754;
+    border-left: 4px solid #5fcf80;
 }
 
 .alert-danger {
@@ -189,6 +299,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Tables */
 .table {
     margin-bottom: 0;
+    font-family: "Open Sans", sans-serif;
 }
 
 .table th {
@@ -196,6 +307,7 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--dark-color);
     border-top: none;
     padding: 1rem 0.75rem;
+    font-family: "Raleway", sans-serif;
 }
 
 .table td {
@@ -204,7 +316,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .table-hover tbody tr:hover {
-    background-color: rgba(67, 97, 238, 0.05);
+    background-color: rgba(95, 207, 128, 0.05);
 }
 
 .table-striped tbody tr:nth-of-type(odd) {
@@ -222,21 +334,26 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 50px;
 }
 
+.badge-success {
+    background-color: #5fcf80;
+}
+
 /* Breadcrumb */
 .breadcrumb {
     background-color: transparent;
     padding: 0.75rem 1rem;
     margin-bottom: 0;
+    font-family: "Open Sans", sans-serif;
 }
 
 .breadcrumb-item a {
-    color: var(--primary-color);
+    color: #5fcf80;
     text-decoration: none;
     transition: var(--transition);
 }
 
 .breadcrumb-item a:hover {
-    color: var(--secondary-color);
+    color: #3ac162;
     text-decoration: underline;
 }
 
@@ -253,7 +370,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .progress-bar {
     border-radius: 50px;
-    background-color: var(--primary-color);
+    background-color: #5fcf80;
     transition: width 0.6s ease;
 }
 
@@ -267,10 +384,12 @@ h1, h2, h3, h4, h5, h6 {
 .modal-header {
     border-bottom: 1px solid #dee2e6;
     padding: 1.5rem;
+    font-family: "Raleway", sans-serif;
 }
 
 .modal-body {
     padding: 1.5rem;
+    font-family: "Open Sans", sans-serif;
 }
 
 .modal-footer {
@@ -282,14 +401,16 @@ h1, h2, h3, h4, h5, h6 {
 footer {
     background-color: #1a1a2e;
     margin-top: auto;
+    font-family: "Open Sans", sans-serif;
 }
 
 footer a {
     transition: var(--transition);
+    color: #5fcf80;
 }
 
 footer a:hover {
-    color: white !important;
+    color: #3ac162 !important;
     text-decoration: underline;
 }
 
@@ -317,6 +438,10 @@ footer a:hover {
     border-width: 0.25em;
 }
 
+.spinner-border.text-success {
+    color: #5fcf80 !important;
+}
+
 /* Avatar */
 .avatar {
     width: 40px;
@@ -327,7 +452,7 @@ footer a:hover {
     justify-content: center;
     font-weight: 600;
     color: white;
-    background-color: var(--primary-color);
+    background-color: #5fcf80;
 }
 
 .avatar-sm {
@@ -351,6 +476,7 @@ footer a:hover {
     border-radius: 50px;
     font-size: 0.75rem;
     font-weight: 500;
+    font-family: "Open Sans", sans-serif;
 }
 
 .status-indicator::before {
@@ -361,15 +487,61 @@ footer a:hover {
     display: inline-block;
 }
 
-.status-active::before { background-color: #198754; }
+.status-active::before { background-color: #5fcf80; }
 .status-pending::before { background-color: #ffc107; }
 .status-inactive::before { background-color: #6c757d; }
 .status-warning::before { background-color: #fd7e14; }
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 100px 0;
+}
+
+.hero h1 {
+    color: rgb(96, 214, 247);
+    margin-bottom: 1.5rem;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+/* Section Styling */
+.section-title {
+    position: relative;
+    padding-bottom: 15px;
+    margin-bottom: 2rem;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    display: block;
+    width: 50px;
+    height: 3px;
+    background: #5fcf80;
+    bottom: 0;
+    left: 0;
+}
+
+.section-title.text-center::after {
+    left: 50%;
+    transform: translateX(-50%);
+}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .navbar-nav .btn {
         margin-top: 0.5rem;
+    }
+    
+    .navbar .getstarted {
+        margin-left: 0;
+        margin-top: 10px;
     }
     
     .card-body {
@@ -382,6 +554,14 @@ footer a:hover {
     
     .display-5 {
         font-size: 2rem;
+    }
+    
+    #header {
+        padding: 15px 0;
+    }
+    
+    .navbar a, .navbar a:focus {
+        padding: 10px;
     }
 }
 
@@ -402,6 +582,24 @@ footer a:hover {
     h2 {
         font-size: 1.5rem;
     }
+    
+    .hero {
+        padding: 60px 0;
+    }
+    
+    .navbar ul {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .navbar li {
+        width: 100%;
+    }
+    
+    .navbar a, .navbar a:focus {
+        padding: 12px 15px;
+        width: 100%;
+    }
 }
 
 /* Print styles */
@@ -411,12 +609,28 @@ footer a:hover {
     }
     
     body {
-        background-color: white;
+        background-color: rgb(220, 167, 247);
         color: black;
+        font-family: "Times New Roman", serif;
     }
     
     .card {
         box-shadow: none;
-        border: 1px solid #dee2e6;
+        border: 1px solid #9dfdb2;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: "Times New Roman", serif;
+    }
+    
+    a {
+        color: black;
+        text-decoration: none;
+    }
+    
+    a[href]::after {
+        content: " (" attr(href) ")";
+        font-size: 0.8em;
+        font-weight: normal;
     }
 }

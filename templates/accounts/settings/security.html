@@ -1,0 +1,686 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Security Settings - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Settings Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <h1 class="h2 mb-1">Security Settings</h1>
+                            <p class="text-muted mb-0">
+                                Manage your account security and access controls
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Navigation -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <ul class="nav nav-tabs nav-fill" id="settingsTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="account-tab" 
+                               href="{% url 'accounts:settings' %}">
+                                <i class="fas fa-user me-2"></i>Account
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="security-tab" 
+                               href="{% url 'accounts:security_settings' %}">
+                                <i class="fas fa-shield-alt me-2"></i>Security
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="privacy-tab" 
+                               href="{% url 'accounts:privacy_settings' %}">
+                                <i class="fas fa-lock me-2"></i>Privacy
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column: Security Settings -->
+        <div class="col-lg-8">
+            <!-- Password Change -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-key me-2"></i>Change Password
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="passwordChangeForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_password">
+                        
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="id_old_password" class="form-label">Current Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" name="old_password" id="id_old_password" 
+                                           class="form-control" 
+                                           placeholder="Enter your current password" required>
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            id="toggleOldPassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="id_new_password1" class="form-label">New Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" name="new_password1" id="id_new_password1" 
+                                           class="form-control" 
+                                           placeholder="Minimum 12 characters" required>
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            id="toggleNewPassword1">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text small">
+                                    <ul class="mb-0">
+                                        <li>At least 12 characters</li>
+                                        <li>Uppercase & lowercase letters</li>
+                                        <li>Numbers & special characters</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="id_new_password2" class="form-label">Confirm New Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" name="new_password2" id="id_new_password2" 
+                                           class="form-control" 
+                                           placeholder="Re-enter new password" required>
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                            id="toggleNewPassword2">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Password Strength -->
+                            <div class="col-12">
+                                <div class="password-strength mt-2">
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar" id="passwordStrengthBar" 
+                                             style="width: 0%;"></div>
+                                    </div>
+                                    <small class="text-muted" id="passwordStrengthText">
+                                        Password strength: None
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="col-12 mt-3">
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-key me-2"></i>Change Password
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Two-Factor Authentication -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-mobile-alt me-2"></i>Two-Factor Authentication (2FA)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-8">
+                            <h6>Enhanced Security</h6>
+                            <p class="text-muted small mb-0">
+                                Add an extra layer of security to your account by requiring a verification code in addition to your password.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="enable2faToggle" style="transform: scale(1.5);">
+                                <label class="form-check-label ms-2" for="enable2faToggle">
+                                    <strong>Enable 2FA</strong>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2FA Setup Form (Hidden by default) -->
+                    <div id="twoFactorForm" style="display: none;">
+                        <form method="post" id="twoFactorFormContent">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="enable_2fa">
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="id_phone_number" class="form-label">Phone Number *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">+</span>
+                                        <input type="text" name="phone_number" id="id_phone_number" 
+                                               class="form-control" 
+                                               placeholder="1234567890">
+                                    </div>
+                                    <div class="form-text">
+                                        For receiving verification codes via SMS
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="id_backup_email" class="form-label">Backup Email</label>
+                                    <input type="email" name="backup_email" id="id_backup_email" 
+                                           class="form-control" 
+                                           placeholder="backup@example.com">
+                                    <div class="form-text">
+                                        For account recovery if you lose access
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <h6 class="alert-heading mb-2">
+                                            <i class="fas fa-info-circle me-2"></i>How it works:
+                                        </h6>
+                                        <ul class="mb-0 small">
+                                            <li>You'll receive a verification code via SMS when logging in</li>
+                                            <li>Enter the code to complete authentication</li>
+                                            <li>Backup codes will be provided for emergencies</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button type="button" class="btn btn-secondary" 
+                                                id="cancel2fa">
+                                            Cancel
+                                        </button>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-shield-alt me-2"></i>Setup 2FA
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Sessions -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-desktop me-2"></i>Active Sessions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Device</th>
+                                    <th>Location</th>
+                                    <th>Last Active</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in sessions %}
+                                <tr {% if session.current %}class="table-primary"{% endif %}>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-{{ session.device|device_icon }} me-3"></i>
+                                            <div>
+                                                <strong>{{ session.device }}</strong>
+                                                <div class="text-muted small">{{ session.browser }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div>{{ session.location }}</div>
+                                            <div class="text-muted small">{{ session.ip }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {{ session.last_active }}
+                                        {% if session.current %}
+                                        <span class="badge bg-primary ms-2">Current</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not session.current %}
+                                        <form method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="revoke_session">
+                                            <input type="hidden" name="session_key" value="{{ session.key }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-sign-out-alt"></i> Revoke
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-user-lock fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No active sessions found</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-3">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="revoke_all_sessions">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-sign-out-alt me-2"></i>Revoke All Other Sessions
+                            </button>
+                        </form>
+                        <small class="text-muted d-block mt-2">
+                            This will log you out from all devices except this one
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Security Info & Recent Logins -->
+        <div class="col-lg-4">
+            <!-- Security Status -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Security Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="security-score mb-4">
+                        <div class="score-circle">
+                            <div class="score-value">85</div>
+                            <div class="score-label">Score</div>
+                        </div>
+                        <div class="score-details">
+                            <h6>Good Security</h6>
+                            <p class="text-muted small mb-0">
+                                Your account has good security practices
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="security-checklist">
+                        <div class="checklist-item completed">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span>Strong Password</span>
+                        </div>
+                        <div class="checklist-item pending">
+                            <i class="fas fa-times-circle text-warning me-2"></i>
+                            <span>Two-Factor Authentication</span>
+                        </div>
+                        <div class="checklist-item completed">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span>Recent Password Change</span>
+                        </div>
+                        <div class="checklist-item completed">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span>Secure Email</span>
+                        </div>
+                        <div class="checklist-item completed">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span>No Suspicious Activity</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Login Activity -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Logins
+                    </h5>
+                    <span class="badge bg-primary">{{ recent_logins|length }}</span>
+                </div>
+                <div class="card-body">
+                    {% if recent_logins %}
+                    <div class="list-group list-group-flush">
+                        {% for login in recent_logins %}
+                        <div class="list-group-item border-0 px-0 py-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">{{ login.device }}</h6>
+                                    <small class="text-muted">{{ login.location }}</small>
+                                </div>
+                                <span class="badge 
+                                    {% if login.suspicious %}bg-danger{% else %}bg-success{% endif %}">
+                                    {% if login.suspicious %}Suspicious{% else %}Verified{% endif %}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ login.time }}
+                                </small>
+                                <small class="text-muted">
+                                    {{ login.ip }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-sign-in-alt fa-2x text-muted mb-2"></i>
+                        <p class="text-muted small mb-0">No recent login activity</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-file-alt me-2"></i>View Full History
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Tips -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="fas fa-lightbulb text-warning me-2"></i>Security Tips
+                    </h6>
+                    <ul class="small text-muted mb-0">
+                        <li class="mb-2">Use a unique password for each account</li>
+                        <li class="mb-2">Enable two-factor authentication</li>
+                        <li class="mb-2">Regularly review active sessions</li>
+                        <li class="mb-2">Be cautious of phishing emails</li>
+                        <li>Keep your devices updated</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Password visibility toggle
+    function setupPasswordToggle(toggleId, inputId) {
+        const toggle = document.getElementById(toggleId);
+        const input = document.getElementById(inputId);
+        
+        if (toggle && input) {
+            toggle.addEventListener('click', function() {
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('fa-eye');
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+            });
+        }
+    }
+    
+    setupPasswordToggle('toggleOldPassword', 'id_old_password');
+    setupPasswordToggle('toggleNewPassword1', 'id_new_password1');
+    setupPasswordToggle('toggleNewPassword2', 'id_new_password2');
+    
+    // Password strength indicator
+    const passwordInput = document.getElementById('id_new_password1');
+    const strengthBar = document.getElementById('passwordStrengthBar');
+    const strengthText = document.getElementById('passwordStrengthText');
+    
+    if (passwordInput && strengthBar && strengthText) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+            let text = 'None';
+            let color = '#dc3545'; // Red
+            
+            // Check length
+            if (password.length >= 12) strength += 25;
+            
+            // Check complexity
+            if (/[A-Z]/.test(password)) strength += 25;
+            if (/[a-z]/.test(password)) strength += 25;
+            if (/[0-9]/.test(password)) strength += 25;
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength += 25;
+            
+            // Cap at 100
+            strength = Math.min(strength, 100);
+            
+            // Set text and color
+            if (strength >= 80) {
+                text = 'Strong';
+                color = '#198754'; // Green
+            } else if (strength >= 60) {
+                text = 'Good';
+                color = '#0dcaf0'; // Info
+            } else if (strength >= 40) {
+                text = 'Fair';
+                color = '#ffc107'; // Warning
+            } else if (strength >= 20) {
+                text = 'Weak';
+                color = '#fd7e14'; // Orange
+            } else {
+                text = 'Very Weak';
+                color = '#dc3545'; // Red
+            }
+            
+            // Update display
+            strengthBar.style.width = strength + '%';
+            strengthBar.style.backgroundColor = color;
+            strengthText.textContent = 'Password strength: ' + text;
+        });
+    }
+    
+    // 2FA Toggle
+    const enable2faToggle = document.getElementById('enable2faToggle');
+    const twoFactorForm = document.getElementById('twoFactorForm');
+    const cancel2fa = document.getElementById('cancel2fa');
+    
+    if (enable2faToggle && twoFactorForm) {
+        enable2faToggle.addEventListener('change', function() {
+            if (this.checked) {
+                twoFactorForm.style.display = 'block';
+            } else {
+                twoFactorForm.style.display = 'none';
+            }
+        });
+    }
+    
+    if (cancel2fa && enable2faToggle) {
+        cancel2fa.addEventListener('click', function() {
+            twoFactorForm.style.display = 'none';
+            enable2faToggle.checked = false;
+        });
+    }
+    
+    // Form validation
+    const passwordForm = document.getElementById('passwordChangeForm');
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', function(e) {
+            const newPassword1 = document.getElementById('id_new_password1').value;
+            const newPassword2 = document.getElementById('id_new_password2').value;
+            
+            if (newPassword1 !== newPassword2) {
+                e.preventDefault();
+                alert('New passwords do not match!');
+                return;
+            }
+            
+            if (newPassword1.length < 12) {
+                e.preventDefault();
+                alert('Password must be at least 12 characters long!');
+                return;
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.nav-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    padding: 1rem;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #0d6efd;
+    background-color: #f8f9fa;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    background-color: transparent;
+    border-bottom: 3px solid #0d6efd;
+}
+
+/* Security Score */
+.security-score {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.score-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #198754 0%, #0d6efd 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.score-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.score-label {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+.score-details h6 {
+    margin-bottom: 0.25rem;
+}
+
+.score-details p {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+/* Security Checklist */
+.security-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+}
+
+.checklist-item.completed {
+    color: #198754;
+}
+
+.checklist-item.pending {
+    color: #ffc107;
+}
+
+/* List Group Items */
+.list-group-item {
+    transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.list-group-item:not(:last-child) {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Password Strength */
+.password-strength .progress {
+    background-color: #e9ecef;
+}
+
+.password-strength small {
+    font-size: 0.8rem;
+}
+
+/* Table Styling */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #6c757d;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+.table-primary {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+}
+
+/* Form Switch */
+.form-switch .form-check-input {
+    width: 3em;
+    height: 1.5em;
+}
+
+/* Device Icons */
+.fa-desktop { color: #0d6efd; }
+.fa-mobile-alt { color: #198754; }
+.fa-tablet-alt { color: #6c757d; }
+.fa-laptop { color: #0dcaf0; }
+</style>
+{% endblock %}

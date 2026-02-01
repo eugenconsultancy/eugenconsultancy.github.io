@@ -37,36 +37,33 @@ class BlogHomeView(ListView):
     template_name = 'blog/home.html'
     context_object_name = 'posts'
     paginate_by = 10
-    
+
     def get_queryset(self):
-        queryset = BlogPost.objects.filter(
+        # Return a CLEAN, unsliced queryset for the paginator to use
+        return BlogPost.objects.filter(
             status=BlogPost.PostStatus.PUBLISHED,
             published_at__lte=timezone.now()
-        ).select_related('author', 'category').prefetch_related('tags')
-        
-        # Get featured posts (first 3)
-        featured_posts = list(queryset[:3])
-        
-        # Get remaining posts
-        remaining_posts = list(queryset[3:])
-        
-        return {'featured': featured_posts, 'latest': remaining_posts}
-    
+        ).select_related('author', 'category').prefetch_related('tags').order_by('-published_at')
+
     def get_context_data(self, **kwargs):
+        # 1. Get the standard context (this includes 'posts' and 'page_obj')
         context = super().get_context_data(**kwargs)
+        
+        # 2. Extract featured posts from the queryset (top 3 overall)
+        # We do this separately so it doesn't interfere with the pagination of 'posts'
+        all_published = self.get_queryset()
+        context['featured_posts'] = all_published[:3]
+        
+        # 3. Sidebar data
         context['categories'] = BlogCategory.objects.filter(is_active=True).annotate(
             post_count=Count('posts')
         ).order_by('-post_count')[:10]
         
-        # Get popular posts (by views)
-        context['popular_posts'] = BlogPost.objects.filter(
-            status=BlogPost.PostStatus.PUBLISHED,
-            published_at__lte=timezone.now()
-        ).order_by('-view_count')[:5]
-        
+        context['popular_posts'] = all_published.order_by('-view_count')[:5]
         context['search_form'] = BlogSearchForm()
+        
         return context
-
+    
 
 class BlogPostDetailView(DetailView):
     """Detail view for a blog post"""

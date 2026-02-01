@@ -1,323 +1,249 @@
-{% extends 'base/base.html' %}
-{% load static %}
+{% extends 'ai_tools/base.html' %}
 
-{% block title %}Outline Helper - AI Writing Assistant | EBWriting{% endblock %}
-{% block meta_description %}Generate structured outlines for academic papers with AI assistance. Templates for essays, research papers, and more.{% endblock %}
-
-{% block extra_head %}
-<style>
-.outline-section {
-    border-left: 4px solid #4e73df;
-    padding-left: 1rem;
-    margin-bottom: 1.5rem;
-}
-.section-card {
-    transition: all 0.3s;
-    border: 1px solid #e3e6f0;
-}
-.section-card:hover {
-    border-color: #4e73df;
-    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-}
-.word-count-badge {
-    font-size: 0.75rem;
-}
-.timeline-step {
-    border-left: 2px solid #4e73df;
-    padding-left: 1.5rem;
-    position: relative;
-}
-.timeline-step:before {
-    content: '';
-    position: absolute;
-    left: -6px;
-    top: 0;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #4e73df;
-}
-.disclaimer-alert {
-    border-left: 4px solid #f6c23e;
-}
-</style>
-{% endblock %}
+{% block title %}Outline Helper - AI Tools{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a href="{% url 'ai_tools:dashboard' %}">AI Tools</a>
-                    </li>
-                    <li class="breadcrumb-item active">Outline Helper</li>
-                </ol>
-            </nav>
-            
-            <h1 class="h2 fw-bold mb-3">Outline Helper</h1>
-            <p class="lead text-muted">
-                Generate structured outlines for your academic papers. Select a template and customize as needed.
-            </p>
-        </div>
-    </div>
-
-    <!-- Disclaimer Alert -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="alert alert-warning disclaimer-alert" role="alert">
-                <div class="d-flex">
-                    <div class="me-3">
-                        <i class="fas fa-exclamation-triangle fa-2x"></i>
-                    </div>
+<div class="row">
+    <!-- Tool Header -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h4 class="alert-heading">Important Notice</h4>
-                        <p class="mb-1">
-                            This tool generates <strong>outlines only</strong>. You must:
+                        <h1 class="card-title">
+                            <i class="fas fa-sitemap text-success"></i> Outline Helper
+                        </h1>
+                        <p class="card-text">
+                            Generate structured outlines for academic papers. Uses templates from 
+                            <code>AIToolTemplate</code> model to create appropriate structures.
                         </p>
-                        <ul class="mb-0">
-                            <li>Conduct your own research</li>
-                            <li>Write all content yourself</li>
-                            <li>Properly cite all sources</li>
-                            <li>Review with your instructor if required</li>
-                        </ul>
+                    </div>
+                    <div class="text-end">
+                        <div class="badge bg-success fs-6">
+                            {{ user_limits.tools.outline_helper.remaining }}/{{ user_limits.tools.outline_helper.daily_limit }} uses left
+                        </div>
+                        <div>
+                            <small class="text-muted">Max input: {{ user_limits.tools.outline_helper.max_input_length }} chars</small>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Input Form -->
-        <div class="col-lg-4 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-cogs me-2"></i>
-                        Generate Outline
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form id="outline-form">
-                        {% csrf_token %}
-                        
-                        <!-- Topic -->
-                        <div class="mb-3">
-                            <label for="topic" class="form-label">
-                                <strong>Topic</strong>
-                                <span class="text-danger">*</span>
-                            </label>
-                            <textarea id="topic" name="topic" class="form-control" 
-                                      rows="3" placeholder="Enter your paper topic..."
-                                      required minlength="10" maxlength="200"></textarea>
-                            <div class="form-text">
-                                Be specific about what you want to write about (10-200 characters)
-                            </div>
+    <!-- Main Form -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-edit"></i> Generate Outline
+            </div>
+            <div class="card-body">
+                <form id="outlineForm">
+                    {% csrf_token %}
+                    
+                    <!-- Topic -->
+                    <div class="mb-3">
+                        <label for="topic" class="form-label">
+                            <i class="fas fa-book"></i> Paper Topic *
+                        </label>
+                        <input type="text" class="form-control" id="topic" name="topic" 
+                               required maxlength="200" minlength="10"
+                               placeholder="Enter your paper topic (10-200 characters)">
+                        <div class="form-text">
+                            Example: "The Impact of Climate Change on Coastal Ecosystems"
                         </div>
-                        
-                        <!-- Template Type -->
-                        <div class="mb-3">
+                    </div>
+
+                    <!-- Template Type -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
                             <label for="template_type" class="form-label">
-                                <strong>Paper Type</strong>
+                                <i class="fas fa-file-alt"></i> Paper Type
                             </label>
-                            <select id="template_type" name="template_type" class="form-select">
-                                <option value="essay">Essay</option>
-                                <option value="research_paper">Research Paper</option>
-                                <option value="thesis">Thesis/Dissertation</option>
-                                <option value="literature_review">Literature Review</option>
-                                <option value="case_study">Case Study</option>
-                                <option value="lab_report">Lab Report</option>
+                            <select class="form-select" id="template_type" name="template_type">
+                                {% for template in templates %}
+                                    <option value="{{ template.template_type }}">
+                                        {{ template.get_template_type_display }}
+                                    </option>
+                                {% endfor %}
                             </select>
                         </div>
-                        
-                        <!-- Academic Level -->
-                        <div class="mb-3">
+                        <div class="col-md-6">
                             <label for="academic_level" class="form-label">
-                                <strong>Academic Level</strong>
+                                <i class="fas fa-graduation-cap"></i> Academic Level
                             </label>
-                            <select id="academic_level" name="academic_level" class="form-select">
+                            <select class="form-select" id="academic_level" name="academic_level">
                                 <option value="high_school">High School</option>
                                 <option value="undergraduate" selected>Undergraduate</option>
                                 <option value="graduate">Graduate</option>
                                 <option value="phd">PhD</option>
                             </select>
                         </div>
-                        
-                        <!-- Word Count -->
-                        <div class="mb-4">
-                            <label for="word_count_target" class="form-label">
-                                <strong>Target Word Count</strong>
-                            </label>
-                            <input type="range" id="word_count_target" name="word_count_target" 
-                                   class="form-range" min="300" max="10000" step="100" value="1500">
-                            <div class="d-flex justify-content-between">
-                                <small>300</small>
-                                <small id="word-count-display">1,500 words</small>
-                                <small>10,000</small>
+                    </div>
+
+                    <!-- Word Count -->
+                    <div class="mb-3">
+                        <label for="word_count_target" class="form-label">
+                            <i class="fas fa-ruler"></i> Target Word Count
+                        </label>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <input type="range" class="form-range" id="word_count_slider" 
+                                       min="300" max="10000" step="100" value="1500">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="number" class="form-control" id="word_count_target" 
+                                       name="word_count_target" min="300" max="10000" value="1500">
                             </div>
                         </div>
-                        
-                        <!-- Usage Info -->
-                        <div class="alert alert-info mb-4">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <div>
-                                    <small class="d-block">
-                                        Uses remaining today: 
-                                        <span id="remaining-uses" class="fw-bold">
-                                            {{ user_limits.tools.outline_helper.remaining|default:0 }}
-                                        </span>
-                                    </small>
-                                    <small class="d-block">
-                                        Daily limit: {{ user_limits.tools.outline_helper.daily_limit|default:10 }}
-                                    </small>
-                                </div>
-                            </div>
+                        <div class="form-text">
+                            Recommended: 1500 words for essays, 3000+ for research papers
                         </div>
-                        
-                        <!-- Submit Button -->
-                        <button type="submit" id="generate-btn" class="btn btn-primary w-100">
-                            <i class="fas fa-magic me-2"></i>
-                            Generate Outline
+                    </div>
+
+                    <!-- Generate Button -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg" id="generateBtn">
+                            <i class="fas fa-magic"></i> Generate Outline
                         </button>
-                    </form>
-                </div>
+                        <div class="form-text text-center">
+                            This will use 1 of your {{ user_limits.tools.outline_helper.daily_limit }} daily uses
+                        </div>
+                    </div>
+                </form>
             </div>
-            
-            <!-- Quick Tips -->
-            <div class="card border-0 shadow-sm mt-4">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0">
-                        <i class="fas fa-lightbulb me-2"></i>
-                        Quick Tips
-                    </h6>
+        </div>
+
+        <!-- Results Container -->
+        <div id="resultsContainer" class="mt-4" style="display: none;">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-sitemap"></i> Generated Outline
                 </div>
                 <div class="card-body">
-                    <ul class="mb-0 small">
-                        <li class="mb-2">Be specific in your topic for better results</li>
-                        <li class="mb-2">Choose the template that matches your assignment</li>
-                        <li class="mb-2">Adjust word count based on requirements</li>
-                        <li class="mb-2">Customize the generated outline as needed</li>
-                        <li class="mb-0">Use this as a starting point only</li>
-                    </ul>
+                    <div id="outlineResults"></div>
                 </div>
             </div>
         </div>
-        
-        <!-- Results Area -->
-        <div class="col-lg-8">
-            <div id="loading-spinner" class="text-center py-5" style="display: none;">
-                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                    <span class="visually-hidden">Generating outline...</span>
-                </div>
-                <p class="mt-3">Generating your outline...</p>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4 mb-4">
+        <!-- Templates Info -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-th-list"></i> Available Templates
             </div>
-            
-            <div id="results-area" style="display: none;">
-                <!-- Outline Header -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="fas fa-project-diagram me-2"></i>
-                            Generated Outline
-                        </h5>
-                        <div>
-                            <button id="copy-outline" class="btn btn-sm btn-light me-2">
-                                <i class="fas fa-copy me-1"></i> Copy
-                            </button>
-                            <button id="download-outline" class="btn btn-sm btn-light">
-                                <i class="fas fa-download me-1"></i> Download
-                            </button>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for template in templates %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ template.name }}</h6>
+                            <small class="text-muted">{{ template.academic_level|title }}</small>
                         </div>
+                        <p class="mb-1 small">
+                            <i class="fas fa-layer-group"></i> 
+                            {{ template.sections|length }} sections
+                        </p>
+                        <small class="text-muted">{{ template.guidelines|truncatechars:60 }}</small>
                     </div>
-                    <div class="card-body">
-                        <!-- Outline Info -->
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <div class="text-center p-3 border rounded">
-                                    <div class="h4 mb-1" id="outline-word-count">0</div>
-                                    <small class="text-muted">Target Words</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="text-center p-3 border rounded">
-                                    <div class="h4 mb-1" id="outline-sections">0</div>
-                                    <small class="text-muted">Sections</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="text-center p-3 border rounded">
-                                    <div class="h4 mb-1" id="outline-template">-</div>
-                                    <small class="text-muted">Template</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Topic Display -->
-                        <div class="alert alert-light mb-4">
-                            <h6 class="mb-1">Topic:</h6>
-                            <p class="mb-0 fw-bold" id="display-topic"></p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Outline Sections -->
-                <div id="outline-sections-container" class="mb-4">
-                    <!-- Sections will be populated here -->
-                </div>
-                
-                <!-- Writing Guidance -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-book-open me-2"></i>
-                            Writing Guidance
-                        </h5>
-                    </div>
-                    <div class="card-body" id="guidance-container">
-                        <!-- Guidance will be populated here -->
-                    </div>
-                </div>
-                
-                <!-- Timeline Suggestions -->
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">
-                            <i class="fas fa-calendar-alt me-2"></i>
-                            Timeline Suggestions
-                        </h5>
-                    </div>
-                    <div class="card-body" id="timeline-container">
-                        <!-- Timeline will be populated here -->
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
-            
-            <!-- Initial State -->
-            <div id="initial-state" class="text-center py-5">
-                <div class="mb-4">
-                    <i class="fas fa-project-diagram fa-4x text-muted"></i>
-                </div>
-                <h4 class="mb-3">Ready to Generate an Outline</h4>
-                <p class="text-muted mb-4">
-                    Fill out the form on the left to generate a structured outline for your academic paper.
+        </div>
+
+        <!-- Usage Info -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <i class="fas fa-info-circle"></i> How It Works
+            </div>
+            <div class="card-body">
+                <p class="card-text small">
+                    <strong>Outline Helper Service:</strong> 
+                    Uses <code>OutlineHelperService</code> class from services to generate 
+                    outlines based on <code>AIToolTemplate</code> models.
                 </p>
-                <div class="row justify-content-center">
-                    <div class="col-md-8">
-                        <div class="alert alert-light">
-                            <h6 class="mb-2">How it works:</h6>
-                            <ol class="text-start small mb-0">
-                                <li class="mb-1">Enter your topic and select paper type</li>
-                                <li class="mb-1">Choose academic level and word count</li>
-                                <li class="mb-1">Click "Generate Outline"</li>
-                                <li class="mb-1">Review and customize the outline</li>
-                                <li>Use it as a starting point for your research and writing</li>
-                            </ol>
-                        </div>
-                    </div>
+                <ul class="small">
+                    <li>Processes through <code>OutlineHelperView</code> in views.py</li>
+                    <li>Validates using <code>OutlineRequestSerializer</code></li>
+                    <li>Logs usage in <code>AIToolUsageLog</code> model</li>
+                    <li>Updates <code>UserAILimits</code> via signals</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quick Tips -->
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <i class="fas fa-lightbulb"></i> Tips for Using Outlines
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success"></i>
+                        Use outline as a starting point only
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success"></i>
+                        Adjust sections to fit your research
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success"></i>
+                        Add your own key points and evidence
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success"></i>
+                        Consult with your instructor if unsure
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success"></i>
+                        Always cite sources properly
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disclaimer Modal -->
+<div class="modal fade" id="disclaimerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Important Disclaimer
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>⚠️ This is an ASSISTIVE tool only - not a full paper generator</strong>
                 </div>
+                <p>You must:</p>
+                <ol>
+                    <li>Conduct your own research using academic sources</li>
+                    <li>Develop original arguments and analysis</li>
+                    <li>Write all content yourself in your own words</li>
+                    <li>Properly cite all sources using academic standards</li>
+                    <li>Review the outline with your instructor if required</li>
+                </ol>
+                <p class="mb-0">
+                    <strong>Academic Integrity:</strong> Using AI tools to generate complete papers 
+                    or bypass the learning process violates academic integrity policies. All usage 
+                    is logged in <code>AIToolUsageLog</code> for monitoring.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="agreeDisclaimer">
+                    <label class="form-check-label" for="agreeDisclaimer">
+                        I understand and agree to use this tool responsibly
+                    </label>
+                </div>
+                <button type="button" class="btn btn-success" id="acceptDisclaimer" disabled>
+                    Accept and Continue
+                </button>
             </div>
         </div>
     </div>
@@ -326,273 +252,164 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('outline-form');
-    const wordCountSlider = document.getElementById('word_count_target');
-    const wordCountDisplay = document.getElementById('word-count-display');
-    const generateBtn = document.getElementById('generate-btn');
-    const loadingSpinner = document.getElementById('loading-spinner');
-    const resultsArea = document.getElementById('results-area');
-    const initialState = document.getElementById('initial-state');
+$(document).ready(function() {
+    // Link slider and input
+    $('#word_count_slider').on('input', function() {
+        $('#word_count_target').val($(this).val());
+    });
     
-    // Update word count display
-    function updateWordCountDisplay() {
-        const wordCount = parseInt(wordCountSlider.value);
-        wordCountDisplay.textContent = wordCount.toLocaleString() + ' words';
+    $('#word_count_target').on('input', function() {
+        $('#word_count_slider').val($(this).val());
+    });
+
+    // Show disclaimer on first use
+    if (!localStorage.getItem('outlineDisclaimerAccepted')) {
+        $('#disclaimerModal').modal('show');
     }
-    
-    wordCountSlider.addEventListener('input', updateWordCountDisplay);
-    updateWordCountDisplay(); // Initial display
-    
+
+    $('#agreeDisclaimer').change(function() {
+        $('#acceptDisclaimer').prop('disabled', !$(this).is(':checked'));
+    });
+
+    $('#acceptDisclaimer').click(function() {
+        localStorage.setItem('outlineDisclaimerAccepted', 'true');
+        $('#disclaimerModal').modal('hide');
+    });
+
     // Form submission
-    form.addEventListener('submit', async function(e) {
+    $('#outlineForm').submit(function(e) {
         e.preventDefault();
         
-        // Check if user has remaining uses
-        const remainingUses = parseInt(document.getElementById('remaining-uses').textContent);
-        if (remainingUses <= 0) {
-            alert('You have reached your daily limit for this tool.');
+        if (!localStorage.getItem('outlineDisclaimerAccepted')) {
+            $('#disclaimerModal').modal('show');
             return;
         }
-        
-        // Show loading, hide other content
-        loadingSpinner.style.display = 'block';
-        resultsArea.style.display = 'none';
-        initialState.style.display = 'none';
-        
-        // Get form data
+
+        // Disable button and show loading
+        const btn = $('#generateBtn');
+        const originalText = btn.html();
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Generating...');
+
+        // Collect form data
         const formData = {
-            topic: document.getElementById('topic').value,
-            template_type: document.getElementById('template_type').value,
-            academic_level: document.getElementById('academic_level').value,
-            word_count_target: parseInt(wordCountSlider.value),
+            topic: $('#topic').val(),
+            template_type: $('#template_type').val(),
+            academic_level: $('#academic_level').val(),
+            word_count_target: $('#word_count_target').val(),
         };
-        
-        try {
-            const response = await fetch('{% url "ai_tools:outline_helper" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify(formData)
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                // Update remaining uses
-                document.getElementById('remaining-uses').textContent = 
-                    data.limits.tools.outline_helper.remaining;
-                
-                // Display results
-                displayOutlineResults(data.result);
-                
-                // Show results area
-                loadingSpinner.style.display = 'none';
-                resultsArea.style.display = 'block';
-            } else {
-                throw new Error(data.error || 'Failed to generate outline');
+
+        // Send request via AJAX (matches OutlineHelperView.post())
+        $.ajax({
+            url: "{% url 'ai_tools:outline_helper' %}",
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            headers: {
+                'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    displayResults(response.result);
+                    updateUsageDisplay(response.limits);
+                } else {
+                    showError(response.error);
+                }
+                btn.prop('disabled', false).html(originalText);
+            },
+            error: function(xhr) {
+                showError('Error: ' + xhr.responseText);
+                btn.prop('disabled', false).html(originalText);
             }
-        } catch (error) {
-            loadingSpinner.style.display = 'none';
-            initialState.style.display = 'block';
-            alert('Error: ' + error.message);
-        }
-    });
-    
-    // Copy outline button
-    document.getElementById('copy-outline')?.addEventListener('click', function() {
-        // Create text to copy
-        const outlineText = createOutlineText();
-        navigator.clipboard.writeText(outlineText).then(() => {
-            const originalText = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
-            setTimeout(() => {
-                this.innerHTML = originalText;
-            }, 2000);
         });
     });
-    
-    // Download outline button
-    document.getElementById('download-outline')?.addEventListener('click', function() {
-        const outlineText = createOutlineText();
-        const blob = new Blob([outlineText], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'outline.txt';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    });
-});
 
-function displayOutlineResults(result) {
-    // Update header info
-    document.getElementById('outline-word-count').textContent = 
-        result.metadata.word_count_target.toLocaleString();
-    document.getElementById('outline-sections').textContent = 
-        result.metadata.estimated_sections;
-    document.getElementById('outline-template').textContent = 
-        result.template_used;
-    document.getElementById('display-topic').textContent = 
-        result.outline.topic;
-    
-    // Display sections
-    const sectionsContainer = document.getElementById('outline-sections-container');
-    sectionsContainer.innerHTML = '';
-    
-    result.outline.sections.forEach((section, index) => {
-        const sectionHtml = `
-            <div class="card section-card mb-3">
-                <div class="card-header bg-light">
-                    <h6 class="mb-0">
-                        <span class="badge bg-primary word-count-badge me-2">
-                            ${section.suggested_word_count.toLocaleString()} words
-                        </span>
-                        ${section.section_number}. ${section.title}
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <h6 class="text-muted mb-2">Guidance:</h6>
-                            <p class="small mb-3">${section.guidance}</p>
-                            
-                            <h6 class="text-muted mb-2">Key Points to Cover:</h6>
-                            <ul class="small mb-0">
+    function displayResults(result) {
+        let html = `
+            <div class="alert alert-info">
+                <h5><i class="fas fa-file-alt"></i> ${result.topic}</h5>
+                <p>
+                    <strong>Template:</strong> ${result.template_used}<br>
+                    <strong>Target Words:</strong> ${result.metadata.word_count_target}<br>
+                    <strong>Sections:</strong> ${result.metadata.estimated_sections}
+                </p>
+            </div>
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                ${result.disclaimer.replace(/\n/g, '<br>')}
+            </div>
+        `;
+
+        // Add sections
+        if (result.outline && result.outline.sections) {
+            html += '<h5><i class="fas fa-layer-group"></i> Outline Structure</h5>';
+            result.outline.sections.forEach((section, index) => {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <strong>${section.section_number}. ${section.title}</strong>
+                            <span class="badge bg-secondary float-end">${section.suggested_word_count} words</span>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Guidance:</strong> ${section.guidance}</p>
+                            ${section.thesis_statement ? `<p><strong>Thesis Prompt:</strong> ${section.thesis_statement}</p>` : ''}
+                            <p><strong>Key Points to Consider:</strong></p>
+                            <ul>
                                 ${section.key_points.map(point => `<li>${point}</li>`).join('')}
                             </ul>
                         </div>
-                        <div class="col-md-4">
-                            <h6 class="text-muted mb-2">Suggested Structure:</h6>
-                            <ul class="small">
-                                ${section.suggested_structure.map(item => `<li>${item}</li>`).join('')}
-                            </ul>
-                            
-                            ${section.thesis_statement ? `
-                            <h6 class="text-muted mb-2 mt-3">Thesis Statement:</h6>
-                            <p class="small fst-italic">"${section.thesis_statement}"</p>
-                            ` : ''}
-                            
-                            ${section.hook_suggestions ? `
-                            <h6 class="text-muted mb-2 mt-3">Hook Suggestions:</h6>
-                            <ul class="small">
-                                ${section.hook_suggestions.map(hook => `<li>${hook}</li>`).join('')}
-                            </ul>
-                            ` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        // Add guidance
+        if (result.guidance) {
+            html += `
+                <div class="card mt-4">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-graduation-cap"></i> Writing Guidance
+                    </div>
+                    <div class="card-body">
+                        <p><strong>General Guidelines:</strong> ${result.guidance.general_guidelines}</p>
+                        <p><strong>Common Mistakes:</strong> ${result.guidance.common_mistakes}</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Research Suggestions:</h6>
+                                <ul>
+                                    ${result.guidance.research_suggestions.map(item => `<li>${item}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Writing Tips:</h6>
+                                <ul>
+                                    ${result.guidance.writing_tips.map(tip => `<li>${tip}</li>`).join('')}
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
-        sectionsContainer.innerHTML += sectionHtml;
-    });
-    
-    // Display guidance
-    const guidanceContainer = document.getElementById('guidance-container');
-    guidanceContainer.innerHTML = `
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <h6 class="text-muted mb-2">General Guidelines:</h6>
-                <p class="small">${result.guidance.general_guidelines}</p>
-            </div>
-            <div class="col-md-6 mb-3">
-                <h6 class="text-muted mb-2">Common Mistakes to Avoid:</h6>
-                <p class="small">${result.guidance.common_mistakes}</p>
-            </div>
-        </div>
-        
-        <h6 class="text-muted mb-2">Research Suggestions:</h6>
-        <ul class="small">
-            ${result.guidance.research_suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
-        </ul>
-        
-        <h6 class="text-muted mb-2 mt-3">Writing Tips:</h6>
-        <ul class="small">
-            ${result.guidance.writing_tips.map(tip => `<li>${tip}</li>`).join('')}
-        </ul>
-        
-        <h6 class="text-muted mb-2 mt-3">Plagiarism Warnings:</h6>
-        <ul class="small">
-            ${result.guidance.plagiarism_warnings.map(warning => `<li>${warning}</li>`).join('')}
-        </ul>
-    `;
-    
-    // Display timeline
-    const timelineContainer = document.getElementById('timeline-container');
-    timelineContainer.innerHTML = `
-        <div class="timeline-step mb-4">
-            <h6 class="mb-1">Research Phase</h6>
-            <p class="small mb-1 text-muted">${result.outline.timeline_suggestions.research_phase}</p>
-            <p class="small mb-0">Gather sources, read literature, take notes</p>
-        </div>
-        
-        <div class="timeline-step mb-4">
-            <h6 class="mb-1">Outlining Phase</h6>
-            <p class="small mb-1 text-muted">${result.outline.timeline_suggestions.outlining_phase}</p>
-            <p class="small mb-0">Develop structure, organize ideas, create outline</p>
-        </div>
-        
-        <div class="timeline-step mb-4">
-            <h6 class="mb-1">Drafting Phase</h6>
-            <p class="small mb-1 text-muted">${result.outline.timeline_suggestions.drafting_phase}</p>
-            <p class="small mb-0">Write first draft following the outline</p>
-        </div>
-        
-        <div class="timeline-step">
-            <h6 class="mb-1">Revision Phase</h6>
-            <p class="small mb-1 text-muted">${result.outline.timeline_suggestions.revision_phase}</p>
-            <p class="small mb-0">Revise, edit, proofread, format citations</p>
-        </div>
-        
-        <div class="mt-4 p-3 bg-light rounded">
-            <h6 class="mb-2">Total Estimated Time:</h6>
-            <p class="mb-0">${result.outline.timeline_suggestions.total_estimated_days} days 
-            (approx. ${result.guidance.time_management})</p>
-        </div>
-    `;
-    
-    // Display disclaimer
-    const disclaimerHtml = `
-        <div class="alert alert-warning mt-4">
-            <h6 class="alert-heading">⚠️ IMPORTANT:</h6>
-            <p class="small mb-0">${result.disclaimer}</p>
-        </div>
-    `;
-    sectionsContainer.innerHTML += disclaimerHtml;
-}
+            `;
+        }
 
-function createOutlineText() {
-    // Create a plain text version of the outline
-    let text = 'OUTLINE\n';
-    text += '='.repeat(50) + '\n\n';
-    
-    // Add topic
-    const topic = document.getElementById('display-topic')?.textContent || '';
-    text += `Topic: ${topic}\n\n`;
-    
-    // Add sections
-    const sections = document.querySelectorAll('.section-card');
-    sections.forEach(section => {
-        const title = section.querySelector('.card-header h6')?.textContent || '';
-        text += `${title}\n`;
-        
-        const guidance = section.querySelector('.col-md-8 p.small')?.textContent || '';
-        text += `Guidance: ${guidance}\n`;
-        
-        text += 'Key Points:\n';
-        const points = section.querySelectorAll('.col-md-8 ul.small li');
-        points.forEach(point => {
-            text += `  • ${point.textContent}\n`;
-        });
-        
-        text += '\n';
-    });
-    
-    return text;
-}
+        $('#outlineResults').html(html);
+        $('#resultsContainer').show();
+        $('html, body').animate({ scrollTop: $('#resultsContainer').offset().top }, 500);
+    }
+
+    function showError(error) {
+        $('#resultsContainer').html(`
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> ${error}
+            </div>
+        `).show();
+    }
+
+    function updateUsageDisplay(limits) {
+        if (limits.tools && limits.tools.outline_helper) {
+            const tool = limits.tools.outline_helper;
+            $('.badge.bg-success.fs-6').text(tool.remaining + '/' + tool.daily_limit + ' uses left');
+        }
+    }
+});
 </script>
 {% endblock %}

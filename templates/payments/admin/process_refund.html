@@ -1,0 +1,891 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Process Refund - {{ refund.reference_number }} - Admin - EBWriting{% endblock %}
+
+{% block extra_css %}
+<style>
+    .refund-summary-card {
+        border-radius: 10px;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+    }
+    .refund-timeline {
+        border-left: 2px solid #dee2e6;
+        padding-left: 1.5rem;
+        margin-left: 10px;
+    }
+    .timeline-step {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    .timeline-step::before {
+        content: '';
+        position: absolute;
+        left: -1.7rem;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #6c757d;
+        border: 2px solid white;
+    }
+    .timeline-step.completed::before {
+        background-color: #28a745;
+    }
+    .timeline-step.current::before {
+        background-color: #007bff;
+        animation: pulse 2s infinite;
+    }
+    .timeline-step.rejected::before {
+        background-color: #dc3545;
+    }
+    .action-buttons .btn {
+        min-width: 120px;
+    }
+    .amount-highlight {
+        font-size: 2rem;
+        font-weight: bold;
+        text-align: center;
+        margin: 1rem 0;
+    }
+    .refund-success {
+        color: #28a745;
+    }
+    .refund-warning {
+        color: #ffc107;
+    }
+    .refund-danger {
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">Admin</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin:payments_refund_changelist' %}">Refunds</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Process Refund</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h2 mb-1">
+                        <i class="fas fa-undo text-primary me-2"></i>
+                        Process Refund
+                    </h1>
+                    <p class="text-muted">Reference: {{ refund.reference_number }}</p>
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'admin:payments_refund_change' refund.id %}" 
+                       class="btn btn-outline-secondary" target="_blank">
+                        <i class="fas fa-edit me-1"></i> Edit
+                    </a>
+                    <a href="{% url 'payments:admin_escrow' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Escrow
+                    </a>
+                </div>
+            </div>
+
+            <!-- Status Alert -->
+            <div class="alert 
+                {% if refund.state == 'requested' %}alert-warning
+                {% elif refund.state == 'approved' %}alert-success
+                {% elif refund.state == 'rejected' %}alert-danger
+                {% else %}alert-info{% endif %}">
+                <div class="d-flex align-items-center">
+                    <i class="fas 
+                        {% if refund.state == 'requested' %}fa-clock
+                        {% elif refund.state == 'approved' %}fa-check-circle
+                        {% elif refund.state == 'rejected' %}fa-times-circle
+                        {% else %}fa-info-circle{% endif %} 
+                        me-3 fa-2x"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">
+                            Refund Status: {{ refund.get_state_display|upper }}
+                        </h5>
+                        <p class="mb-0">
+                            Requested by {{ refund.requested_by.get_full_name }} 
+                            on {{ refund.requested_at|date:"F d, Y" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="row">
+                <!-- Left Column - Details & Actions -->
+                <div class="col-lg-8">
+                    <!-- Refund Timeline -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history me-2"></i>
+                                Refund Timeline
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="refund-timeline">
+                                <!-- Requested -->
+                                <div class="timeline-step completed">
+                                    <h6 class="mb-1">Requested</h6>
+                                    <p class="text-muted mb-2 small">
+                                        Client requested refund for order #{{ order.order_number }}
+                                    </p>
+                                    <small class="text-muted">
+                                        {{ refund.requested_at|date:"F d, Y H:i" }}
+                                    </small>
+                                </div>
+
+                                <!-- Under Review -->
+                                <div class="timeline-step {% if refund.state == 'under_review' %}current{% elif refund.state != 'requested' %}completed{% endif %}">
+                                    <h6 class="mb-1">
+                                        {% if refund.state == 'requested' %}Pending Review
+                                        {% else %}Under Review{% endif %}
+                                    </h6>
+                                    <p class="text-muted mb-2 small">
+                                        {% if refund.state == 'requested' %}
+                                        Waiting for admin review
+                                        {% elif refund.reviewed_at %}
+                                        Reviewed by {{ refund.processed_by.get_full_name }}
+                                        {% else %}
+                                        Currently being reviewed
+                                        {% endif %}
+                                    </p>
+                                    {% if refund.reviewed_at %}
+                                    <small class="text-muted">
+                                        {{ refund.reviewed_at|date:"F d, Y H:i" }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Decision -->
+                                {% if refund.state in 'approved rejected' %}
+                                <div class="timeline-step {% if refund.state == 'approved' %}completed{% else %}rejected{% endif %}">
+                                    <h6 class="mb-1">
+                                        {% if refund.state == 'approved' %}Approved{% else %}Rejected{% endif %}
+                                    </h6>
+                                    <p class="text-muted mb-2 small">
+                                        {% if refund.state == 'approved' %}
+                                        Refund approved for processing
+                                        {% else %}
+                                        Refund request rejected
+                                        {% endif %}
+                                    </p>
+                                    {% if refund.approved_at or refund.rejected_at %}
+                                    <small class="text-muted">
+                                        {% if refund.approved_at %}
+                                        {{ refund.approved_at|date:"F d, Y H:i" }}
+                                        {% else %}
+                                        {{ refund.rejected_at|date:"F d, Y H:i" }}
+                                        {% endif %}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                <!-- Processing -->
+                                {% if refund.state == 'processing' %}
+                                <div class="timeline-step current">
+                                    <h6 class="mb-1">Processing</h6>
+                                    <p class="text-muted mb-2 small">
+                                        Refund being processed through payment gateway
+                                    </p>
+                                    {% if refund.processing_started_at %}
+                                    <small class="text-muted">
+                                        Started: {{ refund.processing_started_at|date:"F d, Y H:i" }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                <!-- Completed/Failed -->
+                                {% if refund.state in 'completed failed' %}
+                                <div class="timeline-step {% if refund.state == 'completed' %}completed{% else %}rejected{% endif %}">
+                                    <h6 class="mb-1">
+                                        {% if refund.state == 'completed' %}Completed{% else %}Failed{% endif %}
+                                    </h6>
+                                    <p class="text-muted mb-2 small">
+                                        {% if refund.state == 'completed' %}
+                                        Refund successfully processed
+                                        {% else %}
+                                        Refund processing failed
+                                        {% endif %}
+                                    </p>
+                                    {% if refund.completed_at or refund.failed_at %}
+                                    <small class="text-muted">
+                                        {% if refund.completed_at %}
+                                        {{ refund.completed_at|date:"F d, Y H:i" }}
+                                        {% else %}
+                                        {{ refund.failed_at|date:"F d, Y H:i" }}
+                                        {% endif %}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Refund Actions -->
+                    {% if refund.state in 'requested under_review approved' %}
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cogs me-2"></i>
+                                Refund Actions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" id="refundActionForm">
+                                {% csrf_token %}
+                                
+                                {% if refund.state == 'requested' %}
+                                <!-- Review Options -->
+                                <div class="mb-4">
+                                    <h6 class="mb-3">Review Decision</h6>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-check h-100">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="action" id="action_approve" 
+                                                       value="approve" checked>
+                                                <label class="form-check-label h-100 d-flex flex-column" 
+                                                       for="action_approve">
+                                                    <div class="p-3 border rounded border-success">
+                                                        <h6 class="mb-2 text-success">
+                                                            <i class="fas fa-check-circle me-2"></i>
+                                                            Approve Refund
+                                                        </h6>
+                                                        <p class="text-muted mb-0 small">
+                                                            Approve refund request and process payment
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-check h-100">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="action" id="action_reject" 
+                                                       value="reject">
+                                                <label class="form-check-label h-100 d-flex flex-column" 
+                                                       for="action_reject">
+                                                    <div class="p-3 border rounded border-danger">
+                                                        <h6 class="mb-2 text-danger">
+                                                            <i class="fas fa-times-circle me-2"></i>
+                                                            Reject Refund
+                                                        </h6>
+                                                        <p class="text-muted mb-0 small">
+                                                            Reject refund request with explanation
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% elif refund.state == 'approved' %}
+                                <!-- Processing Options -->
+                                <div class="mb-4">
+                                    <h6 class="mb-3">Process Refund</h6>
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        This refund has been approved and is ready for processing.
+                                    </div>
+                                    <input type="hidden" name="action" value="process">
+                                </div>
+                                {% elif refund.state == 'under_review' %}
+                                <!-- Already under review -->
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-clock me-2"></i>
+                                    This refund is currently under review by another admin.
+                                </div>
+                                {% endif %}
+
+                                <!-- Review Notes -->
+                                <div class="mb-4" id="reviewNotesSection">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-sticky-note me-2"></i>
+                                        Review Notes
+                                    </h6>
+                                    <div class="form-group">
+                                        <textarea class="form-control" name="review_notes" 
+                                                  rows="4" placeholder="Enter review notes..."></textarea>
+                                        <div class="form-text">
+                                            These notes will be visible to the client and saved with the refund record.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Rejection Reason (Hidden by default) -->
+                                <div class="mb-4" id="rejectionReasonSection" style="display: none;">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        Rejection Reason
+                                    </h6>
+                                    <div class="form-group">
+                                        <textarea class="form-control" name="rejection_reason" 
+                                                  rows="4" placeholder="Explain why the refund is being rejected..." required></textarea>
+                                        <div class="form-text">
+                                            This explanation will be sent to the client.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Processing Options -->
+                                <div class="mb-4">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-sliders-h me-2"></i>
+                                        Processing Options
+                                    </h6>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="auto_process" name="auto_process" checked>
+                                            <label class="form-check-label" for="auto_process">
+                                                Process refund automatically
+                                            </label>
+                                            <div class="form-text">
+                                                Process refund through payment gateway immediately
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="notify_client" name="notify_client" checked>
+                                            <label class="form-check-label" for="notify_client">
+                                                Notify client
+                                            </label>
+                                            <div class="form-text">
+                                                Send email notification to client about the decision
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="notify_writer" name="notify_writer" 
+                                                   {% if refund.state == 'approved' %}checked{% endif %}>
+                                            <label class="form-check-label" for="notify_writer">
+                                                Notify writer
+                                            </label>
+                                            <div class="form-text">
+                                                Send notification to writer (for approved refunds)
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="update_order_status" name="update_order_status" checked>
+                                            <label class="form-check-label" for="update_order_status">
+                                                Update order status
+                                            </label>
+                                            <div class="form-text">
+                                                Mark order as refunded
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Validation Checks -->
+                                {% if refund.state == 'approved' %}
+                                <div class="alert alert-warning">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        Validation Checks
+                                    </h6>
+                                    <ul class="mb-0">
+                                        <li>Payment is in valid state for refund: <strong>{{ payment.get_state_display }}</strong></li>
+                                        <li>Refund amount: <strong>${{ refund.amount }}</strong></li>
+                                        <li>Original amount: <strong>${{ refund.original_amount }}</strong></li>
+                                        <li>Refund type: <strong>{{ refund.get_refund_type_display }}</strong></li>
+                                    </ul>
+                                </div>
+                                {% endif %}
+
+                                <!-- Action Buttons -->
+                                <div class="action-buttons d-flex gap-3">
+                                    {% if refund.state == 'requested' %}
+                                    <button type="submit" name="submit_action" 
+                                            class="btn btn-success flex-fill">
+                                        <i class="fas fa-check me-1"></i>
+                                        Submit Decision
+                                    </button>
+                                    {% elif refund.state == 'approved' %}
+                                    <button type="submit" name="submit_action" 
+                                            class="btn btn-primary flex-fill">
+                                        <i class="fas fa-play me-1"></i>
+                                        Process Refund
+                                    </button>
+                                    {% endif %}
+                                    
+                                    <a href="{% url 'admin:payments_refund_changelist' %}" 
+                                       class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-1"></i>
+                                        Cancel
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Refund Details -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Refund Details
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Refund Reference</label>
+                                        <div class="h6">{{ refund.reference_number }}</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Refund Type</label>
+                                        <div>
+                                            <span class="badge 
+                                                {% if refund.refund_type == 'full' %}bg-success
+                                                {% else %}bg-warning{% endif %}">
+                                                {{ refund.get_refund_type_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Refund Reason</label>
+                                        <div>{{ refund.get_refund_reason_display }}</div>
+                                    </div>
+                                    
+                                    {% if refund.custom_reason %}
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Detailed Explanation</label>
+                                        <div class="border rounded p-3 bg-light">
+                                            {{ refund.custom_reason|linebreaks }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Requested By</label>
+                                        <div>
+                                            {{ refund.requested_by.get_full_name }}
+                                            <br>
+                                            <small class="text-muted">{{ refund.requested_by.email }}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Requested On</label>
+                                        <div>{{ refund.requested_at|date:"F d, Y H:i" }}</div>
+                                    </div>
+                                    
+                                    {% if refund.processed_by %}
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Processed By</label>
+                                        <div>{{ refund.processed_by.get_full_name }}</div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if refund.review_notes %}
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Review Notes</label>
+                                        <div class="border rounded p-3 bg-light">
+                                            {{ refund.review_notes|linebreaks }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if refund.rejection_reason %}
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Rejection Reason</label>
+                                        <div class="border rounded p-3 bg-light">
+                                            {{ refund.rejection_reason|linebreaks }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Summary -->
+                <div class="col-lg-4">
+                    <!-- Amount Summary -->
+                    <div class="refund-summary-card mb-4">
+                        <h5 class="mb-3">
+                            <i class="fas fa-money-bill-wave me-2"></i>
+                            Amount Summary
+                        </h5>
+                        
+                        <div class="amount-highlight 
+                            {% if refund.state == 'completed' %}refund-success
+                            {% elif refund.state == 'approved' %}refund-warning
+                            {% else %}refund-danger{% endif %}">
+                            ${{ refund.amount }}
+                        </div>
+                        
+                        <div class="text-center text-muted mb-3">
+                            Refund Amount
+                        </div>
+                        
+                        <div class="amount-breakdown">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Original Amount:</span>
+                                <strong>${{ refund.original_amount }}</strong>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Refund Percentage:</span>
+                                <span>{{ refund.refund_percentage|floatformat:1 }}%</span>
+                            </div>
+                            
+                            {% if refund.refund_type == 'partial' %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Remaining Amount:</span>
+                                <span class="text-success">
+                                    ${{ refund.original_amount|subtract:refund.amount|floatformat:2 }}
+                                </span>
+                            </div>
+                            {% endif %}
+                            
+                            <hr class="my-2">
+                            
+                            <div class="d-flex justify-content-between">
+                                <strong>Client Receives:</strong>
+                                <strong>${{ refund.amount }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Information -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-credit-card me-2"></i>
+                                Payment Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Payment Reference</label>
+                                <div class="h6">{{ payment.reference_number }}</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Payment Amount</label>
+                                <div>${{ payment.amount }}</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Payment Method</label>
+                                <div>{{ payment.get_payment_method_display }}</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Payment Status</label>
+                                <div>
+                                    <span class="badge 
+                                        {% if payment.state == 'held_in_escrow' %}bg-warning
+                                        {% elif payment.state == 'refunded' %}bg-secondary
+                                        {% else %}bg-light text-dark{% endif %}">
+                                        {{ payment.get_state_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <a href="{% url 'admin:payments_payment_change' payment.id %}" 
+                                   class="btn btn-sm btn-outline-primary w-100" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i> View Payment
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Information -->
+                    {% if order %}
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-invoice me-2"></i>
+                                Order Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Order Number</label>
+                                <div class="h6">#{{ order.order_number }}</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Topic</label>
+                                <div>{{ order.topic|truncatechars:30 }}</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Service</label>
+                                <div>{{ order.get_service_display }}</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Pages</label>
+                                <div>{{ order.pages }}</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Order Status</label>
+                                <div>
+                                    <span class="badge 
+                                        {% if order.state == 'completed' %}bg-success
+                                        {% elif order.state == 'in_progress' %}bg-primary
+                                        {% else %}bg-light text-dark{% endif %}">
+                                        {{ order.get_state_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <a href="{% url 'admin:orders_order_change' order.id %}" 
+                                   class="btn btn-sm btn-outline-info w-100" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i> View Order
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Client Information -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user me-2"></i>
+                                Client Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        {{ user.get_full_name|first|default:user.username|first|upper }}
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">{{ user.get_full_name|default:user.username }}</h6>
+                                    <small class="text-muted">{{ user.email }}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Client ID:</small>
+                                <strong>{{ user.id }}</strong>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Total Refunds:</small>
+                                <strong>{{ client_stats.total_refunds|default:"0" }}</strong>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Refund Rate:</small>
+                                <strong>{{ client_stats.refund_rate|default:"0" }}%</strong>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <a href="{% url 'admin:accounts_user_change' user.id %}" 
+                                   class="btn btn-sm btn-outline-primary w-100" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i> View Client
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing History -->
+            {% if refund.gateway_response or refund.completed_at %}
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-code-branch me-2"></i>
+                        Processing History
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if refund.gateway_response %}
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Gateway Response</label>
+                        <pre class="bg-light p-3 rounded" style="max-height: 200px; overflow-y: auto;">
+                            {{ refund.gateway_response|pprint }}
+                        </pre>
+                    </div>
+                    {% endif %}
+                    
+                    {% if refund.gateway_transaction_id %}
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Transaction ID</label>
+                        <div class="font-monospace">{{ refund.gateway_transaction_id }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if refund.completed_at %}
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Processing Time</label>
+                        <div>{{ refund.processing_time }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be filled by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Handle action radio buttons
+        $('input[name="action"]').change(function() {
+            const action = this.value;
+            const reviewNotesSection = $('#reviewNotesSection');
+            const rejectionReasonSection = $('#rejectionReasonSection');
+            
+            if (action === 'reject') {
+                reviewNotesSection.hide();
+                rejectionReasonSection.show();
+                rejectionReasonSection.find('textarea').prop('required', true);
+            } else {
+                reviewNotesSection.show();
+                rejectionReasonSection.hide();
+                rejectionReasonSection.find('textarea').prop('required', false);
+            }
+        });
+        
+        // Form submission
+        $('#refundActionForm').submit(function(event) {
+            event.preventDefault();
+            
+            const action = $('input[name="action"]:checked').val() || 'process';
+            let message = '';
+            let confirmText = '';
+            
+            if (action === 'approve') {
+                message = `
+                    <p>Are you sure you want to approve this refund?</p>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Amount:</strong> $${ parseFloat('{{ refund.amount }}').toFixed(2) }<br>
+                        <strong>Client:</strong> {{ user.get_full_name|default:user.username }}<br>
+                        <strong>Payment Method:</strong> {{ payment.get_payment_method_display }}
+                    </div>
+                    <p>This will initiate the refund process.</p>
+                `;
+                confirmText = 'Approve Refund';
+            } else if (action === 'reject') {
+                const rejectionReason = $('textarea[name="rejection_reason"]').val();
+                if (!rejectionReason.trim()) {
+                    alert('Please provide a rejection reason.');
+                    return;
+                }
+                
+                message = `
+                    <p>Are you sure you want to reject this refund request?</p>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle me-2"></i>
+                        <strong>Reason:</strong> ${rejectionReason.substring(0, 100)}...
+                    </div>
+                    <p>The client will be notified of this decision.</p>
+                `;
+                confirmText = 'Reject Refund';
+            } else if (action === 'process') {
+                message = `
+                    <p>Are you sure you want to process this refund?</p>
+                    <div class="alert alert-info">
+                        <i class="fas fa-play-circle me-2"></i>
+                        <strong>Amount:</strong> $${ parseFloat('{{ refund.amount }}').toFixed(2) }<br>
+                        <strong>Payment Method:</strong> {{ payment.get_payment_method_display }}<br>
+                        <strong>Transaction will be initiated immediately.</strong>
+                    </div>
+                `;
+                confirmText = 'Process Refund';
+            }
+            
+            $('#modalTitle').text(confirmText);
+            $('#modalBody').html(message);
+            $('#confirmAction').text(confirmText);
+            
+            $('#confirmationModal').modal('show');
+        });
+        
+        // Confirm action
+        $('#confirmAction').click(function() {
+            // Show loading state
+            $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
+            
+            // Submit the form
+            $('#refundActionForm').off('submit').submit();
+        });
+        
+        // Auto-process checkbox logic
+        $('#auto_process').change(function() {
+            if (this.checked) {
+                $('#notify_client').prop('checked', true);
+            }
+        });
+        
+        // Initialize based on current state
+        const initialAction = $('input[name="action"]:checked').val();
+        if (initialAction) {
+            $('input[name="action"][value="' + initialAction + '"]').trigger('change');
+        }
+        
+        // Show/hide sections based on refund state
+        const refundState = '{{ refund.state }}';
+        if (refundState === 'approved') {
+            $('#reviewNotesSection').hide();
+        }
+    });
+</script>
+{% endblock %}

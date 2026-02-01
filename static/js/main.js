@@ -217,7 +217,67 @@ document.addEventListener('DOMContentLoaded', function() {
         var savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-bs-theme', savedTheme);
     }
+    
+    // Dashboard-specific functionality
+    initializeDashboard();
 });
+
+// Initialize dashboard-specific functionality
+function initializeDashboard() {
+    // Check if we're on a dashboard page
+    const isDashboardPage = window.location.pathname.includes('dashboard') || 
+                           document.querySelector('.dashboard-header') || 
+                           document.querySelector('.stats-card');
+    
+    if (isDashboardPage) {
+        // Auto-refresh dashboard stats every 60 seconds
+        const refreshInterval = setInterval(function() {
+            refreshDashboardStats();
+        }, 60000);
+        
+        // Clean up interval when leaving page
+        window.addEventListener('beforeunload', function() {
+            clearInterval(refreshInterval);
+        });
+    }
+}
+
+// Refresh dashboard stats via AJAX
+function refreshDashboardStats() {
+    // Only refresh if user is active (tab focused)
+    if (document.hidden) return;
+    
+    fetch('/api/dashboard/stats/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateDashboardUI(data);
+    })
+    .catch(error => {
+        console.log('Failed to refresh dashboard stats:', error);
+    });
+}
+
+// Update dashboard UI with new data
+function updateDashboardUI(data) {
+    // Update stats cards
+    const statsCards = document.querySelectorAll('.stats-value');
+    statsCards.forEach(card => {
+        const statType = card.closest('.stats-info')?.querySelector('.stats-label')?.textContent;
+        if (statType && data[statType.toLowerCase().replace(' ', '_')]) {
+            card.textContent = data[statType.toLowerCase().replace(' ', '_')];
+        }
+    });
+    
+    // Show notification if there are updates
+    if (data.updated) {
+        showToast('Dashboard updated', 'success');
+    }
+}
 
 // Initialize charts function
 function initializeCharts() {
@@ -353,4 +413,29 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// Dashboard progress bar animation
+function animateProgressBars() {
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 500);
+    });
+}
+
+// Initialize dashboard tabs
+function initializeDashboardTabs() {
+    const triggerTabList = [].slice.call(document.querySelectorAll('#analyticsTab button'));
+    triggerTabList.forEach(function (triggerEl) {
+        var tabTrigger = new bootstrap.Tab(triggerEl);
+        
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault();
+            tabTrigger.show();
+        });
+    });
 }

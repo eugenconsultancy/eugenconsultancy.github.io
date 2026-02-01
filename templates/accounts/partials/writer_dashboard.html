@@ -1,0 +1,248 @@
+<div class="row">
+    <!-- Verification Status -->
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-check me-2"></i>Verification Status
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if verification_status %}
+                <div class="text-center mb-4">
+                    <div class="mb-3">
+                        <div class="status-badge status-{{ verification_status.state }}">
+                            {{ verification_status.get_state_display }}
+                        </div>
+                    </div>
+                    
+                    {% if verification_status.state == 'documents_submitted' %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-clock me-2"></i>
+                        <strong>Position in queue:</strong> {{ queue_position|default:"N/A" }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if verification_status.state == 'rejected' and verification_status.rejection_reason %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Rejection Reason:</strong> {{ verification_status.rejection_reason|truncatechars:100 }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if verification_status.state == 'revision_required' and verification_status.revision_notes %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-edit me-2"></i>
+                        <strong>Revision Notes:</strong> {{ verification_status.revision_notes|truncatechars:100 }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="d-grid">
+                    <a href="{% url 'accounts:verification_status' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-info-circle me-2"></i>View Details
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-user-clock fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Verification status not available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Writer Stats -->
+    <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Performance Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-3 col-6">
+                        <div class="stats-card text-center">
+                            <div class="stats-value text-primary">{{ stats.completed_orders|default:"0" }}</div>
+                            <div class="stats-label">Completed Orders</div>
+                            <div class="stats-icon">
+                                <i class="fas fa-check-circle text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 col-6">
+                        <div class="stats-card text-center">
+                            <div class="stats-value text-success">${{ stats.total_earnings|default:"0.00" }}</div>
+                            <div class="stats-label">Total Earnings</div>
+                            <div class="stats-icon">
+                                <i class="fas fa-dollar-sign text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 col-6">
+                        <div class="stats-card text-center">
+                            <div class="stats-value {% if stats.current_orders < stats.max_orders %}text-success{% else %}text-warning{% endif %}">
+                                {{ stats.current_orders|default:"0" }}/{{ stats.max_orders|default:"3" }}
+                            </div>
+                            <div class="stats-label">Current/Max Orders</div>
+                            <div class="stats-icon">
+                                <i class="fas fa-tasks {% if stats.current_orders < stats.max_orders %}text-success{% else %}text-warning{% endif %}"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 col-6">
+                        <div class="stats-card text-center">
+                            <div class="stats-value text-info">
+                                {% if stats.average_rating %}
+                                {{ stats.average_rating|floatformat:1 }}/5.0
+                                {% else %}
+                                N/A
+                                {% endif %}
+                            </div>
+                            <div class="stats-label">Average Rating</div>
+                            <div class="stats-icon">
+                                <i class="fas fa-star text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if writer_profile %}
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">Specializations</h6>
+                        <span class="badge bg-light text-dark">
+                            {{ writer_profile.specialization|length }} areas
+                        </span>
+                    </div>
+                    <div class="specialization-tags">
+                        {% with specializations=writer_profile.specialization|split:"," %}
+                        {% for spec in specializations|slice:":5" %}
+                        <span class="badge bg-light text-dark me-1 mb-1">{{ spec|strip }}</span>
+                        {% endfor %}
+                        {% if specializations|length > 5 %}
+                        <span class="badge bg-secondary">+{{ specializations|length|add:"-5" }} more</span>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Orders Section -->
+<div class="row">
+    <!-- Assigned Orders -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-tasks me-2"></i>Assigned Orders
+                </h5>
+                <span class="badge bg-primary">{{ assigned_orders.count }}</span>
+            </div>
+            <div class="card-body">
+                {% if assigned_orders %}
+                <div class="list-group list-group-flush">
+                    {% for order in assigned_orders %}
+                    <div class="list-group-item border-0 px-0 py-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a href="{% url 'orders:detail' order.id %}" class="text-decoration-none">
+                                        {{ order.title|truncatechars:50 }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">#{{ order.id }}</small>
+                            </div>
+                            <span class="badge bg-{{ order.state|state_color }}">{{ order.get_state_display }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                Deadline: {{ order.deadline|date:"M d, Y" }}
+                            </small>
+                            <small class="text-primary fw-bold">
+                                ${{ order.total_price|floatformat:2 }}
+                            </small>
+                        </div>
+                        {% if order.is_nearing_deadline %}
+                        <div class="progress mt-2" style="height: 3px;">
+                            <div class="progress-bar bg-warning" style="width: 100%"></div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                    <p class="text-muted mb-2">No assigned orders</p>
+                    <a href="{% url 'orders:writer_available' %}" class="btn btn-sm btn-outline-primary">
+                        Find Available Orders
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Orders -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-search me-2"></i>Available Orders
+                </h5>
+                <span class="badge bg-success">{{ available_orders.count }}</span>
+            </div>
+            <div class="card-body">
+                {% if available_orders %}
+                <div class="list-group list-group-flush">
+                    {% for order in available_orders %}
+                    <div class="list-group-item border-0 px-0 py-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a href="{% url 'orders:detail' order.id %}" class="text-decoration-none">
+                                        {{ order.title|truncatechars:50 }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">#{{ order.id }}</small>
+                            </div>
+                            <span class="badge bg-success">Available</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-book me-1"></i>
+                                {{ order.subject|default:"General" }}
+                            </small>
+                            <small class="text-primary fw-bold">
+                                ${{ order.total_price|floatformat:2 }}
+                            </small>
+                        </div>
+                        <div class="d-grid">
+                            <a href="{% url 'orders:detail' order.id %}" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-eye me-1"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No available orders at the moment</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

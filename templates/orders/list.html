@@ -168,7 +168,12 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="badge bg-{{ order.state|state_bg_color }} rounded-pill">
+                                <span class="badge rounded-pill 
+                                    {% if order.state == 'pending' or order.state == 'bidding' %}bg-warning text-dark
+                                    {% elif order.state == 'in_progress' or order.state == 'assigned' %}bg-primary
+                                    {% elif order.state == 'completed' or order.state == 'delivered' %}bg-success
+                                    {% elif order.state == 'cancelled' or order.state == 'disputed' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
                                     {{ order.get_state_display }}
                                 </span>
                                 {% if order.is_overdue %}

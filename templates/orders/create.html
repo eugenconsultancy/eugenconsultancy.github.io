@@ -152,10 +152,13 @@
                         <label class="form-label">Academic Level</label>
                         <select class="form-select" id="calcAcademicLevel">
                             {% for value, label in form.fields.academic_level.choices %}
-                            <option value="{{ value }}" data-rate="{{ price_estimates|get_item:value|default:20 }}">
-                                {{ label }}
-                            </option>
-                            {% endfor %}
+    <option value="{{ value }}" 
+        {% for level, rate in price_estimates.items %}
+                    {% if level == value %}data-rate="{{ rate }}"{% endif %}
+                {% endfor %}>
+                {{ label }}
+            </option>
+        {% endfor %}
                         </select>
                     </div>
                     

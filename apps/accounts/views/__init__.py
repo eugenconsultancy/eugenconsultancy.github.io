@@ -1,7 +1,9 @@
 from .dashboard import DashboardView
 from .writer_views import (
     WriterProfileView, WriterDocumentsView, VerificationStatusView,
-    WriterOnboardingStep1View, WriterOnboardingStep2View
+    WriterOnboardingStep1View, WriterOnboardingStep2View,
+    AdminWriterListView,
+    AdminClientListView  # Added this import
 )
 from .settings_views import (
     AccountSettingsView, SecuritySettingsView, PrivacySettingsView
@@ -18,6 +20,8 @@ __all__ = [
     'VerificationStatusView',
     'WriterOnboardingStep1View',
     'WriterOnboardingStep2View',
+    'AdminWriterListView',
+    'AdminClientListView',  # Added to exported members
     'AccountSettingsView',
     'SecuritySettingsView',
     'PrivacySettingsView',

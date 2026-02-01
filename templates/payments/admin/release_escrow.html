@@ -1,0 +1,802 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Release Escrow - {{ payment.reference_number }} - Admin - EBWriting{% endblock %}
+
+{% block extra_css %}
+<style>
+    .release-summary-card {
+        border-radius: 10px;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+    }
+    .amount-breakdown {
+        font-size: 0.9rem;
+    }
+    .writer-info-card {
+        border-left: 4px solid #28a745;
+    }
+    .client-info-card {
+        border-left: 4px solid #007bff;
+    }
+    .timeline-indicator {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        margin-right: 10px;
+    }
+    .timeline-indicator.completed {
+        background-color: #28a745;
+        color: white;
+    }
+    .timeline-indicator.current {
+        background-color: #007bff;
+        color: white;
+        animation: pulse 2s infinite;
+    }
+    .timeline-indicator.pending {
+        background-color: #6c757d;
+        color: white;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">Admin</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'payments:admin_escrow' %}">Escrow</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Release Funds</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h2 mb-1">
+                        <i class="fas fa-unlock text-success me-2"></i>
+                        Release Escrow Funds
+                    </h1>
+                    <p class="text-muted">Payment: {{ payment.reference_number }}</p>
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'payments:admin_escrow' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Escrow
+                    </a>
+                </div>
+            </div>
+
+            <!-- Payment Status Alert -->
+            {% if payment.state != 'held_in_escrow' %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                This payment is not in escrow. Current status: 
+                <strong>{{ payment.get_state_display }}</strong>
+            </div>
+            {% endif %}
+
+            <!-- Order Completion Check -->
+            {% if order and order.state != 'completed' %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Order is not completed. Current status: 
+                <strong>{{ order.get_state_display }}</strong>
+            </div>
+            {% endif %}
+
+            <!-- Timeline -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-road me-2"></i>
+                        Release Process Timeline
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="timeline-indicator completed">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">Payment Received</h6>
+                            <p class="text-muted mb-0 small">Payment held in escrow since {{ payment.held_in_escrow_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="timeline-indicator {% if order.state == 'completed' %}completed{% else %}pending{% endif %}">
+                            {% if order.state == 'completed' %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-clock"></i>{% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">Order Completed</h6>
+                            <p class="text-muted mb-0 small">
+                                {% if order.state == 'completed' %}
+                                Order completed on {{ order.completed_at|date:"M d, Y" }}
+                                {% else %}
+                                Waiting for order completion
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="timeline-indicator {% if payment.escrow_held_until <= current_date %}completed{% else %}pending{% endif %}">
+                            {% if payment.escrow_held_until <= current_date %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-clock"></i>{% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">Escrow Period Ended</h6>
+                            <p class="text-muted mb-0 small">
+                                Scheduled release: {{ payment.escrow_held_until|date:"M d, Y" }}
+                                {% if payment.escrow_held_until > current_date %}
+                                ({{ payment.escrow_held_until|timeuntil }} remaining)
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="timeline-indicator current">
+                            <i class="fas fa-unlock"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">Release Funds</h6>
+                            <p class="text-muted mb-0 small">Release funds to writer's wallet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="row">
+                <!-- Left Column - Details -->
+                <div class="col-lg-8">
+                    <!-- Release Form -->
+                    <div class="card shadow-sm mb-4">
+                        <form method="POST" id="releaseForm">
+                            {% csrf_token %}
+                            
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-cog me-2"></i>
+                                    Release Configuration
+                                </h5>
+                            </div>
+                            
+                            <div class="card-body">
+                                <!-- Release Type -->
+                                <div class="mb-4">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-exchange-alt me-2"></i>
+                                        Release Type
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-check h-100">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="release_type" id="immediate_release" 
+                                                       value="immediate" checked>
+                                                <label class="form-check-label h-100 d-flex flex-column" 
+                                                       for="immediate_release">
+                                                    <div class="p-3 border rounded">
+                                                        <h6 class="mb-2">Immediate Release</h6>
+                                                        <p class="text-muted mb-0 small">
+                                                            Release funds immediately to writer's wallet
+                                                        </p>
+                                                        <div class="mt-2">
+                                                            <span class="badge bg-success">Recommended</span>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-check h-100">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="release_type" id="scheduled_release" 
+                                                       value="scheduled">
+                                                <label class="form-check-label h-100 d-flex flex-column" 
+                                                       for="scheduled_release">
+                                                    <div class="p-3 border rounded">
+                                                        <h6 class="mb-2">Scheduled Release</h6>
+                                                        <p class="text-muted mb-0 small">
+                                                            Schedule release for a future date
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Scheduled Release Date (Hidden by default) -->
+                                <div id="scheduledReleaseSection" class="mb-4" style="display: none;">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-calendar-alt me-2"></i>
+                                        Schedule Release
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="release_date" class="form-label">Release Date</label>
+                                                <input type="date" class="form-control" 
+                                                       id="release_date" name="release_date"
+                                                       min="{{ current_date|date:'Y-m-d' }}">
+                                                <div class="form-text">
+                                                    Funds will be automatically released on this date
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="release_time" class="form-label">Release Time</label>
+                                                <input type="time" class="form-control" 
+                                                       id="release_time" name="release_time"
+                                                       value="00:00">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Release Options -->
+                                <div class="mb-4">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-sliders-h me-2"></i>
+                                        Release Options
+                                    </h6>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="send_notification" name="send_notification" checked>
+                                            <label class="form-check-label" for="send_notification">
+                                                Send notification to writer
+                                            </label>
+                                            <div class="form-text">
+                                                Writer will receive an email notification about the release
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="send_client_notification" name="send_client_notification">
+                                            <label class="form-check-label" for="send_client_notification">
+                                                Send notification to client
+                                            </label>
+                                            <div class="form-text">
+                                                Client will be notified that funds have been released
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="create_wallet_transaction" name="create_wallet_transaction" checked>
+                                            <label class="form-check-label" for="create_wallet_transaction">
+                                                Create wallet transaction
+                                            </label>
+                                            <div class="form-text">
+                                                Add funds to writer's wallet immediately
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="update_order_status" name="update_order_status" checked>
+                                            <label class="form-check-label" for="update_order_status">
+                                                Update order status
+                                            </label>
+                                            <div class="form-text">
+                                                Mark order as payment released (if not already)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Release Notes -->
+                                <div class="mb-4">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-sticky-note me-2"></i>
+                                        Release Notes
+                                    </h6>
+                                    <div class="form-group">
+                                        <textarea class="form-control" name="release_notes" 
+                                                  rows="4" placeholder="Add notes about this release (optional)..."></textarea>
+                                        <div class="form-text">
+                                            These notes will be saved with the payment record
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Validation Rules -->
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Validation Rules
+                                    </h6>
+                                    <ul class="mb-0 small">
+                                        <li>Order must be completed before release</li>
+                                        <li>Escrow period must have ended for automatic release</li>
+                                        <li>Admin can manually override if needed</li>
+                                        <li>Writer must have an active wallet</li>
+                                        <li>Client must have approved the work</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Release History -->
+                    {% if payment.refunds.exists or payment.released_at %}
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history me-2"></i>
+                                Payment History
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                {% if payment.released_at %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="mb-1">Previously Released</h6>
+                                            <small class="text-muted">
+                                                {{ payment.released_at|date:"F d, Y H:i" }}
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-success">Released</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% for refund in payment.refunds.all %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="mb-1">Refund - ${{ refund.amount }}</h6>
+                                            <small class="text-muted">
+                                                {{ refund.requested_at|date:"F d, Y" }} - 
+                                                {{ refund.get_state_display }}
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-warning">Refund</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Right Column - Summary -->
+                <div class="col-lg-4">
+                    <!-- Payment Summary -->
+                    <div class="release-summary-card mb-4">
+                        <h5 class="mb-3">
+                            <i class="fas fa-receipt me-2"></i>
+                            Payment Summary
+                        </h5>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Reference:</span>
+                                <strong>{{ payment.reference_number }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Payment ID:</span>
+                                <span>{{ payment.payment_id|truncatechars:12 }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Amount:</span>
+                                <strong>${{ payment.amount }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Method:</span>
+                                <span>{{ payment.get_payment_method_display }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Date:</span>
+                                <span>{{ payment.created_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Amount Breakdown -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calculator me-2"></i>
+                                Amount Breakdown
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="amount-breakdown">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Total Payment:</span>
+                                    <strong>${{ payment.amount }}</strong>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Platform Fee ({{ platform_fee_percentage }}%):</span>
+                                    <span class="text-danger">-${{ payment.platform_fee }}</span>
+                                </div>
+                                
+                                <hr class="my-2">
+                                
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Writer Amount:</span>
+                                    <strong class="text-success">${{ payment.writer_amount }}</strong>
+                                </div>
+                                
+                                {% if order and order.writer and order.writer.wallet %}
+                                <div class="d-flex justify-content-between">
+                                    <span>Writer's Current Balance:</span>
+                                    <strong>${{ order.writer.wallet.balance|floatformat:2 }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>New Balance:</span>
+                                    <strong class="text-primary">
+                                        ${{ order.writer.wallet.balance|add:payment.writer_amount|floatformat:2 }}
+                                    </strong>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Writer Information -->
+                    {% if order and order.writer %}
+                    <div class="card shadow-sm mb-4 writer-info-card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-tie me-2"></i>
+                                Writer Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        {{ order.writer.get_full_name|first|default:order.writer.username|first|upper }}
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">{{ order.writer.get_full_name|default:order.writer.username }}</h6>
+                                    <small class="text-muted">{{ order.writer.email }}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Writer ID:</small>
+                                <strong>{{ order.writer.id }}</strong>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Registration Date:</small>
+                                <strong>{{ order.writer.date_joined|date:"M d, Y" }}</strong>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Completed Orders:</small>
+                                <strong>{{ writer_stats.completed_orders|default:"0" }}</strong>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Average Rating:</small>
+                                <strong>
+                                    {% if writer_stats.avg_rating %}
+                                    {{ writer_stats.avg_rating|floatformat:1 }}/5.0
+                                    {% else %}
+                                    N/A
+                                    {% endif %}
+                                </strong>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <a href="{% url 'admin:accounts_user_change' order.writer.id %}" 
+                                   class="btn btn-sm btn-outline-primary w-100" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i> View Writer Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Client Information -->
+                    {% if payment.user %}
+                    <div class="card shadow-sm client-info-card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user me-2"></i>
+                                Client Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        {{ payment.user.get_full_name|first|default:payment.user.username|first|upper }}
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">{{ payment.user.get_full_name|default:payment.user.username }}</h6>
+                                    <small class="text-muted">{{ payment.user.email }}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Client ID:</small>
+                                <strong>{{ payment.user.id }}</strong>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Total Orders:</small>
+                                <strong>{{ client_stats.total_orders|default:"0" }}</strong>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Total Spent:</small>
+                                <strong>${{ client_stats.total_spent|default:"0"|floatformat:2 }}</strong>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <a href="{% url 'admin:accounts_user_change' payment.user.id %}" 
+                                   class="btn btn-sm btn-outline-info w-100" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i> View Client Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-md-4 mb-3">
+                    <a href="{% url 'payments:admin_escrow' %}" 
+                       class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times me-2"></i> Cancel
+                    </a>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <button type="button" class="btn btn-warning w-100" 
+                            data-bs-toggle="modal" data-bs-target="#refundModal">
+                        <i class="fas fa-undo me-2"></i> Refund Instead
+                    </button>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <button type="submit" form="releaseForm" 
+                            class="btn btn-success w-100"
+                            {% if payment.state != 'held_in_escrow' %}disabled{% endif %}>
+                        <i class="fas fa-unlock me-2"></i>
+                        {% if payment.state == 'held_in_escrow' %}
+                        Release Funds
+                        {% else %}
+                        Cannot Release
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Warning Messages -->
+            {% if payment.state == 'held_in_escrow' %}
+                {% if order.state != 'completed' %}
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> Order is not completed. 
+                    You can still release funds, but this should only be done in special circumstances.
+                </div>
+                {% endif %}
+                
+                {% if payment.escrow_held_until > current_date %}
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-clock me-2"></i>
+                    <strong>Note:</strong> Escrow period has not ended yet. 
+                    Scheduled release: {{ payment.escrow_held_until|date:"F d, Y" }}
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Refund Modal -->
+<div class="modal fade" id="refundModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-undo me-2"></i>
+                    Refund Payment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    You are about to refund this payment instead of releasing it to the writer.
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Refund Amount</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" 
+                               id="refund_amount" name="refund_amount"
+                               value="{{ payment.amount }}" 
+                               min="0" max="{{ payment.amount }}" step="0.01">
+                    </div>
+                    <div class="form-text">
+                        Full amount: ${{ payment.amount }}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Refund Reason</label>
+                    <select class="form-select" id="refund_reason">
+                        <option value="order_cancellation">Order Cancellation</option>
+                        <option value="quality_issue">Quality Issue</option>
+                        <option value="late_delivery">Late Delivery</option>
+                        <option value="client_request">Client Request</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-control" id="refund_notes" rows="3" 
+                              placeholder="Explain the reason for refund..."></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="notify_parties" checked>
+                        <label class="form-check-label" for="notify_parties">
+                            Notify client and writer
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRefund">
+                    <i class="fas fa-check me-1"></i> Process Refund
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Handle release type selection
+        $('input[name="release_type"]').change(function() {
+            const scheduledSection = $('#scheduledReleaseSection');
+            if (this.value === 'scheduled') {
+                scheduledSection.show();
+            } else {
+                scheduledSection.hide();
+            }
+        });
+        
+        // Set minimum date for scheduled release
+        const today = new Date().toISOString().split('T')[0];
+        $('#release_date').attr('min', today);
+        
+        // Handle refund confirmation
+        $('#confirmRefund').click(function() {
+            const refundAmount = parseFloat($('#refund_amount').val());
+            const refundReason = $('#refund_reason').val();
+            const refundNotes = $('#refund_notes').val();
+            const notifyParties = $('#notify_parties').prop('checked');
+            
+            if (refundAmount <= 0 || refundAmount > {{ payment.amount }}) {
+                alert('Please enter a valid refund amount.');
+                return;
+            }
+            
+            if (confirm(`Process refund of $${refundAmount}? This action cannot be undone.`)) {
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
+                
+                // Submit refund via AJAX
+                $.ajax({
+                    url: '{% url "payments:admin_refund" payment.payment_id %}',
+                    method: 'POST',
+                    data: {
+                        amount: refundAmount,
+                        reason: refundReason,
+                        notes: refundNotes,
+                        notify_parties: notifyParties,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Refund processed successfully.');
+                            window.location.href = '{% url "payments:admin_escrow" %}';
+                        } else {
+                            alert('Error: ' + response.error);
+                            $('#confirmRefund').prop('disabled', false).html('<i class="fas fa-check me-1"></i> Process Refund');
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred. Please try again.');
+                        $('#confirmRefund').prop('disabled', false).html('<i class="fas fa-check me-1"></i> Process Refund');
+                    }
+                });
+            }
+        });
+        
+        // Form validation
+        $('#releaseForm').submit(function(event) {
+            const releaseType = $('input[name="release_type"]:checked').val();
+            
+            if (releaseType === 'scheduled') {
+                const releaseDate = $('#release_date').val();
+                const releaseTime = $('#release_time').val();
+                
+                if (!releaseDate) {
+                    alert('Please select a release date for scheduled release.');
+                    event.preventDefault();
+                    return;
+                }
+                
+                const selectedDateTime = new Date(releaseDate + 'T' + releaseTime);
+                const now = new Date();
+                
+                if (selectedDateTime <= now) {
+                    alert('Scheduled release must be in the future.');
+                    event.preventDefault();
+                    return;
+                }
+            }
+            
+            if (confirm('Are you sure you want to release these funds?')) {
+                // Show loading state
+                $('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
+            } else {
+                event.preventDefault();
+            }
+        });
+        
+        // Auto-fill refund amount
+        $('#refund_amount').on('input', function() {
+            const maxAmount = {{ payment.amount }};
+            const value = parseFloat($(this).val()) || 0;
+            
+            if (value > maxAmount) {
+                $(this).val(maxAmount);
+            }
+        });
+        
+        // Quick amount buttons for refund
+        $('.quick-amount').click(function() {
+            const percentage = parseFloat($(this).data('percentage'));
+            const amount = {{ payment.amount }} * (percentage / 100);
+            $('#refund_amount').val(amount.toFixed(2));
+        });
+    });
+</script>
+{% endblock %}

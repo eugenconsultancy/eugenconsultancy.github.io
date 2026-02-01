@@ -13,127 +13,43 @@
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 {% endblock %}
 
-{% block content %}
-<!-- Hero Section -->
-<section class="hero-section bg-gradient-primary text-white py-5">
-    <div class="container py-5">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4 animate-fade-in">Professional Academic Writing Platform</h1>
-                <p class="lead mb-4 animate-fade-in">Our expert academic assistance from verified writers. 100% plagiarism-free, confidential, and quality guaranteed work.</p>
-                <div class="d-flex flex-wrap gap-3 mb-4 animate-slide-left">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-shield-check me-2 fs-4"></i>
-                        <span>Academic Integrity Guarantee</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-lock me-2 fs-4"></i>
-                        <span>Secure & Confidential</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-arrow-counterclockwise me-2 fs-4"></i>
-                        <span>Money-Back Guarantee</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-award me-2 fs-4"></i>
-                        <span>Quality Academic Assistance</span>
-                    </div>
-                </div>
-                <p class="mb-4 animate-fade">We ensure you're in a safe environment, get professional help.</p>
-                <div class="d-flex gap-3 animate-fade-in">
-                    {% if not user.is_authenticated %}
-                    <a href="{% url 'account_signup' %}" class="btn btn-light btn-lg px-4">
-                        <i class="bi bi-rocket-takeoff me-2"></i>Get Started
-                    </a>
-                    <a href="#how-it-works" class="btn btn-outline-light btn-lg px-4">
-                        <i class="bi bi-play-circle me-2"></i>How It Works
-                    </a>
-                    {% else %}
-                    <a href="{% url 'orders:create' %}" class="btn btn-light btn-lg px-4">
-                        <i class="bi bi-plus-circle me-2"></i>Place New Order
-                    </a>
-                    <a href="{% url 'orders:list' %}" class="btn btn-outline-light btn-lg px-4">
-                        <i class="bi bi-list-check me-2"></i>View Orders
-                    </a>
-                    {% endif %}
-                </div>
-                
-                <!-- Trust Indicators -->
-                <div class="d-flex flex-wrap gap-4 mt-5 pt-4 border-top border-white border-opacity-25">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
-                        <span>24/7 Support</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
-                        <span>Native English Writers</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
-                        <span>On-Time Delivery</span>
-                    </div>
+{% block hero %}
+<!-- Hero Section is already in base.html for authenticated users -->
+{% if not user.is_authenticated %}
+<section id="hero" class="hero d-flex align-items-center">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 d-flex flex-column justify-content-center pt-4 pt-lg-0 order-2 order-lg-1">
+                <h1>Professional Academic Writing Assistance</h1>
+                <h2>Get expert help from verified academic writers with secure escrow payments and quality guarantees.</h2>
+                <div class="d-flex justify-content-center justify-content-lg-start">
+                    <a href="{% url 'account_signup' %}" class="btn-get-started scrollto">Get Started</a>
+                    <a href="#how-it-works" class="btn-watch-video scrollto"><i class="bi bi-play-circle"></i><span>Watch Video</span></a>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="stats-grid mt-5 mt-lg-0 animate-fade-in">
-                    <div class="stat-card">
-                        <div class="stat-number display-6 fw-bold">5,000+</div>
-                        <div class="stat-label">Completed Orders</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number display-6 fw-bold">98%</div>
-                        <div class="stat-label">Client Satisfaction</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number display-6 fw-bold">200+</div>
-                        <div class="stat-label">Expert Writers</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number display-6 fw-bold">24/7</div>
-                        <div class="stat-label">Support Available</div>
-                    </div>
-                </div>
-                
-                <!-- Client Testimonials Preview -->
-                <div class="card border-0 shadow-lg mt-4 bg-white bg-opacity-10 text-white">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="bi bi-star-fill text-warning fs-4 me-1"></i>
-                            <i class="bi bi-star-fill text-warning fs-4 me-1"></i>
-                            <i class="bi bi-star-fill text-warning fs-4 me-1"></i>
-                            <i class="bi bi-star-fill text-warning fs-4 me-1"></i>
-                            <i class="bi bi-star-fill text-warning fs-4 me-1"></i>
-                            <span class="ms-2 fw-bold">4.9/5 Rating</span>
-                        </div>
-                        <p class="mb-0 fst-italic">"EWBWriting helped me complete my thesis on time with excellent quality. Highly recommended!"</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="small">- Sarah M., PhD Candidate</span>
-                            <a href="{% url 'reviews:select_order' %}" class="btn btn-outline-light btn-sm">Write a Review</a>
-                                View All Reviews
-                            </a>
-                        </div>
-                    </div>
-                </div>
+            <div class="col-lg-6 order-1 order-lg-2 hero-img">
+                <img src="{% static 'images/hero-img.png' %}" class="img-fluid animated" alt="Academic Writing">
             </div>
         </div>
     </div>
 </section>
+{% endif %}
+{% endblock %}
 
-<!-- Why Choose Us Section -->
-<section id="why-choose-us" class="py-5 bg-light">
-    <div class="container py-5">
-        <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold text-dark mb-3">Why Choose EWBWriting?</h2>
-            <p class="lead text-muted">Our platform is designed for academic excellence and reliability.</p>
+{% block content %}
+<!-- ======= Why Choose Us Section ======= -->
+<section id="why-choose-us" class="why-choose-us">
+    <div class="container" data-aos="fade-up">
+        <div class="section-title">
+            <h2>Why Choose EWBWriting?</h2>
+            <p>Our platform is designed for academic excellence and reliability</p>
         </div>
-        
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="feature-card h-100 animate-fade-in">
-                    <div class="feature-icon bg-primary text-white">
-                        <i class="bi bi-person-check fs-1"></i>
-                    </div>
-                    <h4 class="fw-bold mt-4">Verified & Qualified Writers</h4>
+
+        <div class="row">
+            <div class="col-lg-4 col-md-6 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="100">
+                <div class="icon-box card-custom">
+                    <div class="icon"><i class="bi bi-person-check"></i></div>
+                    <h4><a href="">Verified & Qualified Writers</a></h4>
                     <p>All writers undergo rigorous verification, qualification checks, and training. We only accept the top 10% of applicants.</p>
                     <ul class="list-unstyled mt-3">
                         <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Advanced Degree Holders</li>
@@ -145,61 +61,271 @@
                     </a>
                 </div>
             </div>
-            
-            <div class="col-md-4">
-                <div class="feature-card h-100 animate-fade-in">
-                    <div class="feature-icon bg-success text-white">
-                        <i class="bi bi-shield-lock fs-1"></i>
-                    </div>
-                    <h4 class="fw-bold mt-4">Secure & Confidential</h4>
-                    <p>Your privacy and data security are our top priorities. We use encryption-grade encryption and follow strict confidentiality protocols.</p>
+
+            <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-md-0" data-aos="zoom-in" data-aos-delay="200">
+                <div class="icon-box card-custom">
+                    <div class="icon"><i class="bi bi-shield-lock"></i></div>
+                    <h4><a href="">Secure & Confidential</a></h4>
+                    <p>Your privacy and data security are our top priorities. We use end-to-end encryption and follow strict confidentiality protocols.</p>
                     <ul class="list-unstyled mt-3">
                         <li class="mb-2"><i class="bi bi-shield-check text-success me-2"></i>End-to-End Encryption</li>
                         <li class="mb-2"><i class="bi bi-shield-check text-success me-2"></i>GDPR Compliant</li>
                         <li><i class="bi bi-shield-check text-success me-2"></i>Strict NDA Agreements</li>
                     </ul>
-                    <a href="{% url 'privacy' %}" class="btn btn-outline-success btn-sm mt-3">
+                    <a href="{% url 'privacy' %}" class="btn btn-outline-primary btn-sm mt-3">
                         <i class="bi bi-file-lock me-1"></i> Privacy Policy
                     </a>
                 </div>
             </div>
-            
-            <div class="col-md-4">
-                <div class="feature-card h-100 animate-fade-in">
-                    <div class="feature-icon bg-warning text-white">
-                        <i class="bi bi-award fs-1"></i>
-                    </div>
-                    <h4 class="fw-bold mt-4">Quality Guaranteed</h4>
+
+            <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-lg-0" data-aos="zoom-in" data-aos-delay="300">
+                <div class="icon-box card-custom">
+                    <div class="icon"><i class="bi bi-award"></i></div>
+                    <h4><a href="">Quality Guaranteed</a></h4>
                     <p>Every paper undergoes multiple quality checks including plagiarism scanning, grammar review, and content validation.</p>
                     <ul class="list-unstyled mt-3">
                         <li class="mb-2"><i class="bi bi-check-square-fill text-success me-2"></i>Plagiarism-Free Guarantee</li>
                         <li class="mb-2"><i class="bi bi-check-square-fill text-success me-2"></i>Professional Editing</li>
                         <li><i class="bi bi-check-square-fill text-success me-2"></i>Unlimited Revisions</li>
                     </ul>
-                    <a href="{% url 'blog:home' %}" class="btn btn-outline-warning btn-sm mt-3">
+                    <a href="{% url 'blog:home' %}" class="btn btn-outline-primary btn-sm mt-3">
                         <i class="bi bi-award me-1"></i> Quality Standards
                     </a>
                 </div>
             </div>
         </div>
     </div>
-</section>
+</section><!-- End Why Choose Us Section -->
 
-<!-- Academic Blog Section -->
-<section id="academic-insights" class="py-5">
-    <div class="container py-5">
-        <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold text-dark mb-3">Academic Insights & Resources</h2>
-            <p class="lead text-muted">Expert tips, guides, and resources from our professional writers</p>
+<!-- ======= Stats Section ======= -->
+<section id="stats" class="stats section-bg">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card text-center">
+                    <div class="stats-icon bg-primary">
+                        <i class="bi bi-journal-check"></i>
+                    </div>
+                    <span data-purecounter-start="0" data-purecounter-end="5000" data-purecounter-duration="1" class="purecounter">5,000+</span>
+                    <p>Completed Orders</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mt-5 mt-md-0">
+                <div class="stats-card text-center">
+                    <div class="stats-icon bg-success">
+                        <i class="bi bi-emoji-smile"></i>
+                    </div>
+                    <span data-purecounter-start="0" data-purecounter-end="98" data-purecounter-duration="1" class="purecounter">98%</span>
+                    <p>Client Satisfaction</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mt-5 mt-lg-0">
+                <div class="stats-card text-center">
+                    <div class="stats-icon bg-warning">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <span data-purecounter-start="0" data-purecounter-end="200" data-purecounter-duration="1" class="purecounter">200+</span>
+                    <p>Expert Writers</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mt-5 mt-lg-0">
+                <div class="stats-card text-center">
+                    <div class="stats-icon bg-info">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <span data-purecounter-start="0" data-purecounter-end="24" data-purecounter-duration="1" class="purecounter">24/7</span>
+                    <p>Support Available</p>
+                </div>
+            </div>
         </div>
-        
-        <div class="row mb-5">
+    </div>
+</section><!-- End Stats Section -->
+
+<!-- ======= How It Works Section ======= -->
+<section id="how-it-works" class="how-it-works">
+    <div class="container" data-aos="fade-up">
+        <div class="section-title">
+            <h2>How It Works</h2>
+            <p>Get started in 4 simple steps</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-3 col-md-6 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="100">
+                <div class="step-card text-center">
+                    <div class="step-number">1</div>
+                    <h4>Place Your Order</h4>
+                    <p>Fill out our order form with your requirements, deadline, and any specific instructions.</p>
+                    <a href="{% url 'orders:create' %}" class="btn btn-outline-primary btn-sm mt-3">
+                        Start Your Order <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 d-flex align-items-stretch mt-4 mt-md-0" data-aos="zoom-in" data-aos-delay="200">
+                <div class="step-card text-center">
+                    <div class="step-number">2</div>
+                    <h4>Writer Matching</h4>
+                    <p>Our system matches your order with the most qualified writer based on expertise.</p>
+                    <a href="{% url 'blog:home' %}" class="btn btn-outline-primary btn-sm mt-3">
+                        Meet Our Writers <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 d-flex align-items-stretch mt-4 mt-lg-0" data-aos="zoom-in" data-aos-delay="300">
+                <div class="step-card text-center">
+                    <div class="step-number">3</div>
+                    <h4>Track Progress</h4>
+                    <p>Monitor progress in real-time. Communicate with your writer and review drafts.</p>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'orders:list' %}" class="btn btn-outline-primary btn-sm mt-3">
+                        Track Orders <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 d-flex align-items-stretch mt-4 mt-lg-0" data-aos="zoom-in" data-aos-delay="400">
+                <div class="step-card text-center">
+                    <div class="step-number">4</div>
+                    <h4>Receive & Review</h4>
+                    <p>Get your completed work before the deadline. Review quality and approve for release.</p>
+                    <a href="{% url 'reviews:select_order' %}" class="btn btn-outline-primary btn-sm mt-3">
+                        Leave Feedback <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section><!-- End How It Works Section -->
+
+<!-- ======= Services Section ======= -->
+<section id="services" class="services section-bg">
+    <div class="container" data-aos="fade-up">
+        <div class="section-title">
+            <h2>Our Services</h2>
+            <p>Comprehensive academic writing support for all levels</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-4 col-md-6 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="100">
+                <div class="service-card">
+                    <div class="service-header bg-primary text-white p-4">
+                        <h4>Essays & Papers</h4>
+                    </div>
+                    <div class="service-body p-4">
+                        <p>Argumentative, persuasive, descriptive, and narrative essays. Research papers and term papers.</p>
+                        <div class="service-levels mt-3 mb-4">
+                            <span class="badge bg-primary me-2">High School</span>
+                            <span class="badge bg-primary me-2">Undergraduate</span>
+                            <span class="badge bg-primary">Graduate</span>
+                        </div>
+                        <a href="{% url 'orders:create' %}" class="btn btn-outline-primary w-100">
+                            Order Essay
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-md-0" data-aos="zoom-in" data-aos-delay="200">
+                <div class="service-card">
+                    <div class="service-header bg-success text-white p-4">
+                        <h4>Thesis & Dissertations</h4>
+                    </div>
+                    <div class="service-body p-4">
+                        <p>Thesis, dissertation, capstone projects. Literature reviews, methodology, data analysis.</p>
+                        <div class="service-levels mt-3 mb-4">
+                            <span class="badge bg-success me-2">Master's</span>
+                            <span class="badge bg-success me-2">PhD</span>
+                            <span class="badge bg-success">Post-Doc</span>
+                        </div>
+                        <a href="{% url 'orders:create' %}" class="btn btn-outline-success w-100">
+                            Order Thesis
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-lg-0" data-aos="zoom-in" data-aos-delay="300">
+                <div class="service-card">
+                    <div class="service-header bg-warning text-white p-4">
+                        <h4>Editing & Proofreading</h4>
+                    </div>
+                    <div class="service-body p-4">
+                        <p>Professional editing, proofreading, formatting. Citation formatting (APA, MLA, Chicago, Harvard).</p>
+                        <div class="service-levels mt-3 mb-4">
+                            <span class="badge bg-warning me-2">Grammar Check</span>
+                            <span class="badge bg-warning me-2">Plagiarism Check</span>
+                            <span class="badge bg-warning">Formatting</span>
+                        </div>
+                        <a href="{% url 'orders:create' %}" class="btn btn-outline-warning w-100">
+                            Request Editing
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Services -->
+        <div class="row mt-4">
+            <div class="col-md-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start">
+                            <div class="icon-circle bg-light me-3">
+                                <i class="bi bi-calculator text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-2">Pricing Calculator</h4>
+                                <p class="text-muted mb-3">Get instant price estimates based on your academic level, deadline, and paper type.</p>
+                                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#pricingModal">
+                                    Calculate Price
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start">
+                            <div class="icon-circle bg-light me-3">
+                                <i class="bi bi-chat-dots text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-2">Live Support</h4>
+                                <p class="text-muted mb-3">24/7 customer support via chat, email, and phone. Get immediate answers to your questions.</p>
+                                <button class="btn btn-outline-primary" onclick="window.location.href='#contact'">
+                                    Contact Support
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section><!-- End Services Section -->
+
+<!-- ======= Academic Insights Section ======= -->
+<section id="academic-insights" class="academic-insights">
+    <div class="container" data-aos="fade-up">
+        <div class="section-title">
+            <h2>Academic Insights & Resources</h2>
+            <p>Expert tips, guides, and resources from our professional writers</p>
+        </div>
+
+        <div class="row">
             <div class="col-lg-8">
-                <div class="row g-4">
+                <div class="row">
                     {% if latest_blog_posts %}
                         {% for post in latest_blog_posts|slice:":3" %}
-                        <div class="col-md-4">
-                            <div class="card border-0 shadow-sm h-100 post-card animate-fade-in">
+                        <div class="col-md-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                            <div class="card border-0 shadow-sm h-100 post-card">
                                 {% if post.featured_image %}
                                 <img src="{{ post.featured_image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
                                 {% else %}
@@ -228,7 +354,7 @@
                         {% endfor %}
                     {% else %}
                         <!-- Fallback blog posts -->
-                        <div class="col-md-4">
+                        <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
                             <div class="card border-0 shadow-sm h-100 post-card">
                                 <div class="card-img-top bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 200px;">
                                     <i class="bi bi-journal-text text-white fs-1"></i>
@@ -236,7 +362,7 @@
                                 <div class="card-body">
                                     <span class="badge bg-primary mb-2">Writing Tips</span>
                                     <h3 class="h5 fw-bold">How to Write a Perfect Research Paper</h3>
-                                    <p class="text-muted small">Learn the essential steps and techniques for writing an outstanding research paper.</p>
+                                    <p class="text-muted small">Learn essential steps for writing outstanding research papers.</p>
                                     <div class="d-flex justify-content-between align-items-center mt-3">
                                         <small class="text-muted">5 min read</small>
                                         <a href="{% url 'blog:home' %}" class="btn btn-outline-primary btn-sm">
@@ -246,15 +372,15 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
                             <div class="card border-0 shadow-sm h-100 post-card">
                                 <div class="card-img-top bg-gradient-success d-flex align-items-center justify-content-center" style="height: 200px;">
                                     <i class="bi bi-lightbulb text-white fs-1"></i>
                                 </div>
                                 <div class="card-body">
                                     <span class="badge bg-success mb-2">Study Guide</span>
-                                    <h3 class="h5 fw-bold">Effective Time Management for Students</h3>
-                                    <p class="text-muted small">Master your schedule with proven time management strategies for academic success.</p>
+                                    <h3 class="h5 fw-bold">Time Management for Students</h3>
+                                    <p class="text-muted small">Master your schedule with proven time management strategies.</p>
                                     <div class="d-flex justify-content-between align-items-center mt-3">
                                         <small class="text-muted">4 min read</small>
                                         <a href="{% url 'blog:home' %}" class="btn btn-outline-success btn-sm">
@@ -264,7 +390,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
                             <div class="card border-0 shadow-sm h-100 post-card">
                                 <div class="card-img-top bg-gradient-warning d-flex align-items-center justify-content-center" style="height: 200px;">
                                     <i class="bi bi-shield-check text-white fs-1"></i>
@@ -272,7 +398,7 @@
                                 <div class="card-body">
                                     <span class="badge bg-warning mb-2">Academic Integrity</span>
                                     <h3 class="h5 fw-bold">Understanding Plagiarism & Citation</h3>
-                                    <p class="text-muted small">Essential guide to avoiding plagiarism and proper citation techniques.</p>
+                                    <p class="text-muted small">Guide to avoiding plagiarism and proper citation techniques.</p>
                                     <div class="d-flex justify-content-between align-items-center mt-3">
                                         <small class="text-muted">6 min read</small>
                                         <a href="{% url 'blog:home' %}" class="btn btn-outline-warning btn-sm">
@@ -288,7 +414,7 @@
             
             <div class="col-lg-4">
                 <!-- Blog Newsletter Subscription -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-0 shadow-sm mb-4" data-aos="fade-left" data-aos-delay="100">
                     <div class="card-header bg-white border-0 py-3">
                         <h4 class="h5 fw-bold mb-0">
                             <i class="bi bi-envelope-check text-primary me-2"></i> Get Writing Tips
@@ -315,7 +441,7 @@
                 </div>
                 
                 <!-- Popular Blog Categories -->
-                <div class="card border-0 shadow-sm">
+                <div class="card border-0 shadow-sm" data-aos="fade-left" data-aos-delay="200">
                     <div class="card-header bg-white border-0 py-3">
                         <h4 class="h5 fw-bold mb-0">
                             <i class="bi bi-bookmark text-primary me-2"></i> Popular Topics
@@ -337,197 +463,30 @@
                 </div>
             </div>
         </div>
-        
-        <div class="text-center">
-            <a href="{% url 'blog:home' %}" class="btn btn-primary btn-lg">
+
+        <div class="text-center mt-5" data-aos="fade-up">
+            <a href="{% url 'blog:home' %}" class="btn btn-primary">
                 <i class="bi bi-journal-text me-2"></i> Visit Our Academic Blog
             </a>
             {% if user.is_staff %}
-            <a href="{% url 'blog:create_post' %}" class="btn btn-outline-primary btn-lg ms-2">
+            <a href="{% url 'blog:create_post' %}" class="btn btn-outline-primary ms-2">
                 <i class="bi bi-pencil me-2"></i> Write an Article
             </a>
             {% endif %}
         </div>
     </div>
-</section>
+</section><!-- End Academic Insights Section -->
 
-<!-- How It Works Section -->
-<section id="how-it-works" class="py-5 bg-light">
-    <div class="container py-5">
-        <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold text-dark mb-3">How It Works</h2>
-            <p class="lead text-muted">Get started in 4 simple steps.</p>
+<!-- ======= Writer Showcase Section ======= -->
+<section id="writers" class="writers section-bg">
+    <div class="container" data-aos="fade-up">
+        <div class="section-title">
+            <h2>Meet Our Expert Writers</h2>
+            <p>Top-tier academic professionals with proven expertise</p>
         </div>
-        
-        <div class="row g-4">
-            <div class="col-lg-3 col-md-6">
-                <div class="step-card text-center h-100 animate-fade-in">
-                    <div class="step-number bg-primary text-white">1</div>
-                    <h4 class="fw-bold mt-4">Place Your Order</h4>
-                    <p>Fill out our order form with your requirements, deadline, and any specific instructions. Upload any reference materials.</p>
-                    <a href="{% url 'orders:create' %}" class="btn btn-link text-primary text-decoration-none">
-                        Start Your Order <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6">
-                <div class="step-card text-center h-100 animate-fade-in">
-                    <div class="step-number bg-success text-white">2</div>
-                    <h4 class="fw-bold mt-4">Writer Matching</h4>
-                    <p>Our system matches your order with the most qualified writer. You can review profiles and communicate directly.</p>
-                    <a href="{% url 'blog:home' %}" class="btn btn-link text-success text-decoration-none">
-                        Meet Our Writers <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6">
-                <div class="step-card text-center h-100 animate-fade-in">
-                    <div class="step-number bg-warning text-white">3</div>
-                    <h4 class="fw-bold mt-4">Track Progress</h4>
-                    <p>Monitor progress in real-time. Communicate with your writer, request updates, and review drafts as needed.</p>
-                    {% if user.is_authenticated %}
-                    <a href="{% url 'orders:list' %}" class="btn btn-link text-warning text-decoration-none">
-                        Track Orders <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6">
-                <div class="step-card text-center h-100 animate-fade-in">
-                    <div class="step-number bg-info text-white">4</div>
-                    <h4 class="fw-bold mt-4">Receive & Review</h4>
-                    <p>Get your completed work before the deadline. Review quality, request revisions if needed, and approve for release.</p>
-                    <a href="{% url 'reviews:select_order' %}" class="btn btn-link text-info text-decoration-none">Leave a Review →</a>
-                        Leave Feedback <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
-<!-- Services Section -->
-<section id="services" class="py-5">
-    <div class="container py-5">
-        <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold text-dark mb-3">Our Services</h2>
-            <p class="lead text-muted">Comprehensive academic writing support for all levels</p>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="service-card h-100 animate-fade-in">
-                    <div class="service-header bg-primary text-white p-4">
-                        <h4 class="fw-bold mb-0">Essays & Papers</h4>
-                    </div>
-                    <div class="service-body p-4">
-                        <p>Argumentative, persuasive, descriptive, and narrative essays. Research papers and term papers.</p>
-                        <div class="service-levels mt-3 mb-4">
-                            <span class="badge bg-primary me-2">High School</span>
-                            <span class="badge bg-primary me-2">Undergraduate</span>
-                            <span class="badge bg-primary">Graduate</span>
-                        </div>
-                        <a href="{% url 'orders:create' %}" class="btn btn-outline-primary w-100">
-                            Order Essay
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="service-card h-100 animate-fade-in">
-                    <div class="service-header bg-success text-white p-4">
-                        <h4 class="fw-bold mb-0">Thesis & Dissertations</h4>
-                    </div>
-                    <div class="service-body p-4">
-                        <p>Thesis, dissertation, capstone projects. Literature reviews, methodology, data analysis.</p>
-                        <div class="service-levels mt-3 mb-4">
-                            <span class="badge bg-success me-2">Master's</span>
-                            <span class="badge bg-success me-2">PhD</span>
-                            <span class="badge bg-success">Post-Doc</span>
-                        </div>
-                        <a href="{% url 'orders:create' %}" class="btn btn-outline-success w-100">
-                            Order Thesis
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="service-card h-100 animate-fade-in">
-                    <div class="service-header bg-warning text-white p-4">
-                        <h4 class="fw-bold mb-0">Editing & Proofreading</h4>
-                    </div>
-                    <div class="service-body p-4">
-                        <p>Professional editing, proofreading, formatting. Citation formatting (APA, MLA, Chicago, Harvard).</p>
-                        <div class="service-levels mt-3 mb-4">
-                            <span class="badge bg-warning me-2">Grammar Check</span>
-                            <span class="badge bg-warning me-2">Plagiarism Check</span>
-                            <span class="badge bg-warning">Formatting</span>
-                        </div>
-                        <a href="{% url 'orders:create' %}" class="btn btn-outline-warning w-100">
-                            Request Editing
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Additional Services -->
-        <div class="row g-4 mt-4">
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start">
-                            <div class="icon-circle bg-light me-3">
-                                <i class="bi bi-calculator text-primary fs-4"></i>
-                            </div>
-                            <div>
-                                <h4 class="fw-bold mb-2">Pricing Calculator</h4>
-                                <p class="text-muted mb-3">Get instant price estimates based on your academic level, deadline, and paper type.</p>
-                                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#pricingModal">
-                                    Calculate Price
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start">
-                            <div class="icon-circle bg-light me-3">
-                                <i class="bi bi-chat-dots text-primary fs-4"></i>
-                            </div>
-                            <div>
-                                <h4 class="fw-bold mb-2">Live Support</h4>
-                                <p class="text-muted mb-3">24/7 customer support via chat, email, and phone. Get immediate answers to your questions.</p>
-                                <button class="btn btn-outline-primary" onclick="window.location.href='#contact'">
-                                    Contact Support
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Writer Showcase -->
-<section id="writers" class="py-5 bg-light">
-    <div class="container py-5">
-        <div class="text-center mb-5">
-            <h2 class="display-5 fw-bold text-dark mb-3">Meet Our Expert Writers</h2>
-            <p class="lead text-muted">Top-tier academic professionals with proven expertise</p>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-lg-3 col-md-6">
+        <div class="row">
+            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="100">
                 <div class="card border-0 shadow-sm text-center h-100">
                     <div class="card-body p-4">
                         <div class="icon-circle bg-primary text-white mx-auto mb-3" style="width: 80px; height: 80px;">
@@ -550,8 +509,8 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="col-lg-3 col-md-6">
+
+            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="200">
                 <div class="card border-0 shadow-sm text-center h-100">
                     <div class="card-body p-4">
                         <div class="icon-circle bg-success text-white mx-auto mb-3" style="width: 80px; height: 80px;">
@@ -574,8 +533,8 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="col-lg-3 col-md-6">
+
+            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="300">
                 <div class="card border-0 shadow-sm text-center h-100">
                     <div class="card-body p-4">
                         <div class="icon-circle bg-warning text-white mx-auto mb-3" style="width: 80px; height: 80px;">
@@ -598,8 +557,8 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="col-lg-3 col-md-6">
+
+            <div class="col-lg-3 col-md-6" data-aos="zoom-in" data-aos-delay="400">
                 <div class="card border-0 shadow-sm text-center h-100">
                     <div class="card-body p-4">
                         <div class="icon-circle bg-info text-white mx-auto mb-3" style="width: 80px; height: 80px;">
@@ -623,8 +582,8 @@
                 </div>
             </div>
         </div>
-        
-        <div class="text-center mt-5">
+
+        <div class="text-center mt-5" data-aos="fade-up">
             <a href="{% url 'blog:home' %}" class="btn btn-primary">
                 <i class="bi bi-people me-2"></i> View All Writers & Articles
             </a>
@@ -635,97 +594,67 @@
             {% endif %}
         </div>
     </div>
-</section>
+</section><!-- End Writer Showcase Section -->
 
-<!-- CTA Section -->
-<section class="py-5 bg-gradient-primary text-white">
-    <div class="container py-5">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h2 class="display-5 fw-bold mb-4">Ready to Get Started?</h2>
-                <p class="lead mb-4">Join thousands of students and professionals who trust EWBWriting for their academic success.</p>
-                <div class="d-flex flex-wrap gap-3">
-                    {% if not user.is_authenticated %}
-                    <a href="{% url 'account_signup' %}" class="btn btn-light btn-lg px-5">
-                        <i class="bi bi-rocket-takeoff me-2"></i>Sign Up For Free Trial
-                    </a>
-                    <a href="{% url 'blog:subscribe' %}" class="btn btn-outline-light btn-lg px-5">
-                        <i class="bi bi-envelope me-2"></i>Get Writing Tips
-                    </a>
-                    {% else %}
-                    <a href="{% url 'orders:create' %}" class="btn btn-light btn-lg px-5">
-                        <i class="bi bi-plus-circle me-2"></i>Place Your First Order
-                    </a>
-                    <a href="{% url 'blog:home' %}" class="btn btn-outline-light btn-lg px-5">
-                        <i class="bi bi-journal-text me-2"></i>Read Our Blog
-                    </a>
-                    {% endif %}
-                </div>
-                <p class="mt-4 small">
-                    <i class="bi bi-shield-check me-1"></i>No credit card required • 100% secure • Cancel anytime
-                </p>
+<!-- ======= CTA Section ======= -->
+<section id="cta" class="cta">
+    <div class="container" data-aos="zoom-in">
+        <div class="row">
+            <div class="col-lg-9 text-center text-lg-start">
+                <h3>Ready to Get Started?</h3>
+                <p>Join thousands of students and professionals who trust EWBWriting for their academic success.</p>
             </div>
-            <div class="col-lg-4 text-lg-end">
-                <div class="card bg-white bg-opacity-10 border-0 mt-4 mt-lg-0">
-                    <div class="card-body">
-                        <h5 class="fw-bold mb-3">
-                            <i class="bi bi-chat-quote me-2"></i> What Our Clients Say
-                        </h5>
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="bi bi-star-fill text-warning fs-5 me-1"></i>
-                            <i class="bi bi-star-fill text-warning fs-5 me-1"></i>
-                            <i class="bi bi-star-fill text-warning fs-5 me-1"></i>
-                            <i class="bi bi-star-fill text-warning fs-5 me-1"></i>
-                            <i class="bi bi-star-fill text-warning fs-5 me-1"></i>
-                            <span class="ms-2 fw-bold">4.9/5</span>
-                        </div>
-                        <p class="small mb-0 fst-italic">"The quality of work exceeded my expectations. Will definitely use again!"</p>
-                        <div class="text-end mt-3">
-                            <a href="{% url 'reviews:select_order' %}" class="btn btn-outline-light btn-sm">Write a Review</a>
-                                Write a Review
-                            </a>
-                        </div>
-                    </div>
-                </div>
+            <div class="col-lg-3 cta-btn-container text-center">
+                {% if not user.is_authenticated %}
+                <a class="cta-btn align-middle" href="{% url 'account_signup' %}">Sign Up For Free</a>
+                {% else %}
+                <a class="cta-btn align-middle" href="{% url 'orders:create' %}">Place New Order</a>
+                {% endif %}
             </div>
         </div>
     </div>
-</section>
+</section><!-- End CTA Section -->
 
-<!-- Contact/Support Section -->
-<section id="contact" class="py-5">
-    <div class="container py-5">
+<!-- ======= Contact Section ======= -->
+<section id="contact" class="contact">
+    <div class="container" data-aos="fade-up">
+        <div class="section-title">
+            <h2>Need Help?</h2>
+            <p>We're here to support your academic journey</p>
+        </div>
+
         <div class="row">
-            <div class="col-lg-4 mb-4">
-                <h3 class="h4 fw-bold mb-4">Need Help?</h3>
-                <div class="d-flex align-items-start mb-3">
-                    <i class="bi bi-headset text-primary fs-4 me-3"></i>
-                    <div>
-                        <h6 class="fw-bold mb-1">24/7 Support</h6>
-                        <p class="text-muted small mb-0">Live chat, email, and phone support available</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-start mb-3">
-                    <i class="bi bi-question-circle text-primary fs-4 me-3"></i>
-                    <div>
-                        <h6 class="fw-bold mb-1">FAQ & Help Center</h6>
-                        <p class="text-muted small mb-0">Find answers to common questions</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-start">
-                    <i class="bi bi-journal-text text-primary fs-4 me-3"></i>
-                    <div>
-                        <h6 class="fw-bold mb-1">Blog & Resources</h6>
-                        <p class="text-muted small mb-0">Academic writing tips and guides</p>
-                        <a href="{% url 'blog:home' %}" class="small text-decoration-none">Visit Blog →</a>
-                    </div>
+            <div class="col-lg-4">
+                <div class="info-box mb-4">
+                    <i class="bi bi-headset"></i>
+                    <h3>24/7 Support</h3>
+                    <p>Live chat, email, and phone support available</p>
                 </div>
             </div>
-            
-            <div class="col-lg-8">
-                <h3 class="h4 fw-bold mb-4">Quick Links</h3>
+
+            <div class="col-lg-4">
+                <div class="info-box mb-4">
+                    <i class="bi bi-question-circle"></i>
+                    <h3>FAQ & Help Center</h3>
+                    <p>Find answers to common questions</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="info-box mb-4">
+                    <i class="bi bi-journal-text"></i>
+                    <h3>Blog & Resources</h3>
+                    <p>Academic writing tips and guides</p>
+                    <a href="{% url 'blog:home' %}" class="small text-decoration-none">Visit Blog →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-lg-12">
+                <h4 class="h5 fw-bold mb-4">Quick Links</h4>
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-3">
                         <ul class="list-unstyled">
                             <li class="mb-2">
                                 <a href="{% url 'orders:create' %}" class="text-decoration-none">
@@ -742,16 +671,9 @@
                                     <i class="bi bi-envelope me-2 text-primary"></i> Newsletter
                                 </a>
                             </li>
-                            {% if user.is_authenticated %}
-                            <li class="mb-2">
-                                <a href="{% url 'accounts:dashboard' %}" class="text-decoration-none">
-                                    <i class="bi bi-speedometer2 me-2 text-primary"></i> Dashboard
-                                </a>
-                            </li>
-                            {% endif %}
                         </ul>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-3">
                         <ul class="list-unstyled">
                             <li class="mb-2">
                                 <a href="{% url 'terms' %}" class="text-decoration-none">
@@ -768,18 +690,47 @@
                                     <i class="bi bi-arrow-counterclockwise me-2 text-primary"></i> Refund Policy
                                 </a>
                             </li>
-                            <li>
-                                <a href="#contact-form" class="text-decoration-none">
-                                    <i class="bi bi-envelope me-2 text-primary"></i> Contact Us
+                        </ul>
+                    </div>
+                    <div class="col-md-3">
+                        <ul class="list-unstyled">
+                            {% if user.is_authenticated %}
+                            <li class="mb-2">
+                                <a href="{% url 'accounts:dashboard' %}" class="text-decoration-none">
+                                    <i class="bi bi-speedometer2 me-2 text-primary"></i> Dashboard
                                 </a>
                             </li>
+                            {% if user.is_writer %}
+                            <li class="mb-2">
+                                <a href="{% url 'orders:available' %}" class="text-decoration-none">
+                                    <i class="bi bi-briefcase me-2 text-primary"></i> Available Orders
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% endif %}
+                        </ul>
+                    </div>
+                    <div class="col-md-3">
+                        <ul class="list-unstyled">
+                            {% if user.is_authenticated %}
+                            <li class="mb-2">
+                                <a href="{% url 'orders:list' %}" class="text-decoration-none">
+                                    <i class="bi bi-list-check me-2 text-primary"></i> My Orders
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'messaging:conversation_list' %}" class="text-decoration-none">
+                                    <i class="bi bi-chat-dots me-2 text-primary"></i> Messages
+                                </a>
+                            </li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</section>
+</section><!-- End Contact Section -->
 
 <!-- Pricing Modal -->
 <div class="modal fade" id="pricingModal" tabindex="-1">
@@ -861,7 +812,16 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Add AOS (Animate on Scroll) library for animations -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
+// Initialize AOS
+AOS.init({
+    duration: 1000,
+    once: true
+});
+
 // Smooth scrolling for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -880,24 +840,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             history.pushState(null, null, targetId);
         }
     });
-});
-
-// Animation on scroll
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if(entry.isIntersecting) {
-            entry.target.classList.add('animate-fade-in');
-        }
-    });
-}, observerOptions);
-
-document.querySelectorAll('.feature-card, .step-card, .service-card, .post-card').forEach(el => {
-    observer.observe(el);
 });
 
 // Pricing calculator logic
@@ -988,36 +930,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
-    // Stats counter animation
-    const statNumbers = document.querySelectorAll('.stat-number');
-    const statSection = document.getElementById('why-choose-us');
-    
-    const statsObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                statNumbers.forEach(stat => {
-                    const target = parseInt(stat.textContent.replace(/[^0-9]/g, ''));
-                    const suffix = stat.textContent.replace(/[0-9]/g, '');
-                    let current = 0;
-                    const increment = target / 50;
-                    const timer = setInterval(() => {
-                        current += increment;
-                        if (current >= target) {
-                            current = target;
-                            clearInterval(timer);
-                        }
-                        stat.textContent = Math.floor(current) + suffix;
-                    }, 30);
-                });
-                statsObserver.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.5 });
-    
-    if (statSection) {
-        statsObserver.observe(statSection);
-    }
 });
 </script>
 {% endblock %}

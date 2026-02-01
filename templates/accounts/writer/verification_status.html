@@ -1,0 +1,495 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Verification Status - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Verification Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h2 mb-1">Verification Status</h1>
+                            <p class="text-muted mb-0">
+                                Track your writer verification progress and requirements
+                            </p>
+                        </div>
+                        <div>
+                            <span class="badge bg-{{ verification.state|state_color }} fs-6 px-3 py-2">
+                                {{ verification.get_state_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Status Card -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tasks me-2"></i>Current Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Status Overview -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="status-card">
+                                <div class="status-icon 
+                                    {% if onboarding_status.profile_complete %}bg-success{% else %}bg-secondary{% endif %}">
+                                    <i class="fas fa-user-check"></i>
+                                </div>
+                                <div class="status-content">
+                                    <h6>Profile Completion</h6>
+                                    <p class="text-muted mb-2">
+                                        {% if onboarding_status.profile_complete %}
+                                        Completed on {{ verification.profile_completed_at|date:"M d, Y" }}
+                                        {% else %}
+                                        Profile information required
+                                        {% endif %}
+                                    </p>
+                                    {% if not onboarding_status.profile_complete %}
+                                    <a href="{% url 'accounts:writer_onboarding_step1' %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        Complete Profile
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="status-card">
+                                <div class="status-icon 
+                                    {% if onboarding_status.documents.verified >= 3 %}bg-success
+                                    {% elif onboarding_status.documents.verified > 0 %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="status-content">
+                                    <h6>Documents</h6>
+                                    <p class="text-muted mb-2">
+                                        {{ onboarding_status.documents.verified }}/3 documents verified
+                                    </p>
+                                    {% if onboarding_status.documents.verified < 3 %}
+                                    <a href="{% url 'accounts:writer_documents' %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        Upload Documents
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="card bg-light border-0">
+                        <div class="card-body">
+                            <h6 class="mb-3">
+                                <i class="fas fa-arrow-right me-2"></i>Next Action Required
+                            </h6>
+                            <div class="alert 
+                                {% if verification.state == 'rejected' %}alert-danger
+                                {% elif verification.state == 'revision_required' %}alert-warning
+                                {% else %}alert-info{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas 
+                                            {% if verification.state == 'rejected' %}fa-exclamation-triangle
+                                            {% elif verification.state == 'revision_required' %}fa-edit
+                                            {% else %}fa-info-circle{% endif %} 
+                                            fa-2x me-3"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h5 class="alert-heading mb-2">{{ onboarding_status.next_action }}</h5>
+                                        {% if verification.rejection_reason %}
+                                        <p class="mb-1"><strong>Rejection Reason:</strong> {{ verification.rejection_reason }}</p>
+                                        {% endif %}
+                                        {% if verification.revision_notes %}
+                                        <p class="mb-0"><strong>Revision Notes:</strong> {{ verification.revision_notes }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if onboarding_status.can_proceed %}
+                            <div class="text-center mt-3">
+                                {% if verification.state == 'profile_completed' and onboarding_status.documents.verified >= 3 %}
+                                <form method="post" action="{% url 'accounts:writer_onboarding_step2' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="submit">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit for Verification
+                                    </button>
+                                </form>
+                                {% elif verification.state == 'rejected' or verification.state == 'revision_required' %}
+                                <a href="{% url 'accounts:writer_documents' %}" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-upload me-2"></i>Update Documents
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Verification Timeline
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for event in timeline %}
+                        <div class="timeline-item {% if event.completed %}completed{% else %}pending{% endif %}">
+                            <div class="timeline-marker">
+                                <i class="fas 
+                                    {% if event.completed %}fa-check-circle
+                                    {% else %}fa-clock{% endif %}"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">{{ event.event }}</h6>
+                                <p class="text-muted small mb-1">{{ event.description }}</p>
+                                {% if event.date %}
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    {{ event.date|date:"M d, Y" }}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Queue Position & Estimated Time -->
+    {% if queue_position %}
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users me-2"></i>Review Queue
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="queue-position">
+                                    <div class="position-number">{{ queue_position }}</div>
+                                    <div class="position-label">Position in Queue</div>
+                                </div>
+                                <div class="ms-4">
+                                    <h5>Estimated Review Time</h5>
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-clock me-1"></i>
+                                        2-3 business days from submission
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" 
+                                     style="width: {% widthratio queue_position 10 100 %}%">
+                                    Position {{ queue_position }}
+                                </div>
+                            </div>
+                            <div class="text-center mt-2">
+                                <small class="text-muted">
+                                    Your submission is being reviewed in the order it was received
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Next Steps -->
+    <div class="row">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-road me-2"></i>Next Steps
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for step in next_steps %}
+                        <div class="col-md-4 mb-3">
+                            <div class="step-card">
+                                <div class="step-number">{{ forloop.counter }}</div>
+                                <div class="step-content">
+                                    <h6 class="mb-2">Step {{ forloop.counter }}</h6>
+                                    <p class="text-muted small mb-0">{{ step }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Information -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-life-ring me-2"></i>Need Help?
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="help-option">
+                                <i class="fas fa-envelope fa-2x text-primary mb-3"></i>
+                                <h6>Email Support</h6>
+                                <p class="text-muted small mb-2">
+                                    Send your questions to verification@ebwriting.com
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="help-option">
+                                <i class="fas fa-question-circle fa-2x text-info mb-3"></i>
+                                <h6>FAQ</h6>
+                                <p class="text-muted small mb-2">
+                                    Check our frequently asked questions
+                                </p>
+                                <a href="#" class="btn btn-sm btn-outline-info">View FAQ</a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="help-option">
+                                <i class="fas fa-comments fa-2x text-success mb-3"></i>
+                                <h6>Live Chat</h6>
+                                <p class="text-muted small mb-2">
+                                    Chat with our support team
+                                </p>
+                                <button class="btn btn-sm btn-outline-success" id="startChat">
+                                    Start Chat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Start chat button
+    const startChat = document.getElementById('startChat');
+    if (startChat) {
+        startChat.addEventListener('click', function() {
+            alert('Live chat feature would open here.');
+        });
+    }
+});
+</script>
+
+<style>
+.status-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: #f8f9fa;
+    margin-bottom: 1rem;
+}
+
+.status-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.status-icon.bg-success { background-color: #198754; }
+.status-icon.bg-warning { background-color: #ffc107; }
+.status-icon.bg-secondary { background-color: #6c757d; }
+
+.status-content h6 {
+    margin-bottom: 0.25rem;
+}
+
+.status-content p {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Timeline */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.timeline-item.completed .timeline-marker {
+    border-color: #198754;
+    color: #198754;
+}
+
+.timeline-item.pending .timeline-marker {
+    border-color: #ffc107;
+    color: #ffc107;
+}
+
+.timeline-content {
+    padding-bottom: 1rem;
+}
+
+.timeline-item:not(:last-child) .timeline-content {
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Queue Position */
+.queue-position {
+    text-align: center;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    min-width: 120px;
+}
+
+.position-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #0d6efd;
+    line-height: 1;
+}
+
+.position-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/* Step Cards */
+.step-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    height: 100%;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.step-content h6 {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.step-content p {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+/* Help Options */
+.help-option {
+    padding: 1.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.help-option:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-color: #0d6efd;
+}
+
+.help-option h6 {
+    margin-bottom: 0.5rem;
+}
+
+/* Progress Bar Animation */
+.progress-bar-animated {
+    animation: progress-animation 2s linear infinite;
+}
+
+@keyframes progress-animation {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 0; }
+}
+</style>
+{% endblock %}

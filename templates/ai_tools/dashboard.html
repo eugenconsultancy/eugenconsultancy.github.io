@@ -1,329 +1,226 @@
-{% extends 'base/base.html' %}
-{% load static %}
+{% extends 'ai_tools/base.html' %}
 
-{% block title %}AI Writing Assistants - EBWriting{% endblock %}
-{% block meta_description %}AI-powered writing assistants for academic work. Outline helper, grammar checker, and citation formatter tools.{% endblock %}
-
-{% block extra_head %}
-<style>
-.tool-card {
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid #e0e0e0;
-}
-.tool-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-.limit-badge {
-    font-size: 0.8rem;
-}
-.disclaimer-box {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 8px;
-}
-</style>
-{% endblock %}
+{% block title %}AI Tools Dashboard - Academic Platform{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Header -->
-    <div class="row mb-5">
-        <div class="col-lg-8 mx-auto text-center">
-            <h1 class="display-4 fw-bold mb-3">AI Writing Assistants</h1>
-            <p class="lead text-muted mb-4">
-                AI-powered tools to help with your academic writing. 
-                <strong class="text-warning">Assistance only - not a replacement for your own work.</strong>
-            </p>
-            
-            <!-- User Limits -->
-            {% if user_limits %}
-            <div class="row justify-content-center mb-4">
-                <div class="col-md-10">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title mb-3">
-                                <i class="fas fa-chart-line me-2 text-primary"></i>
-                                Your Usage Limits
-                            </h5>
-                            <div class="row">
-                                {% for tool_type, tool_info in user_limits.tools.items %}
-                                <div class="col-md-3 col-6 mb-3">
-                                    <div class="text-center">
-                                        <div class="h4 mb-1">{{ tool_info.remaining }}</div>
-                                        <small class="text-muted">{{ tool_info.name }}</small>
-                                        <div class="progress mt-1" style="height: 4px;">
-                                            <div class="progress-bar {% if tool_info.remaining > 0 %}bg-success{% else %}bg-danger{% endif %}" 
-                                                 style="width: {{ tool_info.daily_used|divisibleby:tool_info.daily_limit|default:0|multiply:100 }}%">
-                                            </div>
-                                        </div>
-                                        <small>{{ tool_info.daily_used }}/{{ tool_info.daily_limit }} today</small>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            <div class="mt-2 text-center">
-                                <small class="text-muted">
-                                    Limits reset daily at midnight UTC
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- IMPORTANT DISCLAIMER -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="disclaimer-box p-4">
-                <div class="d-flex align-items-start">
-                    <div class="me-3">
-                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-warning mb-2">⚠️ IMPORTANT DISCLAIMER</h4>
-                        <p class="mb-2">
-                            These are <strong>ASSISTIVE TOOLS ONLY</strong>. They do NOT write your papers for you.
-                        </p>
-                        <ul class="mb-0">
-                            <li>All outputs must be reviewed and edited by you</li>
-                            <li>You are responsible for all final content</li>
-                            <li>Proper citation of all sources is mandatory</li>
-                            <li>Academic integrity policies apply to all use</li>
-                            <li>These tools are for assistance, not replacement</li>
-                        </ul>
-                    </div>
+<div class="row">
+    <!-- Welcome Section -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title">
+                    <i class="fas fa-robot text-primary"></i> AI Writing Assistants
+                </h1>
+                <p class="card-text">
+                    Welcome to the AI Writing Assistants dashboard. These tools are designed to help 
+                    with various aspects of academic writing while maintaining academic integrity.
+                </p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Usage Status:</strong> 
+                    You have used {{ user_limits.total_uses }} AI tools today.
+                    {% for tool, data in user_limits.tools.items %}
+                        {% if data.daily_used > 0 %}
+                            {{ data.daily_used }} {{ data.name }},
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tools Grid -->
-    <div class="row g-4">
-        <!-- Outline Helper -->
-        <div class="col-lg-4">
-            <div class="tool-card card h-100 border-0 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-project-diagram me-2"></i>
-                        Outline Helper
-                    </h5>
-                </div>
-                <div class="card-body d-flex flex-column">
-                    <p class="card-text">
-                        Generate structured outlines for essays, research papers, and other academic documents.
-                    </p>
-                    <ul class="mb-4">
-                        <li>Customizable templates</li>
-                        <li>Word count distribution</li>
-                        <li>Research suggestions</li>
-                        <li>Writing timeline</li>
-                    </ul>
-                    
-                    {% with limits=user_limits.tools.outline_helper %}
-                    <div class="mt-auto">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span>Daily limit:</span>
-                            <span class="badge bg-primary limit-badge">
-                                {{ limits.daily_used|default:0 }}/{{ limits.daily_limit|default:10 }}
-                            </span>
-                        </div>
-                        <a href="{% url 'ai_tools:outline_helper' %}" 
-                           class="btn btn-primary w-100 {% if limits.remaining <= 0 %}disabled{% endif %}">
-                            <i class="fas fa-play me-2"></i>
-                            {% if limits.remaining > 0 %}
-                            Start Tool ({{ limits.remaining }} left)
-                            {% else %}
-                            Limit Reached
-                            {% endif %}
-                        </a>
-                    </div>
-                    {% endwith %}
-                </div>
+    <!-- Tool Cards -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-sitemap fa-2x"></i>
+                <h4 class="card-title mt-2">Outline Helper</h4>
             </div>
-        </div>
-
-        <!-- Grammar Checker -->
-        <div class="col-lg-4">
-            <div class="tool-card card h-100 border-0 shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-spell-check me-2"></i>
-                        Grammar Checker
-                    </h5>
-                </div>
-                <div class="card-body d-flex flex-column">
-                    <p class="card-text">
-                        Check grammar, style, and clarity of your writing with academic-level suggestions.
-                    </p>
-                    <ul class="mb-4">
-                        <li>Grammar and spelling</li>
-                        <li>Academic style checking</li>
-                        <li>Readability analysis</li>
-                        <li>Specific suggestions</li>
-                    </ul>
-                    
-                    {% with limits=user_limits.tools.grammar_checker %}
-                    <div class="mt-auto">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span>Daily limit:</span>
-                            <span class="badge bg-success limit-badge">
-                                {{ limits.daily_used|default:0 }}/{{ limits.daily_limit|default:10 }}
-                            </span>
-                        </div>
-                        <a href="{% url 'ai_tools:grammar_checker' %}" 
-                           class="btn btn-success w-100 {% if limits.remaining <= 0 %}disabled{% endif %}">
-                            <i class="fas fa-play me-2"></i>
-                            {% if limits.remaining > 0 %}
-                            Start Tool ({{ limits.remaining }} left)
-                            {% else %}
-                            Limit Reached
-                            {% endif %}
-                        </a>
-                    </div>
-                    {% endwith %}
-                </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Generate structured outlines for academic papers. Choose from various 
+                    templates like essays, research papers, and more.
+                </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="fas fa-clock"></i> Available Templates: {{ templates|length }}
+                    </small>
+                </p>
             </div>
-        </div>
-
-        <!-- Citation Formatter -->
-        <div class="col-lg-4">
-            <div class="tool-card card h-100 border-0 shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-quote-right me-2"></i>
-                        Citation Formatter
-                    </h5>
-                </div>
-                <div class="card-body d-flex flex-column">
-                    <p class="card-text">
-                        Format citations in APA, MLA, Chicago, and other academic styles.
-                    </p>
-                    <ul class="mb-4">
-                        <li>Multiple citation styles</li>
-                        <li>Batch processing</li>
-                        <li>BibTeX export</li>
-                        <li>In-text citations</li>
-                    </ul>
-                    
-                    {% with limits=user_limits.tools.citation_formatter %}
-                    <div class="mt-auto">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span>Daily limit:</span>
-                            <span class="badge bg-info limit-badge">
-                                {{ limits.daily_used|default:0 }}/{{ limits.daily_limit|default:10 }}
-                            </span>
-                        </div>
-                        <a href="{% url 'ai_tools:citation_formatter' %}" 
-                           class="btn btn-info w-100 {% if limits.remaining <= 0 %}disabled{% endif %}">
-                            <i class="fas fa-play me-2"></i>
-                            {% if limits.remaining > 0 %}
-                            Start Tool ({{ limits.remaining }} left)
-                            {% else %}
-                            Limit Reached
-                            {% endif %}
-                        </a>
-                    </div>
-                    {% endwith %}
-                </div>
+            <div class="card-footer">
+                <a href="{% url 'ai_tools:outline_helper' %}" class="btn btn-success">
+                    <i class="fas fa-play-circle"></i> Start Tool
+                </a>
+                <span class="float-end">
+                    <small>
+                        {{ user_limits.tools.outline_helper.remaining }}/{{ user_limits.tools.outline_helper.daily_limit }} remaining
+                    </small>
+                </span>
             </div>
         </div>
     </div>
 
-    <!-- Usage Guidelines -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-book me-2"></i>
-                        Usage Guidelines
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="text-center p-3">
-                                <div class="mb-3">
-                                    <i class="fas fa-user-edit fa-2x text-primary"></i>
-                                </div>
-                                <h5>Your Work</h5>
-                                <p class="text-muted">
-                                    You must write all final content yourself. AI tools provide assistance only.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="text-center p-3">
-                                <div class="mb-3">
-                                    <i class="fas fa-search fa-2x text-success"></i>
-                                </div>
-                                <h5>Review & Edit</h5>
-                                <p class="text-muted">
-                                    Always review AI suggestions carefully and edit as needed.
-                                </p>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="text-center p-3">
-                                <div class="mb-3">
-                                    <i class="fas fa-balance-scale fa-2x text-danger"></i>
-                                </div>
-                                <h5>Academic Integrity</h5>
-                                <p class="text-muted">
-                                    Follow your institution's policies on AI tool usage.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-warning text-dark">
+                <i class="fas fa-spell-check fa-2x"></i>
+                <h4 class="card-title mt-2">Grammar Checker</h4>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Check grammar, style, and clarity of your writing. Get suggestions for 
+                    improving academic tone and readability.
+                </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="fas fa-language"></i> Supports multiple academic levels
+                    </small>
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'ai_tools:grammar_checker' %}" class="btn btn-warning">
+                    <i class="fas fa-play-circle"></i> Start Tool
+                </a>
+                <span class="float-end">
+                    <small>
+                        {{ user_limits.tools.grammar_checker.remaining }}/{{ user_limits.tools.grammar_checker.daily_limit }} remaining
+                    </small>
+                </span>
             </div>
         </div>
     </div>
 
-    <!-- Usage History -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-history me-2"></i>
-                        Your Recent Usage
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-quote-right fa-2x"></i>
+                <h4 class="card-title mt-2">Citation Formatter</h4>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Format citations in APA, MLA, Chicago, and other styles. 
+                    Supports books, journals, websites, and more.
+                </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="fas fa-book"></i> Available Styles: {{ citation_styles|length }}
+                    </small>
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'ai_tools:citation_formatter' %}" class="btn btn-info text-white">
+                    <i class="fas fa-play-circle"></i> Start Tool
+                </a>
+                <span class="float-end">
+                    <small>
+                        {{ user_limits.tools.citation_formatter.remaining }}/{{ user_limits.tools.citation_formatter.daily_limit }} remaining
+                    </small>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usage Stats -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <i class="fas fa-chart-bar"></i> Your Usage Statistics
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Daily Limits</h5>
+                        <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
                                     <th>Tool</th>
-                                    <th>Input Preview</th>
-                                    <th>Reviewed</th>
+                                    <th>Used</th>
+                                    <th>Limit</th>
+                                    <th>Remaining</th>
                                 </tr>
                             </thead>
-                            <tbody id="usage-history">
-                                <!-- Will be populated by JavaScript -->
+                            <tbody>
+                                {% for tool, data in user_limits.tools.items %}
                                 <tr>
-                                    <td colspan="4" class="text-center">
-                                        <div class="spinner-border spinner-border-sm" role="status">
-                                            <span class="visually-hidden">Loading...</span>
+                                    <td>{{ data.name }}</td>
+                                    <td>{{ data.daily_used }}</td>
+                                    <td>{{ data.daily_limit }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar {% if data.remaining > 5 %}bg-success{% elif data.remaining > 2 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                 style="width: {{ data.daily_used|divisibleby:data.daily_limit|default:0|multiply:100 }}%">
+                                            </div>
                                         </div>
-                                        Loading usage history...
                                     </td>
                                 </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                    <div class="text-center">
-                        <button id="load-more-history" class="btn btn-outline-primary" style="display: none;">
-                            Load More
-                        </button>
+                    <div class="col-md-6">
+                        <h5>Quick Actions</h5>
+                        <div class="list-group">
+                            <a href="{% url 'ai_tools:user_limits' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-chart-line"></i> View Detailed Usage Analytics
+                            </a>
+                            <a href="{% url 'ai_tools:usage_history' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-history"></i> Check Usage History
+                            </a>
+                            <div class="list-group-item">
+                                <i class="fas fa-database"></i> 
+                                Total Uses: <strong>{{ user_limits.total_uses }}</strong>
+                            </div>
+                            {% if user_limits.is_restricted %}
+                                <div class="list-group-item list-group-item-danger">
+                                    <i class="fas fa-ban"></i>
+                                    Account Restricted: {{ user_limits.restriction_reason }}
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Important Notes -->
+    <div class="col-12">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-exclamation-triangle"></i> Important Guidelines
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-check-circle text-success"></i> Do:</h6>
+                        <ul>
+                            <li>Use these tools as assistants only</li>
+                            <li>Verify all AI-generated content</li>
+                            <li>Cite sources properly</li>
+                            <li>Maintain academic integrity</li>
+                            <li>Review outputs carefully</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-times-circle text-danger"></i> Don't:</h6>
+                        <ul>
+                            <li>Submit AI-generated content as your own</li>
+                            <li>Use tools to bypass learning</li>
+                            <li>Share outputs without verification</li>
+                            <li>Violate academic policies</li>
+                            <li>Exceed usage limits</li>
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <p class="mb-0">
+                    <small class="text-muted">
+                        <i class="fas fa-database"></i> 
+                        All usage is logged in <code>AIToolUsageLog</code> for academic integrity monitoring.
+                        Models referenced: <code>AIToolConfiguration</code>, <code>UserAILimits</code>, 
+                        <code>AIToolTemplate</code>, <code>CitationStyle</code>.
+                    </small>
+                </p>
             </div>
         </div>
     </div>
@@ -332,125 +229,26 @@
 
 {% block extra_js %}
 <script>
-// Load usage history
-document.addEventListener('DOMContentLoaded', function() {
-    loadUsageHistory();
-    
-    // Add click event for load more button
-    document.getElementById('load-more-history')?.addEventListener('click', loadMoreHistory);
-});
-
-let currentPage = 1;
-const pageSize = 10;
-
-async function loadUsageHistory() {
-    try {
-        const response = await fetch(`{% url 'ai_tools:usage_history' %}?days=7&page=${currentPage}&page_size=${pageSize}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            renderUsageHistory(data.recent_uses);
-            
-            // Show/hide load more button
-            const loadMoreBtn = document.getElementById('load-more-history');
-            if (data.recent_uses.length === pageSize) {
-                loadMoreBtn.style.display = 'block';
-            } else {
-                loadMoreBtn.style.display = 'none';
-            }
-        }
-    } catch (error) {
-        console.error('Error loading usage history:', error);
-    }
-}
-
-async function loadMoreHistory() {
-    currentPage++;
-    await loadUsageHistory();
-}
-
-function renderUsageHistory(usageData) {
-    const tbody = document.getElementById('usage-history');
-    
-    if (currentPage === 1) {
-        tbody.innerHTML = '';
-    }
-    
-    if (usageData.length === 0 && currentPage === 1) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" class="text-center text-muted">
-                    No usage history found
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    usageData.forEach(item => {
-        const row = document.createElement('tr');
-        
-        // Format date
-        const date = new Date(item.created_at);
-        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        // Review status badge
-        const reviewBadge = item.is_reviewed 
-            ? '<span class="badge bg-success">Reviewed</span>'
-            : '<span class="badge bg-warning">Pending</span>';
-        
-        row.innerHTML = `
-            <td>${formattedDate}</td>
-            <td>${item.tool_type}</td>
-            <td>${item.input_preview}</td>
-            <td>${reviewBadge}</td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
-
-// Update limits periodically
-setInterval(() => {
-    fetch("{% url 'ai_tools:user_limits' %}")
-        .then(response => response.json())
-        .then(data => {
+$(document).ready(function() {
+    // Update usage stats every 30 seconds
+    function updateUsageStats() {
+        $.getJSON("{% url 'ai_tools:user_limits' %}", function(data) {
             if (data.success) {
-                updateLimitsDisplay(data.limits);
+                // Update usage counts in tool cards
+                $('.usage-count').each(function() {
+                    var tool = $(this).data('tool');
+                    if (data.limits.tools[tool]) {
+                        $(this).text(data.limits.tools[tool].remaining + 
+                                   '/' + data.limits.tools[tool].daily_limit + ' remaining');
+                    }
+                });
             }
-        })
-        .catch(error => console.error('Error updating limits:', error));
-}, 60000); // Update every minute
-
-function updateLimitsDisplay(limits) {
-    // Update each tool's limit display
-    Object.entries(limits.tools || {}).forEach(([toolType, toolInfo]) => {
-        const badge = document.querySelector(`.tool-card .bg-${getToolColor(toolType)} .limit-badge`);
-        const button = document.querySelector(`.tool-card .bg-${getToolColor(toolType)} + .card-body a.btn`);
-        
-        if (badge) {
-            badge.textContent = `${toolInfo.daily_used}/${toolInfo.daily_limit}`;
-        }
-        
-        if (button) {
-            if (toolInfo.remaining > 0) {
-                button.classList.remove('disabled');
-                button.innerHTML = `<i class="fas fa-play me-2"></i>Start Tool (${toolInfo.remaining} left)`;
-            } else {
-                button.classList.add('disabled');
-                button.innerHTML = `<i class="fas fa-ban me-2"></i>Limit Reached`;
-            }
-        }
-    });
-}
-
-function getToolColor(toolType) {
-    const colorMap = {
-        'outline_helper': 'primary',
-        'grammar_checker': 'success',
-        'citation_formatter': 'info',
-    };
-    return colorMap[toolType] || 'secondary';
-}
+        });
+    }
+    
+    // Initial update and set interval
+    updateUsageStats();
+    setInterval(updateUsageStats, 30000);
+});
 </script>
 {% endblock %}

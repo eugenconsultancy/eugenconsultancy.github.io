@@ -1,0 +1,589 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Documents - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Documents Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h2 mb-1">Verification Documents</h1>
+                            <p class="text-muted mb-0">
+                                Upload and manage your verification documents for writer approval
+                            </p>
+                        </div>
+                        {% if can_upload %}
+                        <button class="btn btn-primary" data-bs-toggle="modal" 
+                                data-bs-target="#uploadDocumentModal">
+                            <i class="fas fa-upload me-2"></i>Upload Document
+                        </button>
+                        {% else %}
+                        <button class="btn btn-secondary" disabled>
+                            <i class="fas fa-ban me-2"></i>Upload Disabled
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-primary fs-2 fw-bold">{{ document_stats.total }}</div>
+                    <div class="text-muted">Total Documents</div>
+                    <div class="mt-2">
+                        <i class="fas fa-file-alt fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-success fs-2 fw-bold">
+                        {{ document_stats.by_status.verified.count|default:"0" }}
+                    </div>
+                    <div class="text-muted">Verified</div>
+                    <div class="mt-2">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-warning fs-2 fw-bold">
+                        {{ document_stats.by_status.pending.count|default:"0" }}
+                    </div>
+                    <div class="text-muted">Pending</div>
+                    <div class="mt-2">
+                        <i class="fas fa-clock fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-danger fs-2 fw-bold">
+                        {{ document_stats.by_status.rejected.count|default:"0" }}
+                    </div>
+                    <div class="text-muted">Rejected</div>
+                    <div class="mt-2">
+                        <i class="fas fa-times-circle fa-2x text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Required Documents -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-check me-2"></i>Required Documents
+                        <small class="text-muted ms-2">(Minimum 3 verified documents required)</small>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Document Type</th>
+                                    <th>Status</th>
+                                    <th>Description</th>
+                                    <th>Uploaded</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc_type, display_name, description in required_documents %}
+                                {% with uploaded_doc=uploaded_docs.doc_type %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-file-pdf text-danger me-3 fs-5"></i>
+                                            <div>
+                                                <strong>{{ display_name }}</strong>
+                                                <div class="text-muted small">{{ description }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if uploaded_doc %}
+                                        <span class="badge bg-{{ uploaded_doc.status|status_color }}">
+                                            {{ uploaded_doc.status|title }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Not Uploaded</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if uploaded_doc %}
+                                        <div class="text-truncate" style="max-width: 200px;">
+                                            {{ uploaded_doc.file }}
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if uploaded_doc %}
+                                        {{ uploaded_doc.uploaded_at|date:"M d, Y" }}
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if uploaded_doc %}
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ uploaded_doc.file_url }}" 
+                                               class="btn btn-outline-primary" 
+                                               target="_blank">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if uploaded_doc.status == 'rejected' or not uploaded_doc.verified %}
+                                            <button class="btn btn-outline-warning" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#reuploadModal" 
+                                                    data-doc-type="{{ doc_type }}">
+                                                <i class="fas fa-upload"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                        {% else %}
+                                        <button class="btn btn-sm btn-outline-success" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#uploadDocumentModal"
+                                                data-doc-type="{{ doc_type }}">
+                                            <i class="fas fa-upload me-1"></i>Upload
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endwith %}
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                        <p class="text-muted">All required documents are uploaded!</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Uploaded Documents -->
+    <div class="row">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-folder-open me-2"></i>All Documents
+                    </h5>
+                    <span class="badge bg-primary">{{ documents.count }}</span>
+                </div>
+                <div class="card-body">
+                    {% if documents %}
+                    <div class="row g-4">
+                        {% for document in documents %}
+                        <div class="col-md-6 col-lg-4">
+                            {% include "accounts/partials/document_card.html" with document=document %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-folder-open fa-4x text-muted mb-4"></i>
+                        <h4 class="text-muted mb-3">No documents uploaded yet</h4>
+                        <p class="text-muted mb-4">
+                            Start by uploading your verification documents to begin the approval process.
+                        </p>
+                        {% if can_upload %}
+                        <button class="btn btn-primary" data-bs-toggle="modal" 
+                                data-bs-target="#uploadDocumentModal">
+                            <i class="fas fa-upload me-2"></i>Upload Your First Document
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Document Modal -->
+<div class="modal fade" id="uploadDocumentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-upload me-2"></i>Upload Verification Document
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'accounts:writer_documents' %}" 
+                  enctype="multipart/form-data" id="uploadForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="upload">
+                
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- Document Type -->
+                        <div class="col-md-6">
+                            <label for="id_document_type" class="form-label">Document Type *</label>
+                            <select name="document_type" id="id_document_type" 
+                                    class="form-select" required>
+                                <option value="">Select document type</option>
+                                {% for value, label in upload_form.document_type.field.choices %}
+                                {% if value not in uploaded_doc_types %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Select the type of document you're uploading</div>
+                        </div>
+
+                        <!-- File Upload -->
+                        <div class="col-md-6">
+                            <label for="id_document" class="form-label">Document File *</label>
+                            <input type="file" name="document" id="id_document" 
+                                   class="form-control" 
+                                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" 
+                                   required>
+                            <div class="form-text">
+                                PDF, JPG, PNG, DOC, or DOCX (max 10MB)
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label for="id_description" class="form-label">Description (Optional)</label>
+                            <textarea name="description" id="id_description" 
+                                      class="form-control" rows="3"
+                                      placeholder="Brief description of this document..."></textarea>
+                        </div>
+
+                        <!-- File Preview -->
+                        <div class="col-12">
+                            <div id="filePreview" class="d-none">
+                                <div class="card mt-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title mb-3">File Preview</h6>
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <div id="fileName" class="fw-bold"></div>
+                                                <div id="fileSize" class="text-muted small"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Confirmations -->
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-info-circle me-2"></i>Important Information
+                                </h6>
+                                <ul class="mb-0 small">
+                                    <li>Documents must be clear and legible</li>
+                                    <li>Ensure all personal information is visible</li>
+                                    <li>Files should be in original format (no screenshots of scans)</li>
+                                    <li>Maximum file size: 10MB</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="confirm_authenticity" 
+                                       id="id_confirm_authenticity" required>
+                                <label class="form-check-label" for="id_confirm_authenticity">
+                                    I confirm this document is authentic and belongs to me
+                                </label>
+                                <div class="form-text text-danger">
+                                    * This confirmation is required
+                                </div>
+                            </div>
+
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="agree_to_verification" 
+                                       id="id_agree_to_verification" required>
+                                <label class="form-check-label" for="id_agree_to_verification">
+                                    I agree to this document being verified by EBWriting administrators
+                                </label>
+                                <div class="form-text text-danger">
+                                    * This agreement is required
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Errors -->
+                        <div class="col-12">
+                            <div id="uploadErrors" class="alert alert-danger d-none"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="uploadButton">
+                        <i class="fas fa-upload me-2"></i>Upload Document
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File preview
+    const fileInput = document.getElementById('id_document');
+    const filePreview = document.getElementById('filePreview');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const fileType = file.type;
+                const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                
+                // Check file size
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size exceeds 10MB limit.');
+                    this.value = '';
+                    filePreview.classList.add('d-none');
+                    return;
+                }
+                
+                // Check file type
+                const allowedTypes = [
+                    'application/pdf',
+                    'image/jpeg',
+                    'image/png',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                ];
+                
+                if (!allowedTypes.includes(fileType)) {
+                    alert('File type not allowed. Please upload PDF, JPG, PNG, DOC, or DOCX.');
+                    this.value = '';
+                    filePreview.classList.add('d-none');
+                    return;
+                }
+                
+                // Show preview
+                fileName.textContent = file.name;
+                fileSize.textContent = fileSizeMB + ' MB';
+                
+                // Update icon based on file type
+                const icon = filePreview.querySelector('i');
+                if (fileType.includes('pdf')) {
+                    icon.className = 'fas fa-file-pdf fa-3x text-danger';
+                } else if (fileType.includes('image')) {
+                    icon.className = 'fas fa-file-image fa-3x text-success';
+                } else if (fileType.includes('word')) {
+                    icon.className = 'fas fa-file-word fa-3x text-primary';
+                }
+                
+                filePreview.classList.remove('d-none');
+            }
+        });
+    }
+    
+    // Form validation
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadErrors = document.getElementById('uploadErrors');
+    
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Clear previous errors
+            uploadErrors.classList.add('d-none');
+            uploadErrors.innerHTML = '';
+            
+            // Validate required fields
+            const documentType = document.getElementById('id_document_type');
+            const documentFile = document.getElementById('id_document');
+            const confirmAuthenticity = document.getElementById('id_confirm_authenticity');
+            const agreeVerification = document.getElementById('id_agree_to_verification');
+            
+            let errors = [];
+            
+            if (!documentType.value) {
+                errors.push('Please select a document type.');
+            }
+            
+            if (!documentFile.value) {
+                errors.push('Please select a file to upload.');
+            }
+            
+            if (!confirmAuthenticity.checked) {
+                errors.push('You must confirm the authenticity of the document.');
+            }
+            
+            if (!agreeVerification.checked) {
+                errors.push('You must agree to document verification.');
+            }
+            
+            if (errors.length > 0) {
+                uploadErrors.innerHTML = '<ul class="mb-0">' + 
+                    errors.map(error => `<li>${error}</li>`).join('') + 
+                    '</ul>';
+                uploadErrors.classList.remove('d-none');
+                return;
+            }
+            
+            // Submit form via AJAX
+            const formData = new FormData(this);
+            const uploadButton = document.getElementById('uploadButton');
+            
+            uploadButton.disabled = true;
+            uploadButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message and reload
+                    location.reload();
+                } else {
+                    // Show errors
+                    uploadErrors.innerHTML = '<ul class="mb-0">' + 
+                        Object.values(data.errors).map(error => `<li>${error}</li>`).join('') + 
+                        '</ul>';
+                    uploadErrors.classList.remove('d-none');
+                    uploadButton.disabled = false;
+                    uploadButton.innerHTML = '<i class="fas fa-upload me-2"></i>Upload Document';
+                }
+            })
+            .catch(error => {
+                uploadErrors.innerHTML = '<p>An error occurred. Please try again.</p>';
+                uploadErrors.classList.remove('d-none');
+                uploadButton.disabled = false;
+                uploadButton.innerHTML = '<i class="fas fa-upload me-2"></i>Upload Document';
+            });
+        });
+    }
+    
+    // Auto-select document type from button
+    const uploadModal = document.getElementById('uploadDocumentModal');
+    if (uploadModal) {
+        uploadModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            if (button && button.dataset.docType) {
+                const docTypeSelect = document.getElementById('id_document_type');
+                if (docTypeSelect) {
+                    docTypeSelect.value = button.dataset.docType;
+                }
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.document-card {
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+.document-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.document-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.document-icon.pdf { background-color: #fee; color: #dc3545; }
+.document-icon.image { background-color: #eff; color: #198754; }
+.document-icon.word { background-color: #eef; color: #0d6efd; }
+
+.document-status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.document-actions {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.document-card:hover .document-actions {
+    opacity: 1;
+}
+
+.file-size {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.upload-progress {
+    height: 4px;
+    margin-top: 0.5rem;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.upload-progress-bar {
+    height: 100%;
+    background-color: #0d6efd;
+    transition: width 0.3s ease;
+}
+
+/* Badge colors for document status */
+.bg-pending { background-color: #ffc107 !important; color: #000 !important; }
+.bg-verified { background-color: #198754 !important; color: #fff !important; }
+.bg-rejected { background-color: #dc3545 !important; color: #fff !important; }
+.bg-expired { background-color: #6c757d !important; color: #fff !important; }
+</style>
+{% endblock %}

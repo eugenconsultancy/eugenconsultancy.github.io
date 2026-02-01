@@ -1,0 +1,625 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Privacy Settings - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Settings Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <h1 class="h2 mb-1">Privacy Settings</h1>
+                            <p class="text-muted mb-0">
+                                Manage your privacy preferences and data protection settings (GDPR Compliance)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Navigation -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <ul class="nav nav-tabs nav-fill" id="settingsTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="account-tab" 
+                               href="{% url 'accounts:settings' %}">
+                                <i class="fas fa-user me-2"></i>Account
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="security-tab" 
+                               href="{% url 'accounts:security_settings' %}">
+                                <i class="fas fa-shield-alt me-2"></i>Security
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="privacy-tab" 
+                               href="{% url 'accounts:privacy_settings' %}">
+                                <i class="fas fa-lock me-2"></i>Privacy
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column: Privacy Settings -->
+        <div class="col-lg-8">
+            <!-- Privacy Preferences -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-cog me-2"></i>Privacy Preferences
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Marketing Emails -->
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="marketing_emails" id="id_marketing_emails" 
+                                       {% if form.marketing_emails.value %}checked{% endif %}>
+                                <label class="form-check-label" for="id_marketing_emails">
+                                    <strong>Receive Marketing Emails</strong>
+                                    <p class="text-muted small mb-0">
+                                        News, promotions, platform updates, and special offers
+                                    </p>
+                                </label>
+                            </div>
+                            <div class="form-text">
+                                You can unsubscribe anytime by changing this setting
+                            </div>
+                        </div>
+
+                        <!-- Data Processing Consent -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="data_processing_consent" id="id_data_processing_consent" 
+                                       {% if form.data_processing_consent.value %}checked{% endif %} required>
+                                <label class="form-check-label" for="id_data_processing_consent">
+                                    <strong>Data Processing Consent *</strong>
+                                    <p class="text-muted small mb-0">
+                                        Required for using the platform. We process your data to provide our services.
+                                    </p>
+                                </label>
+                            </div>
+                            <div class="form-text text-danger">
+                                * This consent is required to use EBWriting services
+                            </div>
+                            {% if form.data_processing_consent.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.data_processing_consent.errors|first }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Cookie Preferences -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <strong>Cookie Preferences</strong>
+                            </label>
+                            <p class="text-muted small mb-3">
+                                Choose which cookies you allow us to use:
+                            </p>
+                            
+                            <div class="cookie-options">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" 
+                                           name="cookie_consent" id="cookie_essential" 
+                                           value="essential" 
+                                           {% if form.cookie_consent.value == 'essential' %}checked{% endif %}>
+                                    <label class="form-check-label" for="cookie_essential">
+                                        <strong>Essential Only</strong>
+                                        <p class="text-muted small mb-0">
+                                            Only cookies necessary for the website to function
+                                        </p>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" 
+                                           name="cookie_consent" id="cookie_analytics" 
+                                           value="analytics" 
+                                           {% if form.cookie_consent.value == 'analytics' %}checked{% endif %}>
+                                    <label class="form-check-label" for="cookie_analytics">
+                                        <strong>Essential + Analytics</strong>
+                                        <p class="text-muted small mb-0">
+                                            Essential cookies plus analytics to improve our services
+                                        </p>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" 
+                                           name="cookie_consent" id="cookie_all" 
+                                           value="all" 
+                                           {% if form.cookie_consent.value == 'all' %}checked{% endif %}>
+                                    <label class="form-check-label" for="cookie_all">
+                                        <strong>All Cookies</strong>
+                                        <p class="text-muted small mb-0">
+                                            All cookies including personalization and marketing
+                                        </p>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-text">
+                                Your choice will be saved and applied to your browsing session
+                            </div>
+                        </div>
+
+                        <!-- Form Errors -->
+                        {% if form.errors %}
+                        <div class="alert alert-danger mb-4">
+                            <h6 class="alert-heading">Please fix the following errors:</h6>
+                            <ul class="mb-0">
+                                {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary px-5">
+                                <i class="fas fa-save me-2"></i>Save Privacy Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Data Management -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-database me-2"></i>Data Management
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="data-action-card">
+                                <div class="data-icon bg-primary">
+                                    <i class="fas fa-download"></i>
+                                </div>
+                                <div class="data-content">
+                                    <h6>Download My Data</h6>
+                                    <p class="text-muted small mb-2">
+                                        Download all your personal data in machine-readable format
+                                    </p>
+                                    <a href="{% url 'accounts:data_request' %}" class="btn btn-sm btn-outline-primary">
+                                        Request Download
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="data-action-card">
+                                <div class="data-icon bg-info">
+                                    <i class="fas fa-eye"></i>
+                                </div>
+                                <div class="data-content">
+                                    <h6>View Data Profile</h6>
+                                    <p class="text-muted small mb-2">
+                                        See what data we have about you and how it's used
+                                    </p>
+                                    <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" 
+                                            data-bs-target="#dataProfileModal">
+                                        View Profile
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="data-action-card">
+                                <div class="data-icon bg-warning">
+                                    <i class="fas fa-eraser"></i>
+                                </div>
+                                <div class="data-content">
+                                    <h6>Anonymize Data</h6>
+                                    <p class="text-muted small mb-2">
+                                        Anonymize your personal data while keeping account functional
+                                    </p>
+                                    <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" 
+                                            data-bs-target="#anonymizeModal" 
+                                            {% if data_anonymized %}disabled{% endif %}>
+                                        {% if data_anonymized %}Already Anonymized{% else %}Anonymize Data{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="data-action-card">
+                                <div class="data-icon bg-danger">
+                                    <i class="fas fa-trash-alt"></i>
+                                </div>
+                                <div class="data-content">
+                                    <h6>Delete Account</h6>
+                                    <p class="text-muted small mb-2">
+                                        Permanently delete all your personal data and account
+                                    </p>
+                                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" 
+                                            data-bs-target="#deleteAccountModal">
+                                        Delete Account
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Information & History -->
+        <div class="col-lg-4">
+            <!-- GDPR Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>GDPR Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="gdpr-info">
+                        <div class="info-item mb-3">
+                            <h6><i class="fas fa-shield-alt text-primary me-2"></i>Your Rights</h6>
+                            <p class="text-muted small mb-0">
+                                Under GDPR, you have rights to access, rectify, erase, and restrict processing of your data.
+                            </p>
+                        </div>
+                        
+                        <div class="info-item mb-3">
+                            <h6><i class="fas fa-clock text-warning me-2"></i>Response Time</h6>
+                            <p class="text-muted small mb-0">
+                                We respond to data requests within 30 days as required by law.
+                            </p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <h6><i class="fas fa-lock text-success me-2"></i>Data Security</h6>
+                            <p class="text-muted small mb-0">
+                                Your data is encrypted and protected with industry-standard security measures.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <a href="#" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-file-alt me-2"></i>View Privacy Policy
+                        </a>
+                        <a href="#" class="btn btn-sm btn-outline-secondary ms-2">
+                            <i class="fas fa-file-contract me-2"></i>View Terms of Service
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Consent Changes -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Changes
+                    </h5>
+                    <span class="badge bg-primary">{{ consent_history|length }}</span>
+                </div>
+                <div class="card-body">
+                    {% if consent_history %}
+                    <div class="list-group list-group-flush">
+                        {% for consent in consent_history|slice:":5" %}
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="fw-bold">{{ consent.get_consent_type_display }}</small>
+                                    <div class="d-flex align-items-center">
+                                        <small class="text-muted">
+                                            {{ consent.created_at|date:"M d" }}
+                                        </small>
+                                        <span class="badge 
+                                            {% if consent.consent_given %}bg-success{% else %}bg-danger{% endif %} 
+                                            ms-2" style="font-size: 0.6em;">
+                                            {% if consent.consent_given %}ON{% else %}OFF{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i>
+                                    {{ consent.created_at|time:"H:i" }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if consent_history|length > 5 %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'accounts:consent_history' %}" class="btn btn-sm btn-outline-primary">
+                            View Full History
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                        <p class="text-muted small mb-0">No recent changes</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Profile Modal -->
+<div class="modal fade" id="dataProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>Your Data Profile
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <h6 class="alert-heading mb-2">
+                        <i class="fas fa-info-circle me-2"></i>Data Categories We Process
+                    </h6>
+                    <p class="mb-0 small">
+                        This shows the types of data we collect and process about you.
+                    </p>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Data Category</th>
+                                <th>Purpose</th>
+                                <th>Retention Period</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Account Information</td>
+                                <td>Account management and authentication</td>
+                                <td>Until account deletion</td>
+                            </tr>
+                            <tr>
+                                <td>Profile Information</td>
+                                <td>Service personalization and communication</td>
+                                <td>Until account deletion</td>
+                            </tr>
+                            <tr>
+                                <td>Order History</td>
+                                <td>Service delivery and customer support</td>
+                                <td>7 years (legal requirement)</td>
+                            </tr>
+                            <tr>
+                                <td>Payment Information</td>
+                                <td>Transaction processing</td>
+                                <td>7 years (legal requirement)</td>
+                            </tr>
+                            <tr>
+                                <td>Communication Data</td>
+                                <td>Customer support and service improvement</td>
+                                <td>2 years</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{% url 'accounts:data_request' %}" class="btn btn-primary">
+                    <i class="fas fa-download me-2"></i>Request Full Data
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Anonymize Modal -->
+<div class="modal fade" id="anonymizeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-warning">
+                    <i class="fas fa-eraser me-2"></i>Anonymize Your Data
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading">Warning: This action is irreversible!</h6>
+                    <p class="mb-2">Anonymizing your data will:</p>
+                    <ul class="mb-0">
+                        <li>Remove personally identifiable information</li>
+                        <li>Keep your account functional</li>
+                        <li>Maintain your order history (anonymized)</li>
+                        <li>Prevent data from being traced back to you</li>
+                    </ul>
+                </div>
+                
+                <p class="text-muted small">
+                    Your account will continue to work, but certain features may be limited.
+                    You can still download your data before anonymization.
+                </p>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmAnonymize">
+                    <label class="form-check-label" for="confirmAnonymize">
+                        I understand this action is irreversible and I want to proceed
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="anonymizeButton" disabled>
+                    <i class="fas fa-eraser me-2"></i>Anonymize My Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Anonymize confirmation
+    const confirmAnonymize = document.getElementById('confirmAnonymize');
+    const anonymizeButton = document.getElementById('anonymizeButton');
+    
+    if (confirmAnonymize && anonymizeButton) {
+        confirmAnonymize.addEventListener('change', function() {
+            anonymizeButton.disabled = !this.checked;
+        });
+        
+        anonymizeButton.addEventListener('click', function() {
+            // In production, this would make an API call
+            alert('Data anonymization feature would be implemented here.');
+            $('#anonymizeModal').modal('hide');
+        });
+    }
+    
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+
+<style>
+.nav-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    padding: 1rem;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #0d6efd;
+    background-color: #f8f9fa;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    background-color: transparent;
+    border-bottom: 3px solid #0d6efd;
+}
+
+.data-action-card {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.data-action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.data-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.data-content h6 {
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.data-content p {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.gdpr-info .info-item h6 {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.gdpr-info .info-item p {
+    font-size: 0.85rem;
+}
+
+.list-group-item {
+    border: none;
+    padding: 0.5rem 0;
+}
+
+.list-group-item:not(:last-child) {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.badge {
+    font-size: 0.75em;
+    padding: 0.35em 0.65em;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.cookie-options .form-check {
+    padding: 0.75rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.cookie-options .form-check:hover {
+    border-color: #0d6efd;
+    background-color: #f8f9fa;
+}
+
+.cookie-options .form-check-input:checked ~ .form-check-label {
+    color: #0d6efd;
+}
+</style>
+{% endblock %}

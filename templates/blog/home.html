@@ -35,7 +35,7 @@
                 <h4 class="fw-bold mb-3">Blog Stats</h4>
                 <div class="d-flex justify-content-between mb-2">
                     <span>Total Posts:</span>
-                    <span class="fw-bold">{{ posts.latest|length|add:posts.featured|length }}</span>
+                    <span class="fw-bold">{{ paginator.count }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span>Categories:</span>
@@ -112,9 +112,9 @@
                 </div>
             </div>
 
-            {% if posts.latest %}
+            {% if posts %}
             <div class="row">
-                {% for post in posts.latest %}
+                {% for post in posts %}
                 <div class="col-md-6 mb-4">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-body">

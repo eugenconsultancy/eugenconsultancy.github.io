@@ -34,10 +34,13 @@ class OrderCreateView(ClientAccessMixin, CreateView):
     success_url = reverse_lazy('orders:list')
     
     def form_valid(self, form):
-        """Assign client to order and set initial state."""
+        """Assign client to order. Initial state is set by model defaults."""
         order = form.save(commit=False)
         order.client = self.request.user
-        order.state = 'draft'
+        
+        # REMOVED: order.state = 'draft' 
+        # django-fsm handles this via the model's 'default' attribute.
+        
         order.save()
         
         messages.success(self.request, 'Order created successfully.')

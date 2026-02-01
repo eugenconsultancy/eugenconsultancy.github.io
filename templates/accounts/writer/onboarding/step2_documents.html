@@ -1,0 +1,676 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Writer Onboarding - Step 2{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Onboarding Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center">
+                        <h1 class="h2 mb-3">Document Verification</h1>
+                        <p class="text-muted mb-4">
+                            Upload your verification documents to complete the onboarding process
+                        </p>
+                        
+                        <!-- Progress Steps -->
+                        <div class="progress-steps">
+                            <div class="step completed">
+                                <div class="step-number">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="step-label">Profile</div>
+                            </div>
+                            <div class="step-divider"></div>
+                            <div class="step active">
+                                <div class="step-number">2</div>
+                                <div class="step-label">Documents</div>
+                            </div>
+                            <div class="step-divider"></div>
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <div class="step-label">Verification</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requirements Info -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle fa-2x"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="alert-heading">Verification Requirements</h5>
+                                <p class="mb-2">
+                                    To become a verified writer on EBWriting, you need to upload at least 3 verification documents. 
+                                    These documents help us verify your identity and qualifications to ensure quality service.
+                                </p>
+                                <div class="row mt-3">
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-check-circle text-success me-2"></i>
+                                            <span>Clear and legible documents</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-check-circle text-success me-2"></i>
+                                            <span>Original scans (no screenshots)</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-check-circle text-success me-2"></i>
+                                            <span>Maximum 10MB per file</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column: Document Upload -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-upload me-2"></i>Upload Documents
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'accounts:writer_onboarding_step2' %}" 
+                          enctype="multipart/form-data" id="documentUploadForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="upload">
+                        
+                        <div class="row g-3">
+                            <!-- Document Type -->
+                            <div class="col-md-6">
+                                <label for="id_document_type" class="form-label">Document Type *</label>
+                                <select name="document_type" id="id_document_type" 
+                                        class="form-select" required>
+                                    <option value="">Select document type</option>
+                                    {% for value, label in upload_form.document_type.field.choices %}
+                                    {% if value not in uploaded_docs %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">
+                                    Select the type of document you're uploading
+                                </div>
+                            </div>
+
+                            <!-- File Upload -->
+                            <div class="col-md-6">
+                                <label for="id_document" class="form-label">Document File *</label>
+                                <div class="input-group">
+                                    <input type="file" name="document" id="id_document" 
+                                           class="form-control" 
+                                           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" 
+                                           required>
+                                </div>
+                                <div class="form-text">
+                                    PDF, JPG, PNG, DOC, or DOCX (max 10MB)
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label for="id_description" class="form-label">Description (Optional)</label>
+                                <textarea name="description" id="id_description" 
+                                          class="form-control" rows="3"
+                                          placeholder="Brief description of this document..."></textarea>
+                            </div>
+
+                            <!-- File Preview -->
+                            <div class="col-12">
+                                <div id="filePreview" class="d-none">
+                                    <div class="card mt-3">
+                                        <div class="card-body">
+                                            <h6 class="card-title mb-3">File Preview</h6>
+                                            <div class="d-flex align-items-center">
+                                                <div class="flex-shrink-0">
+                                                    <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                                                </div>
+                                                <div class="flex-grow-1 ms-3">
+                                                    <div id="fileName" class="fw-bold"></div>
+                                                    <div id="fileSize" class="text-muted small"></div>
+                                                    <div id="fileType" class="text-muted small"></div>
+                                                </div>
+                                                <div class="flex-shrink-0">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                            id="removeFile">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Confirmations -->
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="confirm_authenticity" 
+                                           id="id_confirm_authenticity" required>
+                                    <label class="form-check-label" for="id_confirm_authenticity">
+                                        I confirm this document is authentic and belongs to me
+                                    </label>
+                                </div>
+
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="agree_to_verification" 
+                                           id="id_agree_to_verification" required>
+                                    <label class="form-check-label" for="id_agree_to_verification">
+                                        I agree to this document being verified by EBWriting administrators
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Upload Progress -->
+                            <div class="col-12">
+                                <div id="uploadProgress" class="d-none">
+                                    <div class="progress mt-3" style="height: 20px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             id="progressBar" style="width: 0%">
+                                            <span id="progressText">0%</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-2">
+                                        <small class="text-muted">Uploading...</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upload Button -->
+                            <div class="col-12">
+                                <div class="d-grid mt-3">
+                                    <button type="submit" class="btn btn-primary btn-lg" 
+                                            id="uploadButton">
+                                        <i class="fas fa-upload me-2"></i>Upload Document
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Document Status -->
+        <div class="col-lg-4">
+            <!-- Document Requirements -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-check me-2"></i>Document Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Progress</h6>
+                            <span class="badge 
+                                {% if onboarding_status.documents.verified >= 3 %}bg-success
+                                {% else %}bg-warning{% endif %}">
+                                {{ onboarding_status.documents.verified }}/3
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar 
+                                {% if onboarding_status.documents.verified >= 3 %}bg-success
+                                {% else %}bg-primary{% endif %}" 
+                                 style="width: {% widthratio onboarding_status.documents.verified 3 100 %}%">
+                            </div>
+                        </div>
+                        <div class="text-center mt-2">
+                            <small class="text-muted">
+                                {% if onboarding_status.documents.verified >= 3 %}
+                                Ready to submit!
+                                {% else %}
+                                {{ 3|subtract:onboarding_status.documents.verified }} more documents needed
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Document List -->
+                    <div class="list-group list-group-flush">
+                        {% for doc_type, display_name, description in required_documents %}
+                        {% with doc_info=uploaded_docs.doc_type %}
+                        <div class="list-group-item border-0 px-0 py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas 
+                                            {% if doc_info.verified %}fa-check-circle text-success
+                                            {% elif doc_info %}fa-clock text-warning
+                                            {% else %}fa-times-circle text-muted{% endif %} 
+                                            me-2"></i>
+                                        <span>{{ display_name }}</span>
+                                    </div>
+                                    {% if doc_info %}
+                                    <small class="text-muted d-block ms-4">
+                                        {{ doc_info.file|truncatechars:30 }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                <span class="badge 
+                                    {% if doc_info.verified %}bg-success
+                                    {% elif doc_info %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {% if doc_info.verified %}Verified
+                                    {% elif doc_info %}Uploaded
+                                    {% else %}Required
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        {% endwith %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit for Review -->
+            {% if onboarding_status.documents.verified >= 3 %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-paper-plane me-2"></i>Ready for Review
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        You have uploaded the required documents. Submit them for admin review to complete your verification.
+                    </p>
+                    <form method="post" action="{% url 'accounts:writer_onboarding_step2' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="submit">
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" 
+                                   name="confirm_submission" id="id_confirm_submission" required>
+                            <label class="form-check-label" for="id_confirm_submission">
+                                I confirm that all documents are authentic and ready for review
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Submit for Verification
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Document Guidelines -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i>Document Guidelines
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="guideline-card">
+                                <div class="guideline-icon bg-primary">
+                                    <i class="fas fa-id-card"></i>
+                                </div>
+                                <h6>ID Proof</h6>
+                                <ul class="text-muted small">
+                                    <li>Passport or Driver's License</li>
+                                    <li>Clear photo of front and back</li>
+                                    <li>All information visible</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="guideline-card">
+                                <div class="guideline-icon bg-success">
+                                    <i class="fas fa-certificate"></i>
+                                </div>
+                                <h6>Degree Certificate</h6>
+                                <ul class="text-muted small">
+                                    <li>Highest degree earned</li>
+                                    <li>Official certificate copy</li>
+                                    <li>Institution name visible</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="guideline-card">
+                                <div class="guideline-icon bg-warning">
+                                    <i class="fas fa-scroll"></i>
+                                </div>
+                                <h6>Academic Transcript</h6>
+                                <ul class="text-muted small">
+                                    <li>Official transcript</li>
+                                    <li>Grades and courses visible</li>
+                                    <li>Institution seal if possible</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="guideline-card">
+                                <div class="guideline-icon bg-info">
+                                    <i class="fas fa-file-invoice"></i>
+                                </div>
+                                <h6>CV/Portfolio</h6>
+                                <ul class="text-muted small">
+                                    <li>Updated CV or resume</li>
+                                    <li>Writing samples if available</li>
+                                    <li>Highlight relevant experience</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File preview
+    const fileInput = document.getElementById('id_document');
+    const filePreview = document.getElementById('filePreview');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const fileType = document.getElementById('fileType');
+    const removeFileBtn = document.getElementById('removeFile');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                
+                // Check file size
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size exceeds 10MB limit.');
+                    this.value = '';
+                    filePreview.classList.add('d-none');
+                    return;
+                }
+                
+                // Check file type
+                const allowedTypes = [
+                    'application/pdf',
+                    'image/jpeg',
+                    'image/png',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                ];
+                
+                if (!allowedTypes.includes(file.type)) {
+                    alert('File type not allowed. Please upload PDF, JPG, PNG, DOC, or DOCX.');
+                    this.value = '';
+                    filePreview.classList.add('d-none');
+                    return;
+                }
+                
+                // Show preview
+                fileName.textContent = file.name;
+                fileSize.textContent = 'Size: ' + fileSizeMB + ' MB';
+                fileType.textContent = 'Type: ' + file.type.split('/')[1].toUpperCase();
+                
+                // Update icon based on file type
+                const icon = filePreview.querySelector('i');
+                if (file.type.includes('pdf')) {
+                    icon.className = 'fas fa-file-pdf fa-3x text-danger';
+                } else if (file.type.includes('image')) {
+                    icon.className = 'fas fa-file-image fa-3x text-success';
+                } else if (file.type.includes('word')) {
+                    icon.className = 'fas fa-file-word fa-3x text-primary';
+                }
+                
+                filePreview.classList.remove('d-none');
+            }
+        });
+    }
+    
+    // Remove file
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function() {
+            fileInput.value = '';
+            filePreview.classList.add('d-none');
+        });
+    }
+    
+    // Form submission
+    const uploadForm = document.getElementById('documentUploadForm');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const uploadButton = document.getElementById('uploadButton');
+    
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate required fields
+            const documentType = document.getElementById('id_document_type');
+            const documentFile = document.getElementById('id_document');
+            const confirmAuthenticity = document.getElementById('id_confirm_authenticity');
+            const agreeVerification = document.getElementById('id_agree_to_verification');
+            
+            let errors = [];
+            
+            if (!documentType.value) {
+                errors.push('Please select a document type.');
+            }
+            
+            if (!documentFile.value) {
+                errors.push('Please select a file to upload.');
+            }
+            
+            if (!confirmAuthenticity.checked) {
+                errors.push('You must confirm the authenticity of the document.');
+            }
+            
+            if (!agreeVerification.checked) {
+                errors.push('You must agree to document verification.');
+            }
+            
+            if (errors.length > 0) {
+                alert('Please fix the following errors:\n\n' + errors.join('\n'));
+                return;
+            }
+            
+            // Show progress bar
+            uploadProgress.classList.remove('d-none');
+            uploadButton.disabled = true;
+            uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+            
+            // Simulate upload progress (in production, this would be real progress)
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                if (progress > 90) {
+                    clearInterval(interval);
+                    // Submit form
+                    uploadForm.submit();
+                } else {
+                    progressBar.style.width = progress + '%';
+                    progressText.textContent = progress + '%';
+                }
+            }, 200);
+        });
+    }
+});
+</script>
+
+<style>
+.progress-steps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.step.completed .step-number {
+    background-color: #198754;
+    color: white;
+}
+
+.step.active .step-number {
+    background-color: #0d6efd;
+    color: white;
+    transform: scale(1.1);
+}
+
+.step-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.step.active .step-label {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.step.completed .step-label {
+    color: #198754;
+}
+
+.step-divider {
+    width: 100px;
+    height: 2px;
+    background-color: #dee2e6;
+    margin: 0 1rem;
+    position: relative;
+    top: -20px;
+}
+
+/* Guideline Cards */
+.guideline-card {
+    text-align: center;
+    padding: 1.5rem;
+    height: 100%;
+}
+
+.guideline-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.guideline-icon.bg-primary { background-color: #0d6efd; }
+.guideline-icon.bg-success { background-color: #198754; }
+.guideline-icon.bg-warning { background-color: #ffc107; }
+.guideline-icon.bg-info { background-color: #0dcaf0; }
+
+.guideline-card h6 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.guideline-card ul {
+    padding-left: 1rem;
+    text-align: left;
+    margin-bottom: 0;
+}
+
+.guideline-card li {
+    margin-bottom: 0.25rem;
+}
+
+/* File Preview Card */
+#filePreview .card {
+    border: 2px dashed #dee2e6;
+}
+
+#filePreview .card:hover {
+    border-color: #0d6efd;
+}
+
+/* Progress Bar Animation */
+.progress-bar-animated {
+    animation: progress-animation 1s linear infinite;
+}
+
+@keyframes progress-animation {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 0; }
+}
+
+/* List Group Items */
+.list-group-item {
+    border: none;
+    padding: 0.75rem 0;
+}
+
+.list-group-item:not(:last-child) {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.badge {
+    font-size: 0.75em;
+    padding: 0.35em 0.65em;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,340 @@
+{% extends "orders/admin/base.html" %}
+
+{% block title %}Order Assignment | Admin{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Order Assignment</h1>
+        <a href="{% url 'orders:admin_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Orders
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">
+                        <i class="bi bi-clock-history"></i> Unassigned Orders
+                    </h5>
+                    <p class="display-4">{{ assignment_stats.unassigned_orders }}</p>
+                    <p class="text-muted">Waiting for writer assignment</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h5 class="card-title text-success">
+                        <i class="bi bi-people"></i> Available Writers
+                    </h5>
+                    <p class="display-4">{{ assignment_stats.available_writers }}</p>
+                    <p class="text-muted">Ready to take orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="bi bi-speedometer2"></i> Average Workload
+                    </h5>
+                    <p class="display-4">{{ assignment_stats.avg_writer_load }}</p>
+                    <p class="text-muted">Orders per writer (avg)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Form -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="bi bi-person-plus"></i> Manual Assignment
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'orders:admin_assignment' %}">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="order_id" class="form-label">Select Order</label>
+                        <select class="form-select" id="order_id" name="order_id" required>
+                            <option value="">-- Choose an order --</option>
+                            {% for order in unassigned_orders %}
+                            <option value="{{ order.id }}">
+                                #{{ order.order_number }} - {{ order.title|truncatechars:50 }}
+                                (Due: {{ order.deadline|date:"M d, Y" }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">
+                            {{ unassigned_orders|length }} unassigned orders
+                        </small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="writer_id" class="form-label">Select Writer</label>
+                        <select class="form-select" id="writer_id" name="writer_id" required>
+                            <option value="">-- Choose a writer --</option>
+                            {% for writer in available_writers %}
+                            <option value="{{ writer.id }}">
+                                {{ writer.get_full_name|default:writer.email }}
+                                (Rating: {{ writer.writer_profile.average_rating|default:"N/A" }},
+                                Load: {{ writer.current_orders }}/{{ writer.writer_profile.max_orders }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">
+                            {{ available_writers|length }} available writers
+                        </small>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Assign Order
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Unassigned Orders Table -->
+    <div class="card">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-list-task"></i> Unassigned Orders
+            </h5>
+            <span class="badge bg-warning">{{ unassigned_orders|length }} orders</span>
+        </div>
+        <div class="card-body p-0">
+            {% if unassigned_orders %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order #</th>
+                            <th>Title</th>
+                            <th>Client</th>
+                            <th>Deadline</th>
+                            <th>Price</th>
+                            <th>Level</th>
+                            <th>Created</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in unassigned_orders %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'orders:admin_detail' order.pk %}" class="fw-bold">
+                                    #{{ order.order_number }}
+                                </a>
+                            </td>
+                            <td>{{ order.title|truncatechars:60 }}</td>
+                            <td>
+                                {% if order.client %}
+                                {{ order.client.email|truncatechars:30 }}
+                                {% else %}
+                                <span class="text-muted">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if order.is_urgent %}
+                                <span class="badge bg-danger">URGENT</span>
+                                {% endif %}
+                                {{ order.deadline|date:"M d, Y" }}
+                            </td>
+                            <td>${{ order.price }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ order.get_academic_level_display }}</span>
+                            </td>
+                            <td>{{ order.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'orders:admin_detail' order.pk %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-check-circle display-1 text-success"></i>
+                <h4 class="mt-3">No Unassigned Orders</h4>
+                <p class="text-muted">All paid orders have been assigned to writers.</p>
+                <a href="{% url 'orders:admin_list' %}" class="btn btn-outline-primary">
+                    View All Orders
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Available Writers Table -->
+    <div class="card mt-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-people"></i> Available Writers
+            </h5>
+            <span class="badge bg-success">{{ available_writers|length }} writers</span>
+        </div>
+        <div class="card-body p-0">
+            {% if available_writers %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Writer</th>
+                            <th>Rating</th>
+                            <th>Current Load</th>
+                            <th>Completed</th>
+                            <th>Specialties</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for writer in available_writers %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        {% if writer.profile_picture %}
+                                        <img src="{{ writer.profile_picture.url }}" 
+                                             alt="{{ writer.get_full_name }}"
+                                             class="rounded-circle"
+                                             width="40" height="40">
+                                        {% else %}
+                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px;">
+                                            {{ writer.email|first|upper }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-0">{{ writer.get_full_name|default:writer.email }}</h6>
+                                        <small class="text-muted">{{ writer.email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if writer.writer_profile.average_rating %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-star-fill"></i>
+                                    {{ writer.writer_profile.average_rating|floatformat:1 }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">No rating</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar 
+                                        {% if writer.current_orders >= writer.writer_profile.max_orders %}bg-danger
+                                        {% elif writer.current_orders > writer.writer_profile.max_orders|add:"-2" %}bg-warning
+                                        {% else %}bg-success{% endif %}"
+                                        role="progressbar"
+                                        style="width: {% widthratio writer.current_orders writer.writer_profile.max_orders 100 %}%"
+                                        aria-valuenow="{{ writer.current_orders }}"
+                                        aria-valuemin="0"
+                                        aria-valuemax="{{ writer.writer_profile.max_orders }}">
+                                    </div>
+                                </div>
+                                <small>
+                                    {{ writer.current_orders }}/{{ writer.writer_profile.max_orders }}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">
+                                    {{ writer.writer_profile.completed_orders }} orders
+                                </span>
+                            </td>
+                            <td>
+                                {% with writer.writer_profile.specialties.all|slice:":3" as specialties %}
+                                    {% for specialty in specialties %}
+                                        <span class="badge bg-light text-dark">{{ specialty.name }}</span>
+                                    {% endfor %}
+                                    {% if writer.writer_profile.specialties.count > 3 %}
+                                        <span class="badge bg-light text-dark">+{{ writer.writer_profile.specialties.count|add:"-3" }}</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                {% if writer.writer_profile.is_available %}
+                                <span class="badge bg-success">Available</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Unavailable</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'accounts:admin_writer_detail' writer.pk %}" 
+                                   class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-person-lines-fill"></i> Profile
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-exclamation-triangle display-1 text-warning"></i>
+                <h4 class="mt-3">No Available Writers</h4>
+                <p class="text-muted">All writers are at maximum capacity or unavailable.</p>
+                <a href="{% url 'accounts:admin_writers' %}" class="btn btn-outline-primary">
+                    Manage Writers
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Enhanced Assignment -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh page every 5 minutes to get latest data
+    setTimeout(function() {
+        window.location.reload();
+    }, 300000); // 5 minutes
+    
+    // Show order details when selected
+    const orderSelect = document.getElementById('order_id');
+    const writerSelect = document.getElementById('writer_id');
+    
+    // Validate assignment combination
+    const assignmentForm = document.querySelector('form');
+    assignmentForm.addEventListener('submit', function(e) {
+        if (!orderSelect.value || !writerSelect.value) {
+            e.preventDefault();
+            alert('Please select both an order and a writer.');
+        }
+    });
+    
+    // Quick assignment buttons (optional enhancement)
+    const quickAssignButtons = document.querySelectorAll('.quick-assign');
+    quickAssignButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const orderId = this.dataset.orderId;
+            const writerId = this.dataset.writerId;
+            
+            // Set form values
+            orderSelect.value = orderId;
+            writerSelect.value = writerId;
+            
+            // Scroll to form
+            document.querySelector('.card-body').scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+});
+</script>
+{% endblock %}

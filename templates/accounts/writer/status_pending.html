@@ -1,0 +1,436 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Verification Pending - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-warning text-white text-center py-4">
+                    <i class="fas fa-clock fa-3x mb-3"></i>
+                    <h2 class="mb-0">Verification Under Review</h2>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-5">
+                        <div class="status-icon mb-4">
+                            <div class="status-circle">
+                                <i class="fas fa-search fa-2x"></i>
+                            </div>
+                        </div>
+                        <h3 class="mb-3">Your Documents Are Being Reviewed</h3>
+                        <p class="text-muted lead mb-4">
+                            Thank you for submitting your verification documents. Our team is currently reviewing your application.
+                        </p>
+                    </div>
+
+                    <!-- Status Details -->
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-4">
+                            <div class="status-card">
+                                <div class="status-card-icon bg-primary">
+                                    <i class="fas fa-file-upload"></i>
+                                </div>
+                                <div class="status-card-content">
+                                    <h5>Documents Submitted</h5>
+                                    <p class="text-muted small mb-0">
+                                        Your verification documents have been received
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="status-card">
+                                <div class="status-card-icon bg-warning">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="status-card-content">
+                                    <h5>Under Review</h5>
+                                    <p class="text-muted small mb-0">
+                                        Our team is reviewing your application
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="status-card">
+                                <div class="status-card-icon bg-secondary">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="status-card-content">
+                                    <h5>Decision Pending</h5>
+                                    <p class="text-muted small mb-0">
+                                        You'll receive a decision within 2-3 business days
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estimated Timeline -->
+                    <div class="card bg-light border-0 mb-5">
+                        <div class="card-body p-4">
+                            <h5 class="mb-3">
+                                <i class="fas fa-calendar-alt me-2"></i>Estimated Timeline
+                            </h5>
+                            <div class="timeline-estimate">
+                                <div class="timeline-item active">
+                                    <div class="timeline-point"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Document Submission</h6>
+                                        <p class="text-muted small mb-0">Completed</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item active">
+                                    <div class="timeline-point"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Initial Review</h6>
+                                        <p class="text-muted small mb-0">1-2 business days</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item">
+                                    <div class="timeline-point"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Verification Process</h6>
+                                        <p class="text-muted small mb-0">1-2 business days</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item">
+                                    <div class="timeline-point"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Final Decision</h6>
+                                        <p class="text-muted small mb-0">Notification sent via email</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- What Happens Next -->
+                    <div class="mb-5">
+                        <h5 class="mb-3">
+                            <i class="fas fa-forward me-2"></i>What Happens Next?
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="next-step-card">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <h6>Email Notification</h6>
+                                        <p class="text-muted small mb-0">
+                                            You'll receive an email once your verification is complete
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="next-step-card">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <h6>Dashboard Update</h6>
+                                        <p class="text-muted small mb-0">
+                                            Your status will update automatically on your dashboard
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="next-step-card">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <h6>Start Accepting Orders</h6>
+                                        <p class="text-muted small mb-0">
+                                            Once approved, you can start browsing and accepting orders
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="next-step-card">
+                                    <div class="step-number">4</div>
+                                    <div class="step-content">
+                                        <h6>Complete Profile</h6>
+                                        <p class="text-muted small mb-0">
+                                            Add more details to your profile to attract more clients
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="text-center mt-5">
+                        <div class="row g-3 justify-content-center">
+                            <div class="col-md-4">
+                                <a href="{% url 'accounts:verification_status' %}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-info-circle me-2"></i>Check Status
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'accounts:writer_documents' %}" class="btn btn-outline-warning w-100">
+                                    <i class="fas fa-file-alt me-2"></i>View Documents
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-success w-100">
+                                    <i class="fas fa-home me-2"></i>Go to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Support Information -->
+                    <div class="mt-5 pt-4 border-top">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="support-card">
+                                    <i class="fas fa-envelope fa-2x text-primary mb-3"></i>
+                                    <h6>Email Support</h6>
+                                    <p class="text-muted small mb-0">
+                                        verification@ebwriting.com
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="support-card">
+                                    <i class="fas fa-question-circle fa-2x text-info mb-3"></i>
+                                    <h6>FAQ</h6>
+                                    <p class="text-muted small mb-0">
+                                        Check frequently asked questions
+                                    </p>
+                                    <a href="#" class="btn btn-sm btn-outline-info mt-2">View FAQ</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <p class="text-muted small">
+                    <i class="fas fa-info-circle me-2"></i>
+                    If you need to update your documents or have questions, please contact our support team.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation to status circle
+    const statusCircle = document.querySelector('.status-circle');
+    if (statusCircle) {
+        statusCircle.style.animation = 'pulse 2s infinite';
+    }
+});
+</script>
+
+<style>
+.card-header.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
+
+.status-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(255, 193, 7, 0.3);
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 20px rgba(255, 193, 7, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+    }
+}
+
+.status-card {
+    text-align: center;
+    padding: 1.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.status-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.status-card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+}
+
+.status-card-icon.bg-primary { background-color: #0d6efd; }
+.status-card-icon.bg-warning { background-color: #ffc107; }
+.status-card-icon.bg-secondary { background-color: #6c757d; }
+
+.status-card-content h5 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.status-card-content p {
+    font-size: 0.85rem;
+}
+
+/* Timeline Estimate */
+.timeline-estimate {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-estimate::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-point {
+    position: absolute;
+    left: -30px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid #dee2e6;
+    z-index: 1;
+}
+
+.timeline-item.active .timeline-point {
+    border-color: #ffc107;
+    background-color: #ffc107;
+}
+
+.timeline-item.active .timeline-point::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background-color: white;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.timeline-content {
+    padding-bottom: 1rem;
+}
+
+.timeline-item:not(:last-child) .timeline-content {
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Next Steps */
+.next-step-card {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    height: 100%;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.step-content h6 {
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.step-content p {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+/* Support Cards */
+.support-card {
+    text-align: center;
+    padding: 1.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    height: 100%;
+}
+
+.support-card i {
+    display: block;
+    margin: 0 auto;
+}
+
+.support-card h6 {
+    margin-bottom: 0.5rem;
+}
+
+.support-card p {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Buttons */
+.btn-outline-primary:hover,
+.btn-outline-warning:hover,
+.btn-outline-success:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+</style>
+{% endblock %}

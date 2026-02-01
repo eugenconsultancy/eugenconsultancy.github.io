@@ -1,0 +1,902 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Transaction History - EBWriting{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
+<style>
+    .transaction-type-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    .transaction-card {
+        border-left: 4px solid;
+        transition: all 0.3s;
+    }
+    .transaction-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .transaction-deposit {
+        border-left-color: #28a745;
+    }
+    .transaction-withdrawal {
+        border-left-color: #dc3545;
+    }
+    .transaction-payment {
+        border-left-color: #007bff;
+    }
+    .transaction-refund {
+        border-left-color: #ffc107;
+    }
+    .transaction-bonus {
+        border-left-color: #6f42c1;
+    }
+    .filter-form .form-control, .filter-form .form-select {
+        height: calc(1.5em + 0.75rem + 2px);
+        font-size: 0.875rem;
+    }
+    .stats-card {
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+    }
+    .stats-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    .amount-positive {
+        color: #28a745;
+    }
+    .amount-negative {
+        color: #dc3545;
+    }
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'payments:wallet' %}">Wallet</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Transaction History</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-exchange-alt text-primary me-2"></i>
+                Transaction History
+            </h1>
+            <p class="text-muted">View and track all your wallet transactions</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'payments:wallet' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Wallet
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-primary border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col me-2">
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">
+                                Total Transactions
+                            </div>
+                            <div class="h5 mb-0 fw-bold">{{ transactions.count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-list fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-success border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col me-2">
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">
+                                Total Income
+                            </div>
+                            <div class="h5 mb-0 fw-bold">${{ total_income|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-arrow-down fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-danger border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col me-2">
+                            <div class="text-xs fw-bold text-danger text-uppercase mb-1">
+                                Total Withdrawals
+                            </div>
+                            <div class="h5 mb-0 fw-bold">${{ total_withdrawals|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-arrow-up fa-2x text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-start border-info border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col me-2">
+                            <div class="text-xs fw-bold text-info text-uppercase mb-1">
+                                Net Balance
+                            </div>
+                            <div class="h5 mb-0 fw-bold">${{ net_balance|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calculator fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i>
+                Filter Transactions
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3 filter-form">
+                <div class="col-md-3">
+                    <label for="transaction_type" class="form-label">Transaction Type</label>
+                    <select class="form-select" id="transaction_type" name="transaction_type">
+                        <option value="">All Types</option>
+                        {% for value, label in transaction_types %}
+                        <option value="{{ value }}" {% if request.GET.transaction_type == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Failed</option>
+                        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from"
+                           value="{{ request.GET.date_from }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to"
+                           value="{{ request.GET.date_to }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="min_amount" class="form-label">Minimum Amount</label>
+                    <input type="number" class="form-control" id="min_amount" name="min_amount"
+                           step="0.01" min="0"
+                           value="{{ request.GET.min_amount }}"
+                           placeholder="Min amount">
+                </div>
+                <div class="col-md-6">
+                    <label for="max_amount" class="form-label">Maximum Amount</label>
+                    <input type="number" class="form-control" id="max_amount" name="max_amount"
+                           step="0.01" min="0"
+                           value="{{ request.GET.max_amount }}"
+                           placeholder="Max amount">
+                </div>
+                <div class="col-md-8">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search"
+                           value="{{ request.GET.search }}"
+                           placeholder="Search by reference, description...">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2 flex-fill">
+                        <i class="fas fa-search me-1"></i> Apply Filters
+                    </button>
+                    <a href="{% url 'payments:transactions' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-undo me-1"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Transaction Trends
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="transactionsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Transaction Types
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="typesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Transaction Records
+            </h5>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
+                        data-bs-toggle="dropdown">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" id="exportCSV"><i class="fas fa-file-csv me-2"></i> CSV</a></li>
+                    <li><a class="dropdown-item" href="#" id="exportPDF"><i class="fas fa-file-pdf me-2"></i> PDF</a></li>
+                    <li><a class="dropdown-item" href="#" id="exportExcel"><i class="fas fa-file-excel me-2"></i> Excel</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            {% if transactions %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="transactionsTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Reference</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Balance</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>
+                                {{ transaction.created_at|date:"M d, Y" }}
+                                <br>
+                                <small class="text-muted">{{ transaction.created_at|date:"H:i" }}</small>
+                            </td>
+                            <td>
+                                <span class="transaction-type-badge 
+                                    {% if transaction.transaction_type == 'deposit' %}bg-success
+                                    {% elif transaction.transaction_type == 'withdrawal' %}bg-danger
+                                    {% elif transaction.transaction_type == 'order_payment' %}bg-primary
+                                    {% elif transaction.transaction_type == 'refund' %}bg-warning
+                                    {% elif transaction.transaction_type == 'bonus' %}bg-purple
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ transaction.get_transaction_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>{{ transaction.description|truncatechars:40 }}</strong>
+                                {% if transaction.order %}
+                                <br>
+                                <small class="text-muted">
+                                    Order #{{ transaction.order.order_number }}
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <code>{{ transaction.reference|truncatechars:15 }}</code>
+                            </td>
+                            <td>
+                                <span class="{% if transaction.transaction_type in 'deposit order_payment refund bonus' %}amount-positive{% else %}amount-negative{% endif %}">
+                                    {% if transaction.transaction_type in 'deposit order_payment refund bonus' %}+
+                                    {% else %}-{% endif %}
+                                    ${{ transaction.amount }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if transaction.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% elif transaction.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif transaction.status == 'failed' %}
+                                    <span class="badge bg-danger">Failed</span>
+                                {% elif transaction.status == 'cancelled' %}
+                                    <span class="badge bg-secondary">Cancelled</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark">{{ transaction.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transaction.balance_after %}
+                                <strong>${{ transaction.balance_after|floatformat:2 }}</strong>
+                                {% else %}
+                                <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#transactionModal{{ transaction.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% if transaction.receipt_url %}
+                                    <a href="{{ transaction.receipt_url }}" 
+                                       class="btn btn-outline-success" 
+                                       target="_blank">
+                                        <i class="fas fa-receipt"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Modals for each transaction -->
+            {% for transaction in transactions %}
+            <div class="modal fade" id="transactionModal{{ transaction.id }}" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                Transaction Details
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Transaction Header -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Transaction ID</label>
+                                        <div class="h6">{{ transaction.id }}</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Reference</label>
+                                        <div class="font-monospace">{{ transaction.reference }}</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Date & Time</label>
+                                        <div>{{ transaction.created_at|date:"F d, Y H:i:s" }}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Type</label>
+                                        <div>
+                                            <span class="badge 
+                                                {% if transaction.transaction_type == 'deposit' %}bg-success
+                                                {% elif transaction.transaction_type == 'withdrawal' %}bg-danger
+                                                {% elif transaction.transaction_type == 'order_payment' %}bg-primary
+                                                {% elif transaction.transaction_type == 'refund' %}bg-warning
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ transaction.get_transaction_type_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Status</label>
+                                        <div>
+                                            {% if transaction.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                            {% elif transaction.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                            {% elif transaction.status == 'failed' %}
+                                            <span class="badge bg-danger">Failed</span>
+                                            {% else %}
+                                            <span class="badge bg-light text-dark">{{ transaction.get_status_display }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Amount</label>
+                                        <div class="h4 
+                                            {% if transaction.transaction_type in 'deposit order_payment refund bonus' %}text-success
+                                            {% else %}text-danger{% endif %}">
+                                            {% if transaction.transaction_type in 'deposit order_payment refund bonus' %}+
+                                            {% else %}-{% endif %}
+                                            ${{ transaction.amount }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-4">
+                                <label class="form-label text-muted">Description</label>
+                                <div class="border rounded p-3 bg-light">
+                                    {{ transaction.description|linebreaks }}
+                                </div>
+                            </div>
+
+                            <!-- Balance Information -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Balance Before</label>
+                                        <div class="h6">
+                                            {% if transaction.balance_before %}
+                                            ${{ transaction.balance_before|floatformat:2 }}
+                                            {% else %}
+                                            <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Balance After</label>
+                                        <div class="h6">
+                                            {% if transaction.balance_after %}
+                                            ${{ transaction.balance_after|floatformat:2 }}
+                                            {% else %}
+                                            <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Related Information -->
+                            {% if transaction.order %}
+                            <div class="mb-4">
+                                <label class="form-label text-muted">Related Order</label>
+                                <div class="border rounded p-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Order #:</strong> {{ transaction.order.order_number }}<br>
+                                            <strong>Topic:</strong> {{ transaction.order.topic|truncatechars:50 }}<br>
+                                            <strong>Service:</strong> {{ transaction.order.get_service_display }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Pages:</strong> {{ transaction.order.pages }}<br>
+                                            <strong>Deadline:</strong> {{ transaction.order.deadline|date:"M d, Y" }}<br>
+                                            <strong>Status:</strong> {{ transaction.order.get_state_display }}
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="{% url 'orders:detail' transaction.order.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            View Order Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if transaction.payment %}
+                            <div class="mb-4">
+                                <label class="form-label text-muted">Related Payment</label>
+                                <div class="border rounded p-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Payment ID:</strong> {{ transaction.payment.payment_id }}<br>
+                                            <strong>Amount:</strong> ${{ transaction.payment.amount }}<br>
+                                            <strong>Method:</strong> {{ transaction.payment.get_payment_method_display }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Status:</strong> {{ transaction.payment.get_state_display }}<br>
+                                            <strong>Date:</strong> {{ transaction.payment.created_at|date:"M d, Y" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Metadata -->
+                            {% if transaction.metadata %}
+                            <div class="mb-4">
+                                <label class="form-label text-muted">Additional Information</label>
+                                <div class="border rounded p-3 bg-light">
+                                    <pre class="mb-0" style="max-height: 200px; overflow-y: auto;">
+                                        {{ transaction.metadata|pprint }}
+                                    </pre>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Notes -->
+                            {% if transaction.notes %}
+                            <div class="mb-4">
+                                <label class="form-label text-muted">Notes</label>
+                                <div class="border rounded p-3 bg-light">
+                                    {{ transaction.notes|linebreaks }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            {% if transaction.receipt_url %}
+                            <a href="{{ transaction.receipt_url }}" 
+                               class="btn btn-success" target="_blank">
+                                <i class="fas fa-receipt me-1"></i> View Receipt
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-exchange-alt fa-4x text-muted mb-4"></i>
+                <h4 class="text-muted mb-3">No Transactions Found</h4>
+                <p class="text-muted mb-4">
+                    Your transaction history will appear here once you start using your wallet.
+                </p>
+                <a href="{% url 'payments:wallet' %}" class="btn btn-primary">
+                    <i class="fas fa-wallet me-2"></i> Go to Wallet
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Monthly Summary -->
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Monthly Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Income</th>
+                                    <th>Withdrawals</th>
+                                    <th>Net</th>
+                                    <th>Transactions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for month in monthly_summary %}
+                                <tr>
+                                    <td>{{ month.month }}</td>
+                                    <td class="amount-positive">+${{ month.income|floatformat:2 }}</td>
+                                    <td class="amount-negative">-${{ month.withdrawals|floatformat:2 }}</td>
+                                    <td class="{% if month.net >= 0 %}amount-positive{% else %}amount-negative{% endif %}">
+                                        ${{ month.net|floatformat:2 }}
+                                    </td>
+                                    <td>{{ month.count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-3">
+                                        No monthly data available
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Transaction Statistics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <div class="stats-card bg-light">
+                                <div class="stats-value text-primary">
+                                    {{ stats.avg_transaction|default:"0.00"|floatformat:2 }}
+                                </div>
+                                <div class="text-muted">Avg. Transaction</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-6 mb-3">
+                            <div class="stats-card bg-light">
+                                <div class="stats-value text-success">
+                                    {{ stats.success_rate|default:"0"|floatformat:0 }}%
+                                </div>
+                                <div class="text-muted">Success Rate</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-6 mb-3">
+                            <div class="stats-card bg-light">
+                                <div class="stats-value text-info">
+                                    {{ stats.avg_monthly|default:"0.00"|floatformat:2 }}
+                                </div>
+                                <div class="text-muted">Avg. Monthly Income</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-6 mb-3">
+                            <div class="stats-card bg-light">
+                                <div class="stats-value text-warning">
+                                    {{ stats.largest_transaction|default:"0.00"|floatformat:2 }}
+                                </div>
+                                <div class="text-muted">Largest Transaction</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        const table = $('#transactionsTable').DataTable({
+            pageLength: 25,
+            order: [[0, 'desc']],
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'copy',
+                    text: '<i class="fas fa-copy me-1"></i> Copy',
+                    className: 'btn btn-sm btn-outline-secondary'
+                },
+                {
+                    extend: 'csv',
+                    text: '<i class="fas fa-file-csv me-1"></i> CSV',
+                    className: 'btn btn-sm btn-outline-secondary'
+                },
+                {
+                    extend: 'excel',
+                    text: '<i class="fas fa-file-excel me-1"></i> Excel',
+                    className: 'btn btn-sm btn-outline-secondary'
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="fas fa-file-pdf me-1"></i> PDF',
+                    className: 'btn btn-sm btn-outline-secondary'
+                }
+            ],
+            language: {
+                search: "Search transactions:",
+                lengthMenu: "Show _MENU_ transactions per page",
+                info: "Showing _START_ to _END_ of _TOTAL_ transactions",
+                infoEmpty: "No transactions found",
+                infoFiltered: "(filtered from _MAX_ total transactions)"
+            }
+        });
+        
+        // Initialize transactions chart
+        const transactionsCtx = document.getElementById('transactionsChart').getContext('2d');
+        const transactionsChart = new Chart(transactionsCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Income',
+                        data: {{ income_data|safe }},
+                        backgroundColor: '#28a745',
+                        borderColor: '#28a745',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Withdrawals',
+                        data: {{ withdrawal_data|safe }},
+                        backgroundColor: '#dc3545',
+                        borderColor: '#dc3545',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Initialize types chart
+        const typesCtx = document.getElementById('typesChart').getContext('2d');
+        const typesChart = new Chart(typesCtx, {
+            type: 'pie',
+            data: {
+                labels: {{ type_labels|safe }},
+                datasets: [{
+                    data: {{ type_data|safe }},
+                    backgroundColor: [
+                        '#28a745',
+                        '#dc3545',
+                        '#007bff',
+                        '#ffc107',
+                        '#6f42c1',
+                        '#6c757d'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Export handlers
+        $('#exportCSV').click(function(e) {
+            e.preventDefault();
+            table.button('.buttons-csv').trigger();
+        });
+        
+        $('#exportPDF').click(function(e) {
+            e.preventDefault();
+            table.button('.buttons-pdf').trigger();
+        });
+        
+        $('#exportExcel').click(function(e) {
+            e.preventDefault();
+            table.button('.buttons-excel').trigger();
+        });
+        
+        // Filter form validation
+        $('form.filter-form').submit(function(e) {
+            const dateFrom = $('#date_from').val();
+            const dateTo = $('#date_to').val();
+            const minAmount = parseFloat($('#min_amount').val()) || 0;
+            const maxAmount = parseFloat($('#max_amount').val()) || Infinity;
+            
+            if (dateFrom && dateTo && dateFrom > dateTo) {
+                alert('"From date" cannot be after "To date".');
+                e.preventDefault();
+                return;
+            }
+            
+            if (minAmount > maxAmount) {
+                alert('Minimum amount cannot be greater than maximum amount.');
+                e.preventDefault();
+                return;
+            }
+        });
+        
+        // Auto-format amount inputs
+        $('input[type="number"]').on('blur', function() {
+            const value = parseFloat($(this).val());
+            if (!isNaN(value)) {
+                $(this).val(value.toFixed(2));
+            }
+        });
+    });
+</script>
+{% endblock %}

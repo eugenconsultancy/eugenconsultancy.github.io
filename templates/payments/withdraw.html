@@ -1,0 +1,1027 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Withdraw Funds - EBWriting{% endblock %}
+
+{% block extra_css %}
+<style>
+    .withdraw-step {
+        padding: 1rem;
+        border-left: 4px solid #dee2e6;
+        margin-bottom: 1rem;
+    }
+    .withdraw-step.active {
+        border-left-color: #007bff;
+        background-color: #f8f9fa;
+    }
+    .withdraw-step.completed {
+        border-left-color: #28a745;
+    }
+    .amount-input-group {
+        max-width: 300px;
+    }
+    .method-card {
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    .method-card:hover {
+        border-color: #007bff;
+        background-color: #f8f9fa;
+    }
+    .method-card.selected {
+        border-color: #007bff;
+        background-color: #e7f1ff;
+    }
+    .method-icon {
+        font-size: 2rem;
+        color: #6c757d;
+    }
+    .amount-slider {
+        width: 100%;
+        margin: 1rem 0;
+    }
+    .amount-preview {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #28a745;
+        text-align: center;
+        margin: 1rem 0;
+    }
+    .fee-breakdown {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold mb-3">
+                    <i class="fas fa-money-bill-wave text-primary me-2"></i>
+                    Withdraw Funds
+                </h1>
+                <p class="lead text-muted">
+                    Transfer your earnings to your preferred payment method
+                </p>
+                <div class="alert alert-info d-inline-block">
+                    <i class="fas fa-wallet me-2"></i>
+                    Available balance: <strong>${{ wallet.balance|floatformat:2 }}</strong>
+                </div>
+            </div>
+
+            <!-- Withdrawal Steps -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-ol me-2"></i>
+                        Withdrawal Process
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="withdraw-step active">
+                                <h6 class="mb-2">1. Amount</h6>
+                                <p class="text-muted mb-0 small">Select withdrawal amount</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="withdraw-step">
+                                <h6 class="mb-2">2. Method</h6>
+                                <p class="text-muted mb-0 small">Choose payment method</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="withdraw-step">
+                                <h6 class="mb-2">3. Details</h6>
+                                <p class="text-muted mb-0 small">Enter account details</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="withdraw-step">
+                                <h6 class="mb-2">4. Confirm</h6>
+                                <p class="text-muted mb-0 small">Review and submit</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdrawal Form -->
+            <div class="row">
+                <!-- Form Column -->
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <form method="POST" id="withdrawalForm">
+                            {% csrf_token %}
+                            
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-edit me-2"></i>
+                                    Withdrawal Details
+                                </h5>
+                            </div>
+                            
+                            <div class="card-body">
+                                <!-- Step 1: Amount -->
+                                <div class="mb-4" id="step1">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-dollar-sign me-2"></i>
+                                        1. Select Amount
+                                    </h6>
+                                    
+                                    <!-- Amount Input -->
+                                    <div class="amount-input-group mb-4">
+                                        <label for="amount" class="form-label">Withdrawal Amount</label>
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" 
+                                                   id="amount" name="amount"
+                                                   step="0.01" 
+                                                   min="{{ min_withdrawal }}" 
+                                                   max="{{ wallet.balance }}"
+                                                   value="{{ min_withdrawal }}">
+                                            <span class="input-group-text">.00</span>
+                                        </div>
+                                        <div class="form-text">
+                                            Min: ${{ min_withdrawal }} | Max: ${{ wallet.balance|floatformat:2 }}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Amount Slider -->
+                                    <div class="mb-4">
+                                        <label for="amount_slider" class="form-label">
+                                            Select Amount: $<span id="slider_value">{{ min_withdrawal }}</span>
+                                        </label>
+                                        <input type="range" class="form-range amount-slider" 
+                                               id="amount_slider" 
+                                               min="{{ min_withdrawal }}" 
+                                               max="{{ wallet.balance }}" 
+                                               step="1" 
+                                               value="{{ min_withdrawal }}">
+                                        <div class="d-flex justify-content-between">
+                                            <small>${{ min_withdrawal }}</small>
+                                            <small>${{ wallet.balance|floatformat:2 }}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Quick Amount Buttons -->
+                                    <div class="mb-4">
+                                        <label class="form-label">Quick Select</label>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button type="button" class="btn btn-outline-primary quick-amount" 
+                                                    data-percentage="25">
+                                                25% (${{ wallet.balance|multiply:0.25|floatformat:2 }})
+                                            </button>
+                                            <button type="button" class="btn btn-outline-primary quick-amount" 
+                                                    data-percentage="50">
+                                                50% (${{ wallet.balance|multiply:0.5|floatformat:2 }})
+                                            </button>
+                                            <button type="button" class="btn btn-outline-primary quick-amount" 
+                                                    data-percentage="75">
+                                                75% (${{ wallet.balance|multiply:0.75|floatformat:2 }})
+                                            </button>
+                                            <button type="button" class="btn btn-outline-primary quick-amount" 
+                                                    data-percentage="100">
+                                                100% (${{ wallet.balance|floatformat:2 }})
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-primary next-step" data-step="2">
+                                            Next: Choose Method <i class="fas fa-arrow-right ms-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Step 2: Payment Method -->
+                                <div class="mb-4" id="step2" style="display: none;">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-credit-card me-2"></i>
+                                        2. Choose Payment Method
+                                    </h6>
+                                    
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Select how you want to receive your funds. Processing times vary by method.
+                                    </div>
+                                    
+                                    <!-- Payment Methods -->
+                                    <div class="row">
+                                        {% for method in payment_methods %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="method-card" data-method="{{ method.value }}">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" 
+                                                           name="payment_method" 
+                                                           id="method_{{ method.value }}"
+                                                           value="{{ method.value }}"
+                                                           {% if forloop.first %}checked{% endif %}>
+                                                    <label class="form-check-label d-flex align-items-center" 
+                                                           for="method_{{ method.value }}">
+                                                        {% if method.value == 'paypal' %}
+                                                            <i class="fab fa-paypal method-icon me-3"></i>
+                                                        {% elif method.value == 'bank_transfer' %}
+                                                            <i class="fas fa-university method-icon me-3"></i>
+                                                        {% elif method.value == 'skrill' %}
+                                                            <i class="fas fa-money-check method-icon me-3"></i>
+                                                        {% elif method.value == 'payoneer' %}
+                                                            <i class="fas fa-globe method-icon me-3"></i>
+                                                        {% endif %}
+                                                        <div>
+                                                            <h6 class="mb-1">{{ method.label }}</h6>
+                                                            <small class="text-muted">
+                                                                {{ method.description }}
+                                                            </small>
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-outline-secondary prev-step" data-step="1">
+                                            <i class="fas fa-arrow-left me-1"></i> Back
+                                        </button>
+                                        <button type="button" class="btn btn-primary next-step" data-step="3">
+                                            Next: Enter Details <i class="fas fa-arrow-right ms-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Step 3: Account Details -->
+                                <div class="mb-4" id="step3" style="display: none;">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-user-circle me-2"></i>
+                                        3. Enter Account Details
+                                    </h6>
+                                    
+                                    <!-- Dynamic fields based on payment method -->
+                                    <div id="paypal_fields" class="method-fields">
+                                        <div class="mb-3">
+                                            <label for="paypal_email" class="form-label">PayPal Email Address</label>
+                                            <input type="email" class="form-control" 
+                                                   id="paypal_email" name="paypal_email"
+                                                   placeholder="your.email@example.com">
+                                            <div class="form-text">
+                                                Enter the email address associated with your PayPal account
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="bank_fields" class="method-fields" style="display: none;">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="bank_name" class="form-label">Bank Name</label>
+                                                <input type="text" class="form-control" 
+                                                       id="bank_name" name="bank_name"
+                                                       placeholder="e.g., Chase Bank">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="account_holder" class="form-label">Account Holder Name</label>
+                                                <input type="text" class="form-control" 
+                                                       id="account_holder" name="account_holder"
+                                                       placeholder="Your full name as on account">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="account_number" class="form-label">Account Number</label>
+                                                <input type="text" class="form-control" 
+                                                       id="account_number" name="account_number"
+                                                       placeholder="1234567890">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="routing_number" class="form-label">Routing Number</label>
+                                                <input type="text" class="form-control" 
+                                                       id="routing_number" name="routing_number"
+                                                       placeholder="021000021">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="bank_address" class="form-label">Bank Address (Optional)</label>
+                                            <textarea class="form-control" id="bank_address" 
+                                                      name="bank_address" rows="2"></textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="skrill_fields" class="method-fields" style="display: none;">
+                                        <div class="mb-3">
+                                            <label for="skrill_email" class="form-label">Skrill Email Address</label>
+                                            <input type="email" class="form-control" 
+                                                   id="skrill_email" name="skrill_email"
+                                                   placeholder="your.email@example.com">
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="payoneer_fields" class="method-fields" style="display: none;">
+                                        <div class="mb-3">
+                                            <label for="payoneer_email" class="form-label">Payoneer Email Address</label>
+                                            <input type="email" class="form-control" 
+                                                   id="payoneer_email" name="payoneer_email"
+                                                   placeholder="your.email@example.com">
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Additional Information -->
+                                    <div class="mb-3">
+                                        <label for="notes" class="form-label">Notes (Optional)</label>
+                                        <textarea class="form-control" id="notes" name="notes" 
+                                                  rows="3" placeholder="Any special instructions or notes..."></textarea>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-outline-secondary prev-step" data-step="2">
+                                            <i class="fas fa-arrow-left me-1"></i> Back
+                                        </button>
+                                        <button type="button" class="btn btn-primary next-step" data-step="4">
+                                            Next: Review <i class="fas fa-arrow-right ms-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Step 4: Review & Confirm -->
+                                <div class="mb-4" id="step4" style="display: none;">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        4. Review & Confirm
+                                    </h6>
+                                    
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        Please review your withdrawal details carefully before submitting.
+                                    </div>
+                                    
+                                    <!-- Withdrawal Summary -->
+                                    <div class="fee-breakdown mb-4">
+                                        <h6 class="mb-3">Withdrawal Summary</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span>Amount:</span>
+                                                        <strong id="summary_amount">$0.00</strong>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span>Processing Fee:</span>
+                                                        <span id="summary_fee">$0.00</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span>Net Amount:</span>
+                                                        <strong id="summary_net" class="text-success">$0.00</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span>Method:</span>
+                                                        <strong id="summary_method">PayPal</strong>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span>Processing Time:</span>
+                                                        <span id="summary_time">1-2 business days</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span>New Balance:</span>
+                                                        <strong id="summary_balance" class="text-primary">$0.00</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Account Details Summary -->
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Account Details</h6>
+                                        <div id="summary_details" class="border rounded p-3 bg-light">
+                                            <!-- Will be filled by JavaScript -->
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Terms & Conditions -->
+                                    <div class="mb-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="terms_agree" required>
+                                            <label class="form-check-label" for="terms_agree">
+                                                I agree to the <a href="{% url 'terms' %}" target="_blank">Terms of Service</a>
+                                                and understand that:
+                                            </label>
+                                        </div>
+                                        <div class="ms-4 mt-2">
+                                            <ul class="small text-muted">
+                                                <li>Withdrawals are processed within 3-5 business days</li>
+                                                <li>Processing fees may apply depending on the method</li>
+                                                <li>Minimum withdrawal amount is ${{ min_withdrawal }}</li>
+                                                <li>Daily withdrawal limit is ${{ daily_limit }}</li>
+                                                <li>Funds will be sent to the account details provided</li>
+                                                <li>Incorrect account details may delay or prevent payment</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-outline-secondary prev-step" data-step="3">
+                                            <i class="fas fa-arrow-left me-1"></i> Back
+                                        </button>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-paper-plane me-1"></i>
+                                            Submit Withdrawal Request
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Important Information -->
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                Important Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex">
+                                        <i class="fas fa-clock text-warning me-3 mt-1"></i>
+                                        <div>
+                                            <h6>Processing Time</h6>
+                                            <p class="small text-muted mb-0">
+                                                Withdrawals are processed within 3-5 business days.
+                                                Weekends and holidays may cause delays.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex">
+                                        <i class="fas fa-percentage text-danger me-3 mt-1"></i>
+                                        <div>
+                                            <h6>Fees</h6>
+                                            <p class="small text-muted mb-0">
+                                                Some payment methods may have processing fees.
+                                                Fees are deducted from the withdrawal amount.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex">
+                                        <i class="fas fa-ban text-danger me-3 mt-1"></i>
+                                        <div>
+                                            <h6>Limits</h6>
+                                            <p class="small text-muted mb-0">
+                                                Minimum withdrawal: ${{ min_withdrawal }}<br>
+                                                Daily limit: ${{ daily_limit }}<br>
+                                                Monthly limit: ${{ monthly_limit|default:"5000.00" }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex">
+                                        <i class="fas fa-shield-alt text-success me-3 mt-1"></i>
+                                        <div>
+                                            <h6>Security</h6>
+                                            <p class="small text-muted mb-0">
+                                                All transactions are encrypted and secure.
+                                                We never store your full banking details.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Summary & Preview -->
+                <div class="col-lg-4">
+                    <!-- Amount Preview -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-eye me-2"></i>
+                                Amount Preview
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="amount-preview" id="amountPreview">
+                                ${{ min_withdrawal }}
+                            </div>
+                            <div class="text-center text-muted mb-3">
+                                You will receive
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Current Balance:</span>
+                                    <strong>${{ wallet.balance|floatformat:2 }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Withdrawal Amount:</span>
+                                    <span id="preview_amount">${{ min_withdrawal }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Processing Fee:</span>
+                                    <span id="preview_fee" class="text-danger">$0.00</span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong>New Balance:</strong>
+                                    <strong id="preview_balance" class="text-primary">
+                                        ${{ wallet.balance|subtract:min_withdrawal|floatformat:2 }}
+                                    </strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Processing Times -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-business-time me-2"></i>
+                                Processing Times
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fab fa-paypal text-primary me-2"></i>
+                                            <span>PayPal</span>
+                                        </div>
+                                        <span class="badge bg-success">1-2 days</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-university text-success me-2"></i>
+                                            <span>Bank Transfer</span>
+                                        </div>
+                                        <span class="badge bg-warning">3-5 days</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-money-check text-warning me-2"></i>
+                                            <span>Skrill</span>
+                                        </div>
+                                        <span class="badge bg-success">1-2 days</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-globe text-info me-2"></i>
+                                            <span>Payoneer</span>
+                                        </div>
+                                        <span class="badge bg-warning">3-5 days</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Withdrawals -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history me-2"></i>
+                                Recent Withdrawals
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_withdrawals %}
+                            <div class="list-group list-group-flush">
+                                {% for withdrawal in recent_withdrawals %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong>${{ withdrawal.amount }}</strong>
+                                        <span class="badge 
+                                            {% if withdrawal.status == 'completed' %}bg-success
+                                            {% elif withdrawal.status == 'pending' %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ withdrawal.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">{{ withdrawal.get_payment_method_display }}</small>
+                                        <small class="text-muted">{{ withdrawal.created_at|date:"M d" }}</small>
+                                    </div>
+                                    {% if withdrawal.status == 'completed' and withdrawal.completed_at %}
+                                    <small class="text-muted d-block">
+                                        Completed: {{ withdrawal.completed_at|date:"M d, Y" }}
+                                    </small>
+                                    {% endif %}
+                                    <hr class="my-2">
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="mt-3">
+                                <a href="{% url 'payments:transactions' %}" 
+                                   class="btn btn-sm btn-outline-primary w-100">
+                                    View All Transactions
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-3">
+                                <i class="fas fa-history fa-2x text-muted mb-3"></i>
+                                <h6 class="text-muted">No Recent Withdrawals</h6>
+                                <p class="text-muted small mb-0">
+                                    Your withdrawal history will appear here.
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Support Card -->
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-headset me-2"></i>
+                                Need Help?
+                            </h6>
+                            <p class="card-text small text-muted">
+                                If you have questions about withdrawals or need assistance, 
+                                contact our support team.
+                            </p>
+                            <div class="d-grid gap-2">
+                                <a href="mailto:support@ebwriting.com" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-envelope me-1"></i> Email Support
+                                </a>
+                                <a href="{% url 'dashboard' %}#support" 
+                                   class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-comments me-1"></i> Live Chat
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize variables
+        const minWithdrawal = parseFloat('{{ min_withdrawal }}');
+        const currentBalance = parseFloat('{{ wallet.balance }}');
+        const dailyLimit = parseFloat('{{ daily_limit }}');
+        const dailyUsed = parseFloat('{{ daily_used|default:"0" }}');
+        
+        // Step navigation
+        let currentStep = 1;
+        
+        // Show current step
+        function showStep(step) {
+            // Hide all steps
+            $('#step1, #step2, #step3, #step4').hide();
+            
+            // Show current step
+            $(`#step${step}`).show();
+            
+            // Update step indicators
+            $('.withdraw-step').removeClass('active completed');
+            
+            for (let i = 1; i <= 4; i++) {
+                const stepElement = $(`.withdraw-step:nth-child(${i})`);
+                if (i < step) {
+                    stepElement.addClass('completed');
+                } else if (i === step) {
+                    stepElement.addClass('active');
+                }
+            }
+            
+            currentStep = step;
+            
+            // Update summary if on step 4
+            if (step === 4) {
+                updateSummary();
+            }
+        }
+        
+        // Next step button
+        $('.next-step').click(function() {
+            const step = parseInt($(this).data('step'));
+            
+            // Validate current step before proceeding
+            if (currentStep === 1) {
+                if (!validateAmount()) {
+                    return;
+                }
+            } else if (currentStep === 3) {
+                if (!validateAccountDetails()) {
+                    return;
+                }
+            }
+            
+            showStep(step);
+        });
+        
+        // Previous step button
+        $('.prev-step').click(function() {
+            const step = parseInt($(this).data('step'));
+            showStep(step);
+        });
+        
+        // Validate amount
+        function validateAmount() {
+            const amount = parseFloat($('#amount').val());
+            
+            if (isNaN(amount) || amount < minWithdrawal) {
+                alert(`Minimum withdrawal amount is $${minWithdrawal}`);
+                return false;
+            }
+            
+            if (amount > currentBalance) {
+                alert('Insufficient balance');
+                return false;
+            }
+            
+            // Check daily limit
+            const totalToday = dailyUsed + amount;
+            if (totalToday > dailyLimit) {
+                alert(`Daily withdrawal limit exceeded. Today's limit: $${dailyLimit}`);
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Validate account details
+        function validateAccountDetails() {
+            const method = $('input[name="payment_method"]:checked').val();
+            
+            if (method === 'paypal') {
+                const email = $('#paypal_email').val();
+                if (!email || !email.includes('@')) {
+                    alert('Please enter a valid PayPal email address');
+                    return false;
+                }
+            } else if (method === 'bank_transfer') {
+                const bankName = $('#bank_name').val();
+                const accountHolder = $('#account_holder').val();
+                const accountNumber = $('#account_number').val();
+                const routingNumber = $('#routing_number').val();
+                
+                if (!bankName || !accountHolder || !accountNumber || !routingNumber) {
+                    alert('Please fill in all required bank details');
+                    return false;
+                }
+                
+                if (accountNumber.length < 5) {
+                    alert('Please enter a valid account number');
+                    return false;
+                }
+                
+                if (routingNumber.length !== 9) {
+                    alert('Please enter a valid 9-digit routing number');
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // Amount slider
+        $('#amount_slider').on('input', function() {
+            const value = parseFloat($(this).val());
+            $('#amount').val(value.toFixed(2));
+            $('#slider_value').text(value.toFixed(2));
+            updatePreview();
+        });
+        
+        // Amount input
+        $('#amount').on('input', function() {
+            const value = parseFloat($(this).val()) || 0;
+            const slider = $('#amount_slider');
+            const boundedValue = Math.min(Math.max(value, minWithdrawal), currentBalance);
+            
+            $(this).val(boundedValue.toFixed(2));
+            slider.val(boundedValue);
+            $('#slider_value').text(boundedValue.toFixed(2));
+            updatePreview();
+        });
+        
+        // Quick amount buttons
+        $('.quick-amount').click(function() {
+            const percentage = parseFloat($(this).data('percentage')) / 100;
+            const amount = currentBalance * percentage;
+            const boundedAmount = Math.min(Math.max(amount, minWithdrawal), currentBalance);
+            
+            $('#amount').val(boundedAmount.toFixed(2));
+            $('#amount_slider').val(boundedAmount);
+            $('#slider_value').text(boundedAmount.toFixed(2));
+            updatePreview();
+        });
+        
+        // Payment method selection
+        $('.method-card').click(function() {
+            const method = $(this).data('method');
+            
+            // Update radio button
+            $(this).find('input[type="radio"]').prop('checked', true);
+            
+            // Remove selection from all cards
+            $('.method-card').removeClass('selected');
+            
+            // Add selection to clicked card
+            $(this).addClass('selected');
+            
+            // Show/hide account details fields
+            $('.method-fields').hide();
+            $(`#${method}_fields`).show();
+        });
+        
+        // Initialize first method
+        $('.method-card:first').click();
+        
+        // Update preview
+        function updatePreview() {
+            const amount = parseFloat($('#amount').val()) || 0;
+            const method = $('input[name="payment_method"]:checked').val();
+            
+            // Calculate fee based on method
+            let fee = 0;
+            let processingTime = '';
+            
+            switch(method) {
+                case 'paypal':
+                    fee = amount * 0.02; // 2% fee
+                    processingTime = '1-2 business days';
+                    break;
+                case 'bank_transfer':
+                    fee = 2.50; // Fixed fee
+                    processingTime = '3-5 business days';
+                    break;
+                case 'skrill':
+                    fee = amount * 0.01; // 1% fee
+                    processingTime = '1-2 business days';
+                    break;
+                case 'payoneer':
+                    fee = amount * 0.03; // 3% fee
+                    processingTime = '3-5 business days';
+                    break;
+            }
+            
+            // Ensure minimum fee
+            fee = Math.max(fee, 0.50);
+            
+            const netAmount = amount - fee;
+            const newBalance = currentBalance - amount;
+            
+            // Update preview elements
+            $('#amountPreview').text('$' + netAmount.toFixed(2));
+            $('#preview_amount').text('$' + amount.toFixed(2));
+            $('#preview_fee').text('-$' + fee.toFixed(2));
+            $('#preview_balance').text('$' + newBalance.toFixed(2));
+        }
+        
+        // Update summary for step 4
+        function updateSummary() {
+            const amount = parseFloat($('#amount').val()) || 0;
+            const method = $('input[name="payment_method"]:checked').val();
+            const methodText = $(`#method_${method}`).next().find('h6').text();
+            
+            // Recalculate fee (same logic as updatePreview)
+            let fee = 0;
+            let processingTime = '';
+            
+            switch(method) {
+                case 'paypal':
+                    fee = amount * 0.02;
+                    processingTime = '1-2 business days';
+                    break;
+                case 'bank_transfer':
+                    fee = 2.50;
+                    processingTime = '3-5 business days';
+                    break;
+                case 'skrill':
+                    fee = amount * 0.01;
+                    processingTime = '1-2 business days';
+                    break;
+                case 'payoneer':
+                    fee = amount * 0.03;
+                    processingTime = '3-5 business days';
+                    break;
+            }
+            
+            fee = Math.max(fee, 0.50);
+            const netAmount = amount - fee;
+            const newBalance = currentBalance - amount;
+            
+            // Update summary elements
+            $('#summary_amount').text('$' + amount.toFixed(2));
+            $('#summary_fee').text('$' + fee.toFixed(2));
+            $('#summary_net').text('$' + netAmount.toFixed(2));
+            $('#summary_method').text(methodText);
+            $('#summary_time').text(processingTime);
+            $('#summary_balance').text('$' + newBalance.toFixed(2));
+            
+            // Update account details summary
+            let detailsHtml = '';
+            
+            if (method === 'paypal') {
+                const email = $('#paypal_email').val();
+                detailsHtml = `
+                    <p class="mb-1"><strong>PayPal Email:</strong> ${email}</p>
+                    <small class="text-muted">Funds will be sent to this PayPal account</small>
+                `;
+            } else if (method === 'bank_transfer') {
+                const bankName = $('#bank_name').val();
+                const accountHolder = $('#account_holder').val();
+                const accountNumber = $('#account_number').val();
+                const routingNumber = $('#routing_number').val();
+                const bankAddress = $('#bank_address').val();
+                
+                detailsHtml = `
+                    <p class="mb-1"><strong>Bank:</strong> ${bankName}</p>
+                    <p class="mb-1"><strong>Account Holder:</strong> ${accountHolder}</p>
+                    <p class="mb-1"><strong>Account Number:</strong> ${accountNumber}</p>
+                    <p class="mb-1"><strong>Routing Number:</strong> ${routingNumber}</p>
+                    ${bankAddress ? `<p class="mb-1"><strong>Bank Address:</strong> ${bankAddress}</p>` : ''}
+                `;
+            } else if (method === 'skrill') {
+                const email = $('#skrill_email').val();
+                detailsHtml = `
+                    <p class="mb-1"><strong>Skrill Email:</strong> ${email}</p>
+                `;
+            } else if (method === 'payoneer') {
+                const email = $('#payoneer_email').val();
+                detailsHtml = `
+                    <p class="mb-1"><strong>Payoneer Email:</strong> ${email}</p>
+                `;
+            }
+            
+            $('#summary_details').html(detailsHtml);
+        }
+        
+        // Form submission
+        $('#withdrawalForm').submit(function(event) {
+            event.preventDefault();
+            
+            if (!validateAmount()) {
+                showStep(1);
+                return;
+            }
+            
+            if (!validateAccountDetails()) {
+                showStep(3);
+                return;
+            }
+            
+            if (!$('#terms_agree').prop('checked')) {
+                alert('Please agree to the terms and conditions');
+                return;
+            }
+            
+            const amount = parseFloat($('#amount').val());
+            const method = $('input[name="payment_method"]:checked').val();
+            
+            if (confirm(`Submit withdrawal request for $${amount.toFixed(2)}?`)) {
+                // Show loading state
+                $('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
+                
+                // Submit the form
+                this.submit();
+            }
+        });
+        
+        // Initialize
+        updatePreview();
+        showStep(1);
+    });
+</script>
+{% endblock %}

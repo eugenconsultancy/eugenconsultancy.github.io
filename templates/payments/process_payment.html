@@ -1,247 +1,397 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Payment Successful - Order #{{ order.order_number }}{% endblock %}
+{% block title %}Process Payment - Order #{{ order.order_number }} - EBWriting{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/payments.css' %}">
 <style>
-    .success-icon {
-        font-size: 5rem;
-        color: #28a745;
-        animation: bounce 1s ease-in-out;
+    .payment-method-card {
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+        cursor: pointer;
     }
-    
-    @keyframes bounce {
-        0%, 20%, 60%, 100% {transform: translateY(0);}
-        40% {transform: translateY(-30px);}
-        80% {transform: translateY(-15px);}
+    .payment-method-card:hover {
+        border-color: #007bff;
+        background-color: #f8f9fa;
     }
-    
-    .receipt-card {
-        border-left: 5px solid #28a745;
+    .payment-method-card.selected {
+        border-color: #007bff;
+        background-color: #e7f1ff;
     }
-    
-    .timeline {
-        position: relative;
-        padding-left: 30px;
+    .payment-method-icon {
+        font-size: 2rem;
+        color: #6c757d;
     }
-    
-    .timeline:before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 3px;
-        background: #4e73df;
+    .stripe-card-element {
+        padding: 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background-color: white;
     }
-    
-    .timeline-item {
-        position: relative;
-        margin-bottom: 30px;
+    .stripe-card-errors {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
     }
-    
-    .timeline-item:before {
-        content: '';
-        position: absolute;
-        left: -36px;
-        top: 5px;
-        width: 15px;
-        height: 15px;
-        border-radius: 50%;
-        background: #4e73df;
-        border: 3px solid white;
-    }
-    
-    .timeline-item.current:before {
-        background: #28a745;
-        box-shadow: 0 0 0 5px rgba(40, 167, 69, 0.2);
+    .payment-summary {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row justify-content-center">
+<div class="container py-5">
+    <div class="row">
         <div class="col-lg-8">
-            <!-- Success Header -->
-            <div class="text-center mb-5">
-                <div class="success-icon mb-3">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
-                <h1 class="h2 text-success mb-3">Payment Successful!</h1>
-                <p class="lead mb-4">
-                    Your payment of <strong>${{ payment.amount|floatformat:2 }}</strong> has been processed 
-                    and is now held securely in escrow.
-                </p>
-                <div class="d-flex justify-content-center gap-3">
-                    <a href="{% url 'payments:receipt' payment.payment_id %}" class="btn btn-primary">
-                        <i class="bi bi-receipt"></i> View Receipt
-                    </a>
-                    <a href="{% url 'orders:detail' order.id %}" class="btn btn-success">
-                        <i class="bi bi-eye"></i> View Order
-                    </a>
-                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-house"></i> Dashboard
-                    </a>
-                </div>
-            </div>
-
-            <!-- Payment Details -->
-            <div class="row mb-5">
-                <div class="col-md-6 mb-4">
-                    <div class="card shadow h-100">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">
-                                <i class="bi bi-credit-card"></i> Payment Details
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <small class="text-muted">Payment ID</small>
-                                    <p class="mb-0">{{ payment.reference_number }}</p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Date</small>
-                                    <p class="mb-0">{{ payment.created_at|date:"M d, Y H:i" }}</p>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <small class="text-muted">Method</small>
-                                    <p class="mb-0">{{ payment.get_payment_method_display }}</p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Status</small>
-                                    <p class="mb-0">
-                                        <span class="badge bg-success">{{ payment.get_state_display }}</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="row">
-                                <div class="col-12">
-                                    <small class="text-muted">Amount</small>
-                                    <h4 class="text-primary">${{ payment.amount|floatformat:2 }}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="card shadow h-100">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">
-                                <i class="bi bi-file-text"></i> Order Summary
-                            </h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-12">
-                                    <small class="text-muted">Order Number</small>
-                                    <p class="mb-0">#{{ order.order_number }}</p>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <small class="text-muted">Service</small>
-                                    <p class="mb-0">{{ order.service_type|title }}</p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Deadline</small>
-                                    <p class="mb-0">{{ order.deadline|date:"M d, Y H:i" }}</p>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-6">
-                                    <small class="text-muted">Pages</small>
-                                    <p class="mb-0">{{ order.pages }}</p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Writer Level</small>
-                                    <p class="mb-0">{{ order.writer_level|title }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Order Timeline -->
-            <div class="card shadow mb-5">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="bi bi-clock-history"></i> What Happens Next?
-                    </h6>
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>
+                        Complete Payment
+                    </h4>
                 </div>
                 <div class="card-body">
-                    <div class="timeline">
-                        <div class="timeline-item current">
-                            <h6 class="mb-1">Payment Received</h6>
-                            <p class="text-muted mb-2">Your payment is secured in escrow</p>
-                            <small class="text-success">Completed</small>
+                    <!-- Order Summary -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-receipt me-2"></i>
+                            Order Summary
+                        </h6>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Order ID:</strong> {{ order.order_number }}</p>
+                                <p class="mb-1"><strong>Topic:</strong> {{ order.topic|truncatechars:50 }}</p>
+                                <p class="mb-1"><strong>Service:</strong> {{ order.get_service_display }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Pages:</strong> {{ order.pages }}</p>
+                                <p class="mb-1"><strong>Deadline:</strong> {{ order.deadline|date:"M d, Y" }}</p>
+                                <p class="mb-1"><strong>Academic Level:</strong> {{ order.get_academic_level_display }}</p>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Payment Methods -->
+                    <form id="payment-form" method="POST">
+                        {% csrf_token %}
                         
-                        <div class="timeline-item">
-                            <h6 class="mb-1">Writer Assignment</h6>
-                            <p class="text-muted mb-2">A qualified writer will be assigned to your order</p>
-                            <small>Pending</small>
+                        <h5 class="mb-4">
+                            <i class="fas fa-wallet me-2"></i>
+                            Select Payment Method
+                        </h5>
+                        
+                        {% for choice in form.payment_method.field.choices %}
+                            <div class="payment-method-card" data-method="{{ choice.0 }}">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" 
+                                           name="payment_method" 
+                                           id="method_{{ choice.0 }}"
+                                           value="{{ choice.0 }}"
+                                           {% if forloop.first %}checked{% endif %}>
+                                    <label class="form-check-label d-flex align-items-center" 
+                                           for="method_{{ choice.0 }}">
+                                        {% if choice.0 == 'stripe' %}
+                                            <i class="fab fa-cc-stripe payment-method-icon me-3"></i>
+                                        {% elif choice.0 == 'paypal' %}
+                                            <i class="fab fa-paypal payment-method-icon me-3"></i>
+                                        {% elif choice.0 == 'wallet' %}
+                                            <i class="fas fa-wallet payment-method-icon me-3"></i>
+                                        {% elif choice.0 == 'bank_transfer' %}
+                                            <i class="fas fa-university payment-method-icon me-3"></i>
+                                        {% endif %}
+                                        <div>
+                                            <h6 class="mb-1">{{ choice.1 }}</h6>
+                                            {% if choice.0 == 'wallet' %}
+                                                {% if request.user.wallet.balance < order.total_price %}
+                                                    <small class="text-danger">
+                                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                                        Insufficient balance. Please use another payment method.
+                                                    </small>
+                                                {% else %}
+                                                    <small class="text-muted">
+                                                        Available balance: ${{ request.user.wallet.balance }}
+                                                    </small>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                        {% if form.payment_method.errors %}
+                            <div class="alert alert-danger">
+                                {{ form.payment_method.errors }}
+                            </div>
+                        {% endif %}
+
+                        <!-- Stripe Card Elements (Hidden by default) -->
+                        <div id="stripe-card-section" class="mt-4" style="display: none;">
+                            <h6 class="mb-3">
+                                <i class="fas fa-credit-card me-2"></i>
+                                Enter Card Details
+                            </h6>
+                            <div id="card-element" class="stripe-card-element"></div>
+                            <div id="card-errors" class="stripe-card-errors" role="alert"></div>
                         </div>
-                        
-                        <div class="timeline-item">
-                            <h6 class="mb-1">Work in Progress</h6>
-                            <p class="text-muted mb-2">Writer is working on your assignment</p>
-                            <small>Pending</small>
+
+                        <!-- PayPal Container (Hidden by default) -->
+                        <div id="paypal-container" class="mt-4" style="display: none;"></div>
+
+                        <!-- Bank Transfer Instructions (Hidden by default) -->
+                        <div id="bank-transfer-section" class="mt-4" style="display: none;">
+                            <div class="alert alert-warning">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Bank Transfer Instructions
+                                </h6>
+                                <p class="mb-2">Please transfer the amount to the following account:</p>
+                                <hr>
+                                <p class="mb-1"><strong>Bank:</strong> EBWriting Financial</p>
+                                <p class="mb-1"><strong>Account Name:</strong> EBWriting Inc.</p>
+                                <p class="mb-1"><strong>Account Number:</strong> 1234567890</p>
+                                <p class="mb-1"><strong>Routing Number:</strong> 021000021</p>
+                                <p class="mb-1"><strong>Reference:</strong> Order #{{ order.order_number }}</p>
+                                <hr>
+                                <small class="text-muted">
+                                    Your order will be processed once we receive the payment confirmation.
+                                </small>
+                            </div>
                         </div>
-                        
-                        <div class="timeline-item">
-                            <h6 class="mb-1">Review & Approval</h6>
-                            <p class="text-muted mb-2">You'll review and approve the completed work</p>
-                            <small>Pending</small>
+
+                        <!-- Terms and Conditions -->
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" 
+                                   id="terms-check" required>
+                            <label class="form-check-label" for="terms-check">
+                                I agree to the <a href="{% url 'terms' %}" target="_blank">Terms of Service</a>
+                                and <a href="{% url 'privacy' %}" target="_blank">Privacy Policy</a>
+                            </label>
                         </div>
-                        
-                        <div class="timeline-item">
-                            <h6 class="mb-1">Funds Released</h6>
-                            <p class="text-muted mb-2">Writer receives payment after your approval</p>
-                            <small>Pending</small>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{% url 'orders:detail' order.id %}" 
+                               class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Order
+                            </a>
+                            <button type="submit" id="submit-button" 
+                                    class="btn btn-primary btn-lg">
+                                <i class="fas fa-lock me-1"></i>
+                                Pay ${{ order.total_price }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="payment-summary sticky-top" style="top: 20px;">
+                <h5 class="mb-4">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    Payment Summary
+                </h5>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Order Amount:</span>
+                        <span>${{ order.price }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Service Fee:</span>
+                        <span>${{ order.service_fee }}</span>
+                    </div>
+                    {% if order.urgent_fee > 0 %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Urgent Fee:</span>
+                        <span>${{ order.urgent_fee }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.additional_pages_fee > 0 %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Additional Pages:</span>
+                        <span>${{ order.additional_pages_fee }}</span>
+                    </div>
+                    {% endif %}
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>Subtotal:</strong>
+                        <strong>${{ order.subtotal }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax ({{ order.tax_percentage }}%):</span>
+                        <span>${{ order.tax_amount }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fs-5">
+                        <strong>Total Amount:</strong>
+                        <strong class="text-primary">${{ order.total_price }}</strong>
+                    </div>
+                </div>
+
+                <!-- Security Badges -->
+                <div class="mt-4">
+                    <h6 class="mb-3">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Secure Payment
+                    </h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="text-center p-2 border rounded bg-light">
+                                <i class="fas fa-lock text-success"></i>
+                                <small class="d-block">256-bit SSL</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-2 border rounded bg-light">
+                                <i class="fas fa-user-shield text-primary"></i>
+                                <small class="d-block">Fraud Protection</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-2 border rounded bg-light">
+                                <i class="fas fa-exchange-alt text-info"></i>
+                                <small class="d-block">Escrow System</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-2 border rounded bg-light">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <small class="d-block">Money-back</small>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Important Information -->
-            <div class="alert alert-info">
-                <h5 class="alert-heading">
-                    <i class="bi bi-info-circle"></i> Important Information
-                </h5>
-                <ul class="mb-0">
-                    <li>Your funds are held securely in escrow until you approve the completed work</li>
-                    <li>You can request revisions if the work doesn't meet your requirements</li>
-                    <li>If unsatisfied, you can request a refund through the dispute resolution process</li>
-                    <li>You'll receive email notifications at each stage of the process</li>
-                </ul>
-            </div>
-
-            <!-- Actions -->
-            <div class="text-center mt-4">
-                <div class="btn-group" role="group">
-                    <a href="{% url 'payments:detail' payment.payment_id %}" class="btn btn-outline-primary">
-                        <i class="bi bi-info-circle"></i> Payment Details
-                    </a>
-                    <a href="{% url 'orders:detail' order.id %}" class="btn btn-outline-primary">
-                        <i class="bi bi-journal-text"></i> Order Status
-                    </a>
-                    <a href="{% url 'payments:history' %}" class="btn btn-outline-primary">
-                        <i class="bi bi-clock-history"></i> Payment History
-                    </a>
-                    <button onclick="window.print()" class="btn btn-outline-primary">
-                        <i class="bi bi-printer"></i> Print Receipt
-                    </button>
+                <!-- Need Help -->
+                <div class="mt-4">
+                    <div class="alert alert-light">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-question-circle me-2"></i>
+                            Need Help?
+                        </h6>
+                        <p class="mb-0 small">
+                            Contact our support team for assistance with payments or any questions.
+                        </p>
+                        <a href="mailto:support@ebwriting.com" class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="fas fa-envelope me-1"></i> Contact Support
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if stripe_public_key %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    // Stripe setup
+    const stripe = Stripe('{{ stripe_public_key }}');
+    const elements = stripe.elements();
+    const cardElement = elements.create('card');
+    
+    cardElement.mount('#card-element');
+    
+    // Handle payment method selection
+    document.querySelectorAll('.payment-method-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const method = this.getAttribute('data-method');
+            
+            // Update radio button
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            
+            // Remove selection from all cards
+            document.querySelectorAll('.payment-method-card').forEach(c => {
+                c.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            this.classList.add('selected');
+            
+            // Show/hide sections based on method
+            togglePaymentSections(method);
+        });
+    });
+    
+    function togglePaymentSections(method) {
+        // Hide all sections
+        document.getElementById('stripe-card-section').style.display = 'none';
+        document.getElementById('paypal-container').style.display = 'none';
+        document.getElementById('bank-transfer-section').style.display = 'none';
+        
+        // Show relevant section
+        if (method === 'stripe') {
+            document.getElementById('stripe-card-section').style.display = 'block';
+        } else if (method === 'paypal') {
+            document.getElementById('paypal-container').style.display = 'block';
+            initializePayPal();
+        } else if (method === 'bank_transfer') {
+            document.getElementById('bank-transfer-section').style.display = 'block';
+        }
+    }
+    
+    // Initialize first method
+    const firstMethod = document.querySelector('.payment-method-card').getAttribute('data-method');
+    togglePaymentSections(firstMethod);
+    document.querySelector('.payment-method-card').classList.add('selected');
+    
+    // Handle form submission
+    const form = document.getElementById('payment-form');
+    const submitButton = document.getElementById('submit-button');
+    
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+        
+        if (paymentMethod === 'stripe') {
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+            
+            const { paymentIntent, error } = await stripe.confirmCardPayment(
+                '{{ client_secret }}', {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: '{{ user.get_full_name }}',
+                            email: '{{ user.email }}'
+                        }
+                    }
+                }
+            );
+            
+            if (error) {
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="fas fa-lock me-1"></i> Pay ${{ order.total_price }}';
+                document.getElementById('card-errors').textContent = error.message;
+            } else {
+                // Payment successful - submit the form
+                form.submit();
+            }
+        } else if (paymentMethod === 'wallet') {
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+            form.submit();
+        } else if (paymentMethod === 'paypal') {
+            // PayPal will handle its own submission
+            return true;
+        } else {
+            // Bank transfer or other methods
+            form.submit();
+        }
+    });
+</script>
+{% endif %}
 {% endblock %}

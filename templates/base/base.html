@@ -1,10 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta name="description" content="EBWriting - Professional Academic Assistance Platform">
-    <meta name="keywords" content="academic writing, essay help, research paper, dissertation">
+    <meta name="keywords" content="academic writing, essay help, research paper, dissertation, thesis writing">
     
     <!-- Security Headers -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; img-src 'self' data: https:;">
@@ -13,456 +14,768 @@
     
     <title>{% block title %}EBWriting - Professional Academic Platform{% endblock %}</title>
     
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <!-- Favicons -->
+    <link href="{% static 'images/favicon.ico' %}" rel="icon">
+    <link href="{% static 'images/apple-touch-icon.png' %}" rel="apple-touch-icon">
     
-    <!-- Custom CSS -->
+    <!-- Nice School Template CSS Files -->
     {% load static %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    
+    <!-- Nice School Template Main CSS Files -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/orders.css' %}">
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <!-- Template Specific CSS -->
+    <style>
+        /* Nice School Template Colors */
+        :root {
+            --color-primary: #5fcf80;
+            --color-primary-dark: #3ac162;
+            --color-secondary: #485664;
+            --color-accent: #ffb606;
+            --color-light: #f6f7f9;
+            --color-dark: #343a40;
+        }
+        
+        .bg-primary {
+            background-color: var(--color-primary) !important;
+        }
+        
+        .text-primary {
+            color: var(--color-primary) !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+            border-color: var(--color-primary-dark);
+        }
+        
+        .btn-outline-primary {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+        
+        .badge-primary {
+            background-color: var(--color-primary);
+        }
+        
+        /* Nice School Header Styles */
+        .header {
+            transition: all 0.5s;
+            z-index: 997;
+            padding: 20px 0;
+            background: var(--color-dark);
+        }
+        
+        .header-scrolled {
+            background: var(--color-dark);
+            box-shadow: 0px 2px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            font-size: 28px;
+            margin: 0;
+            padding: 0;
+            line-height: 1;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .logo a {
+            color: var(--color-light);
+        }
+        
+        .logo a span {
+            color: var(--color-primary);
+        }
+        
+        /* Hero Section */
+        .hero {
+            width: 100%;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("{% static 'images/hero-bg.jpg' %}") center center;
+            background-size: cover;
+            padding: 120px 0 60px 0;
+            color: white;
+        }
+        
+        .hero h1 {
+            margin: 0 0 20px 0;
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 56px;
+        }
+        
+        .hero h2 {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        /* Section Titles */
+        .section-title {
+            text-align: center;
+            padding-bottom: 30px;
+        }
+        
+        .section-title h2 {
+            font-size: 32px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            position: relative;
+            color: var(--color-dark);
+        }
+        
+        .section-title h2::after {
+            content: '';
+            position: absolute;
+            display: block;
+            width: 50px;
+            height: 3px;
+            background: var(--color-primary);
+            bottom: 0;
+            left: calc(50% - 25px);
+        }
+        
+        /* Cards */
+        .card-custom {
+            border: 0;
+            border-radius: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 25px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-custom:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Dashboard Cards */
+        .dashboard-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* Stats Cards */
+        .stats-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        
+        /* Verification Status */
+        .verification-badge {
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: inline-block;
+        }
+        
+        .status-approved { background-color: #d4edda; color: #155724; }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-rejected { background-color: #f8d7da; color: #721c24; }
+        .status-review { background-color: #d1ecf1; color: #0c5460; }
+        
+        /* Document Cards */
+        .document-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .document-card:hover {
+            border-color: var(--color-primary);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Form Styles */
+        .form-control:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 0.2rem rgba(95, 207, 128, 0.25);
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--color-dark);
+            color: white;
+            font-size: 14px;
+        }
+        
+        .footer-top {
+            padding: 60px 0 30px 0;
+        }
+        
+        .footer-links h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            position: relative;
+        }
+        
+        .footer-links h4::after {
+            content: '';
+            position: absolute;
+            display: block;
+            width: 50px;
+            height: 2px;
+            background: var(--color-primary);
+            bottom: 0;
+            left: 0;
+        }
+        
+        .footer-links ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .footer-links ul li {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .footer-links ul li:first-child {
+            padding-top: 0;
+        }
+        
+        .footer-links ul a {
+            color: #b7b7b7;
+            transition: 0.3s;
+            display: inline-block;
+            line-height: 1;
+            text-decoration: none;
+        }
+        
+        .footer-links ul a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+        
+        .footer-links ul i {
+            color: var(--color-primary);
+            margin-right: 8px;
+        }
+        
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            visibility: hidden;
+            opacity: 0;
+            right: 15px;
+            bottom: 15px;
+            z-index: 996;
+            background: var(--color-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all 0.4s;
+        }
+        
+        .back-to-top i {
+            font-size: 24px;
+            color: white;
+            line-height: 0;
+        }
+        
+        .back-to-top.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb-custom {
+            background: #f8f9fa;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .breadcrumb-custom .breadcrumb-item + .breadcrumb-item::before {
+            color: var(--color-primary);
+        }
+        
+        /* Alerts */
+        .alert-custom {
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Dashboard Specific */
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 30px;
+        }
+        
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid white;
+            object-fit: cover;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+                line-height: 42px;
+            }
+            
+            .hero h2 {
+                font-size: 18px;
+            }
+            
+            .section-title h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
     
     {% block extra_css %}{% endblock %}
     
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="{% url 'home' %}">
-                <i class="bi bi-pen-fill me-2"></i>EBWriting
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mx-auto">
-                    <li class="nav-item mx-2">
-                        <a class="nav-link" href="{% url 'home' %}">
-                            <i class="bi bi-house-door me-1"></i> Home
-                        </a>
-                    </li>
+    <!-- ======= Header ======= -->
+    <header id="header" class="header fixed-top d-flex align-items-center">
+        <div class="container d-flex align-items-center justify-content-between">
+            <!-- Logo -->
+            <div class="logo">
+                <h1><a href="{% url 'home' %}"><span>EB</span>Writing</a></h1>
+            </div>
+
+            <!-- Navigation -->
+            <nav id="navbar" class="navbar">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a class="nav-link scrollto" href="{% url 'home' %}">Home</a></li>
                     
                     {% if user.is_authenticated %}
                         {% if user.is_client %}
-                            <li class="nav-item mx-2">
-                                <a class="nav-link" href="{% url 'orders:list' %}">
-                                    <i class="bi bi-journal-text me-1"></i> My Orders
-                                </a>
-                            </li>
-                            <li class="nav-item mx-2">
-                                <a class="nav-link btn btn-primary btn-sm text-white px-3" href="{% url 'orders:create' %}">
-                                    <i class="bi bi-plus-circle me-1"></i> New Order
-                                </a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'orders:list' %}">My Orders</a></li>
+                            <li class="nav-item"><a class="btn-get-started" href="{% url 'orders:create' %}">New Order</a></li>
                         {% elif user.is_writer %}
-                            <li class="nav-item mx-2">
-                                <a class="nav-link" href="{% url 'orders:writer_orders' %}">
-                                    <i class="bi bi-list-check me-1"></i> My Orders
-                                </a>
-                            </li>
-                            <li class="nav-item mx-2">
-                                <a class="nav-link btn btn-primary btn-sm text-white px-3" href="{% url 'orders:available' %}">
-                                    <i class="bi bi-briefcase me-1"></i> Available Orders
-                                </a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'orders:writer_orders' %}">My Orders</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'orders:available' %}">Available Orders</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'accounts:verification_status' %}">Verification</a></li>
                         {% endif %}
                         
                         {% if user.is_staff %}
-                            <li class="nav-item mx-2">
-                                <a class="nav-link" href="{% url 'orders:admin_list' %}">
-                                    <i class="bi bi-journals me-1"></i> Admin Orders
-                                </a>
-                            </li>
-                            <li class="nav-item mx-2">
-                                <a class="nav-link text-warning" href="{% url 'admin:index' %}">
-                                    <i class="bi bi-shield-check me-1"></i> Admin Panel
-                                </a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'orders:admin_list' %}">Admin</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-shield-check"></i> Admin Panel</a></li>
                         {% endif %}
-                    {% else %}
-                        <li class="nav-item mx-2">
-                            <a class="nav-link" href="#services">Services</a>
-                        </li>
-                        <li class="nav-item mx-2">
-                            <a class="nav-link" href="#how-it-works">How It Works</a>
-                        </li>
-                        <li class="nav-item mx-2">
-                            <a class="nav-link" href="#why-choose-us">Why Choose Us</a>
-                        </li>
-                    {% endif %}
-                </ul>
-                
-                <ul class="navbar-nav">
-                    {% if user.is_authenticated %}
-                        <!-- Notifications Bell -->
-                        <li class="nav-item dropdown me-3">
-                            <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-bell fs-5"></i>
+                        
+                        <!-- Notifications Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-bell"></i>
                                 {% if user.notifications.unread.count > 0 %}
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                    {{ user.notifications.unread.count }}
-                                    <span class="visually-hidden">unread notifications</span>
-                                </span>
+                                <span class="badge bg-danger">{{ user.notifications.unread.count }}</span>
                                 {% endif %}
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 350px;">
-                                <li class="dropdown-header">
-                                    <strong>Notifications</strong>
-                                    {% if user.notifications.unread.count > 0 %}
-                                    <a href="#" class="float-end small">Mark all as read</a>
-                                    {% endif %}
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li class="dropdown-header"><strong>Notifications</strong></li>
                                 {% if user.notifications.all|slice:":5" %}
                                     {% for notification in user.notifications.all|slice:":5" %}
                                     <li>
                                         <a class="dropdown-item {% if not notification.read %}fw-bold{% endif %}" href="#">
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
-                                            </div>
-                                            <p class="mb-1 small">{{ notification.message|truncatechars:50 }}</p>
+                                            <div>{{ notification.message|truncatechars:50 }}</div>
+                                            <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
                                         </a>
                                     </li>
-                                    <li><hr class="dropdown-divider m-0"></li>
                                     {% endfor %}
                                 {% else %}
-                                    <li class="px-3 py-2 text-center text-muted small">No notifications</li>
+                                    <li><a class="dropdown-item disabled" href="#">No notifications</a></li>
                                 {% endif %}
-                                
-                                <li class="text-center">
-                                    <a href="#" class="dropdown-item small">View all notifications</a>
-                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#">View all notifications</a></li>
                             </ul>
                         </li>
                         
-                        <!-- User Profile -->
+                        <!-- User Profile Dropdown -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
                                 {% if user.profile_picture %}
-                                <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" class="rounded-circle me-2" width="32" height="32">
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" class="rounded-circle me-2" width="30" height="30">
                                 {% else %}
-                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
                                     {{ user.get_initials }}
                                 </div>
                                 {% endif %}
-                                <span class="d-none d-md-inline">
-                                    {{ user.get_short_name }}
-                                    {% if user.is_writer %}
-                                    <span class="badge bg-success ms-1">Writer</span>
-                                    {% elif user.is_client %}
-                                    <span class="badge bg-primary ms-1">Client</span>
-                                    {% endif %}
-                                </span>
+                                <span>{{ user.get_short_name }}</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <ul class="dropdown-menu dropdown-menu-end">
                                 <li class="dropdown-header">
-                                    <small class="text-muted">Signed in as</small>
+                                    <small>Signed in as</small>
                                     <div class="fw-bold">{{ user.email }}</div>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
-                                
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:dashboard' %}">
-                                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
                                 
                                 {% if user.is_writer %}
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'accounts:writer_profile' %}">
-                                            <i class="bi bi-person-badge me-2"></i> Writer Profile
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'accounts:verification_status' %}">
-                                            <i class="bi bi-shield-check me-2"></i> Verification Status
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'wallet:dashboard' %}">
-                                            <i class="bi bi-wallet me-2"></i> My Wallet
-                                        </a>
-                                    </li>
-                                {% elif user.is_client %}
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'wallet:dashboard' %}">
-                                            <i class="bi bi-credit-card me-2"></i> Payment Methods
-                                        </a>
-                                    </li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:writer_profile' %}"><i class="bi bi-person-badge me-2"></i>Writer Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:verification_status' %}"><i class="bi bi-shield-check me-2"></i>Verification</a></li>
+                                <li><a class="dropdown-item" href="{% url 'wallet:dashboard' %}"><i class="bi bi-wallet me-2"></i>My Wallet</a></li>
                                 {% endif %}
                                 
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'orders:list' %}">
-                                        <i class="bi bi-journal-text me-2"></i> My Orders
-                                    </a>
-                                </li>
-                                
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'messaging:conversation_list' %}">
-                                        <i class="bi bi-chat-dots me-2"></i> Messages
-                                        {% if user.unread_messages_count > 0 %}
-                                        <span class="badge bg-danger float-end">{{ user.unread_messages_count }}</span>
-                                        {% endif %}
-                                    </a>
-                                </li>
-                                
+                                <li><a class="dropdown-item" href="{% url 'orders:list' %}"><i class="bi bi-journal-text me-2"></i>My Orders</a></li>
+                                <li><a class="dropdown-item" href="{% url 'messaging:conversation_list' %}"><i class="bi bi-chat-dots me-2"></i>Messages</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'accounts:settings' %}">
-                                        <i class="bi bi-gear me-2"></i> Settings
-                                    </a>
-                                </li>
-                                
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="bi bi-question-circle me-2"></i> Help & Support
-                                    </a>
-                                </li>
-                                
-                                <li><hr class="dropdown-divider"></li>
-                                
-                                <li>
-                                    <a class="dropdown-item text-danger" href="{% url 'account_logout' %}">
-                                        <i class="bi bi-box-arrow-right me-2"></i> Logout
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:settings' %}"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'account_logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
                             </ul>
                         </li>
+                        
                     {% else %}
-                        <li class="nav-item">
-                            <a class="btn btn-outline-primary me-2" href="{% url 'account_login' %}">
-                                <i class="bi bi-box-arrow-in-right"></i> Login
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-primary" href="{% url 'account_signup' %}">
-                                <i class="bi bi-person-plus"></i> Sign Up
-                            </a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link scrollto" href="#services">Services</a></li>
+                        <li class="nav-item"><a class="nav-link scrollto" href="#how-it-works">How It Works</a></li>
+                        <li class="nav-item"><a class="nav-link scrollto" href="#why-choose-us">Why Choose Us</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'account_login' %}">Login</a></li>
+                        <li class="nav-item"><a class="btn-get-started" href="{% url 'account_signup' %}">Sign Up</a></li>
                     {% endif %}
                 </ul>
+                <i class="bi bi-list mobile-nav-toggle"></i>
+            </nav><!-- .navbar -->
+        </div>
+    </header><!-- End Header -->
+
+    <!-- ======= Hero Section ======= -->
+    {% block hero %}
+    {% if not user.is_authenticated %}
+    <section id="hero" class="hero d-flex align-items-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 d-flex flex-column justify-content-center pt-4 pt-lg-0 order-2 order-lg-1">
+                    <h1>Professional Academic Writing Assistance</h1>
+                    <h2>Get expert help from verified academic writers with secure escrow payments and quality guarantees.</h2>
+                    <div class="d-flex justify-content-center justify-content-lg-start">
+                        <a href="{% url 'account_signup' %}" class="btn-get-started scrollto">Get Started</a>
+                        <a href="#how-it-works" class="btn-watch-video scrollto"><i class="bi bi-play-circle"></i><span>Watch Video</span></a>
+                    </div>
+                </div>
+                <div class="col-lg-6 order-1 order-lg-2 hero-img">
+                    <img src="{% static 'images/hero-img.png' %}" class="img-fluid animated" alt="Academic Writing">
+                </div>
             </div>
         </div>
-    </nav>
+    </section>
+    {% else %}
+    <!-- Dashboard header for logged in users, but NOT on dashboard page -->
+    {% if not request.path|slice:"-9:" == "dashboard/" and not request.path|slice:"-9:" == "dashboard" %}
+    <section class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2">Welcome back, {{ user.get_short_name }}!</h1>
+                    <p class="lead mb-0">
+                        {% if user.is_writer %}
+                        Ready to take on new writing assignments? Check available orders now.
+                        {% else %}
+                        Need academic writing help? Place a new order today.
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    {% if user.is_client %}
+                    <a href="{% url 'orders:create' %}" class="btn btn-light btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>New Order
+                    </a>
+                    {% elif user.is_writer %}
+                    <a href="{% url 'orders:available' %}" class="btn btn-light btn-lg">
+                        <i class="bi bi-briefcase me-2"></i>Find Orders
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+    {% endif %}
+    {% endblock %}
 
-    <!-- Main Content -->
-    <main class="pt-5">
-        <!-- Messages -->
+    <main id="main">
+        <!-- ======= Messages Section ======= -->
         {% if messages %}
-            <div class="container mt-5 pt-3">
-                <div class="messages">
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-12">
                     {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
-                            {% if message.tags == 'success' %}
-                                <i class="bi bi-check-circle-fill me-2"></i>
-                            {% elif message.tags == 'error' or message.tags == 'danger' %}
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            {% elif message.tags == 'warning' %}
-                                <i class="bi bi-exclamation-circle-fill me-2"></i>
-                            {% else %}
-                                <i class="bi bi-info-circle-fill me-2"></i>
-                            {% endif %}
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show alert-custom" role="alert">
+                        {% if message.tags == 'success' %}
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                        {% elif message.tags == 'error' or message.tags == 'danger' %}
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                     {% endfor %}
                 </div>
             </div>
+        </div>
         {% endif %}
 
-        <!-- Page Header -->
-        {% block page_header %}
-        <div class="container py-4 mt-4">
-            <div class="row mb-3">
-                <div class="col">
-                    <nav aria-label="breadcrumb" class="bg-light rounded p-3">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none"><i class="bi bi-house-door"></i> Home</a></li>
+        <!-- ======= Breadcrumb Section ======= -->
+        {% block breadcrumb_section %}
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <nav aria-label="breadcrumb" class="breadcrumb-custom">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="bi bi-house-door"></i> Home</a></li>
                             {% block breadcrumb %}{% endblock %}
                         </ol>
                     </nav>
                 </div>
             </div>
-            
-            <div class="row align-items-center mb-4">
-                <div class="col">
-                    <h1 class="h2 fw-bold text-dark mb-2">{% block page_title %}{% endblock %}</h1>
-                    <p class="lead text-muted mb-0">{% block page_subtitle %}{% endblock %}</p>
-                </div>
-                {% block page_header_actions %}
-                <div class="col-auto">
-                    {% if user.is_staff and 'admin' not in request.path %}
-                    <a href="{% url 'orders:admin_list' %}" class="btn btn-outline-info">
-                        <i class="bi bi-gear me-1"></i> Admin View
-                    </a>
-                    {% endif %}
-                </div>
-                {% endblock %}
-            </div>
         </div>
         {% endblock %}
 
-        <!-- Content -->
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-5 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-4">
-                    <h4 class="fw-bold mb-3">
-                        <i class="bi bi-pen text-primary"></i> EBWriting
-                    </h4>
-                    <p class="text-light small">
-                        A regulated academic assistance platform providing ethical writing support with verified writers, secure payments, and quality guarantees.
-                    </p>
-                    <div class="d-flex mt-3">
-                        <a href="#" class="text-white me-3" aria-label="Facebook"><i class="bi bi-facebook fs-5"></i></a>
-                        <a href="#" class="text-white me-3" aria-label="Twitter"><i class="bi bi-twitter fs-5"></i></a>
-                        <a href="#" class="text-white me-3" aria-label="LinkedIn"><i class="bi bi-linkedin fs-5"></i></a>
-                        <a href="#" class="text-white" aria-label="Instagram"><i class="bi bi-instagram fs-5"></i></a>
+        <!-- ======= Content Section ======= -->
+        <section id="content" class="content">
+            <div class="container" data-aos="fade-up">
+                <!-- Page Header -->
+                {% block page_header %}
+                <div class="row mb-4">
+                    <div class="col-lg-8">
+                        <h1 class="mb-2">{% block page_title %}{% endblock %}</h1>
+                        <p class="lead text-muted mb-0">{% block page_subtitle %}{% endblock %}</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        {% block page_header_actions %}
+                        {% if user.is_staff and 'admin' not in request.path %}
+                        <a href="{% url 'orders:admin_list' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-gear me-1"></i> Admin View
+                        </a>
+                        {% endif %}
+                        {% endblock %}
                     </div>
                 </div>
-                
-                <div class="col-lg-2 col-md-4 mb-4">
-                    <h6 class="fw-bold mb-3 text-primary">Platform</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'home' %}" class="text-decoration-none text-light small">Home</a></li>
-                        {% if user.is_authenticated %}
-                            {% if user.is_client %}
-                                <li class="mb-2"><a href="{% url 'orders:create' %}" class="text-decoration-none text-light small">New Order</a></li>
-                                <li class="mb-2"><a href="{% url 'orders:list' %}" class="text-decoration-none text-light small">My Orders</a></li>
-                            {% elif user.is_writer %}
-                                <li class="mb-2"><a href="{% url 'orders:available' %}" class="text-decoration-none text-light small">Available Orders</a></li>
-                                <li class="mb-2"><a href="{% url 'orders:writer_orders' %}" class="text-decoration-none text-light small">My Orders</a></li>
-                            {% endif %}
-                        {% else %}
-                            <li class="mb-2"><a href="#how-it-works" class="text-decoration-none text-light small">How It Works</a></li>
-                            <li class="mb-2"><a href="#services" class="text-decoration-none text-light small">Services</a></li>
-                            <li class="mb-2"><a href="#pricing" class="text-decoration-none text-light small">Pricing</a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-                
-                <div class="col-lg-2 col-md-4 mb-4">
-                    <h6 class="fw-bold mb-3 text-primary">Legal</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'terms' %}" class="text-decoration-none text-light small">Terms of Service</a></li>
-                        <li class="mb-2"><a href="{% url 'privacy' %}" class="text-decoration-none text-light small">Privacy Policy</a></li>
-                        <li class="mb-2"><a href="{% url 'acceptable_use' %}" class="text-decoration-none text-light small">Acceptable Use</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-light small">Refund Policy</a></li>
-                    </ul>
-                </div>
-                
-                <div class="col-lg-2 col-md-4 mb-4">
-                    <h6 class="fw-bold mb-3 text-primary">Support</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-light small">Help Center</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-light small">Contact Us</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-light small">FAQ</a></li>
-                        <li class="mb-2"><a href="#" class="text-decoration-none text-light small">Live Chat</a></li>
-                    </ul>
-                </div>
-                
-                <div class="col-lg-2 mb-4">
-                    <h6 class="fw-bold mb-3 text-primary">Trust & Safety</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <span class="text-light small">
-                                <i class="bi bi-check-circle-fill text-success me-1"></i> Writer Verification
-                            </span>
-                        </li>
-                        <li class="mb-2">
-                            <span class="text-light small">
-                                <i class="bi bi-check-circle-fill text-success me-1"></i> Secure Escrow
-                            </span>
-                        </li>
-                        <li class="mb-2">
-                            <span class="text-light small">
-                                <i class="bi bi-check-circle-fill text-success me-1"></i> Quality Assurance
-                            </span>
-                        </li>
-                        <li class="mb-2">
-                            <span class="text-light small">
-                                <i class="bi bi-check-circle-fill text-success me-1"></i> 100% Confidential
-                            </span>
-                        </li>
-                    </ul>
-                </div>
+                {% endblock %}
+
+                <!-- Main Content -->
+                {% block content %}{% endblock %}
             </div>
-            
-            <hr class="bg-secondary">
-            
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <p class="text-light small mb-0">
-                        © {% now "Y" %} EBWriting. All rights reserved.
-                    </p>
-                    <p class="text-light small mb-0 mt-1">
-                        Registered in compliance with international academic standards and regulations.
-                    </p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="text-light small mb-0">
-                        <i class="bi bi-shield-check text-success"></i>
-                        SSL Secured • GDPR Compliant • 100% Confidential
-                    </p>
-                    <div class="mt-2">
-                        <img src="{% static 'images/payment-methods.png' %}" alt="Accepted payment methods" class="img-fluid" style="max-height: 30px;">
+        </section>
+    </main><!-- End #main -->
+
+    <!-- ======= Footer ======= -->
+    <footer id="footer" class="footer">
+        <div class="footer-top">
+            <div class="container">
+                <div class="row gy-4">
+                    <div class="col-lg-4 col-md-12 footer-info">
+                        <a href="{% url 'home' %}" class="logo d-flex align-items-center">
+                            <span>EBWriting</span>
+                        </a>
+                        <p>
+                            A regulated academic assistance platform providing ethical writing support 
+                            with verified writers, secure payments, and quality guarantees.
+                        </p>
+                        <div class="social-links mt-3">
+                            <a href="#" class="twitter"><i class="bi bi-twitter"></i></a>
+                            <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
+                            <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
+                            <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-6 footer-links">
+                        <h4>Platform</h4>
+                        <ul>
+                            <li><i class="bi bi-chevron-right"></i> <a href="{% url 'home' %}">Home</a></li>
+                            {% if user.is_authenticated %}
+                                {% if user.is_client %}
+                                    <li><i class="bi bi-chevron-right"></i> <a href="{% url 'orders:create' %}">New Order</a></li>
+                                    <li><i class="bi bi-chevron-right"></i> <a href="{% url 'orders:list' %}">My Orders</a></li>
+                                {% elif user.is_writer %}
+                                    <li><i class="bi bi-chevron-right"></i> <a href="{% url 'orders:available' %}">Available Orders</a></li>
+                                    <li><i class="bi bi-chevron-right"></i> <a href="{% url 'orders:writer_orders' %}">My Orders</a></li>
+                                {% endif %}
+                            {% else %}
+                                <li><i class="bi bi-chevron-right"></i> <a href="#how-it-works">How It Works</a></li>
+                                <li><i class="bi bi-chevron-right"></i> <a href="#services">Services</a></li>
+                                <li><i class="bi bi-chevron-right"></i> <a href="#pricing">Pricing</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-2 col-6 footer-links">
+                        <h4>Legal</h4>
+                        <ul>
+                            <li><i class="bi bi-chevron-right"></i> <a href="{% url 'terms' %}">Terms of Service</a></li>
+                            <li><i class="bi bi-chevron-right"></i> <a href="{% url 'privacy' %}">Privacy Policy</a></li>
+                            <li><i class="bi bi-chevron-right"></i> <a href="{% url 'acceptable_use' %}">Acceptable Use</a></li>
+                            <li><i class="bi bi-chevron-right"></i> <a href="#">Refund Policy</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-2 col-6 footer-links">
+                        <h4>Support</h4>
+                        <ul>
+                            <li><i class="bi bi-chevron-right"></i> <a href="#">Help Center</a></li>
+                            <li><i class="bi bi-chevron-right"></i> <a href="#">Contact Us</a></li>
+                            <li><i class="bi bi-chevron-right"></i> <a href="#">FAQ</a></li>
+                            <li><i class="bi bi-chevron-right"></i> <a href="#">Live Chat</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-2 col-6 footer-links">
+                        <h4>Trust & Safety</h4>
+                        <ul>
+                            <li><i class="bi bi-check-circle text-success"></i> Writer Verification</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Secure Escrow</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Quality Assurance</li>
+                            <li><i class="bi bi-check-circle text-success"></i> 100% Confidential</li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
-    </footer>
 
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+        <div class="container">
+            <div class="copyright">
+                <div class="row">
+                    <div class="col-md-6">
+                        &copy; {% now "Y" %} <strong><span>EBWriting</span></strong>. All Rights Reserved
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <div class="credits">
+                            <i class="bi bi-shield-check text-success"></i> SSL Secured • GDPR Compliant • 100% Confidential
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer><!-- End Footer -->
+
+    <!-- Back to Top Button -->
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+    <!-- Vendor JS Files -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
-    <!-- jQuery (optional, for some plugins) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    
-    <!-- Custom JS -->
+    <!-- Template Main JS File -->
     <script src="{% static 'js/main.js' %}"></script>
     <script src="{% static 'js/orders.js' %}"></script>
     
-    <!-- WebSocket for Notifications (if enabled) -->
+    <!-- WebSocket for Notifications -->
     {% if user.is_authenticated %}
     <script src="{% static 'js/notifications_websocket.js' %}"></script>
     {% endif %}
     
     {% block extra_js %}{% endblock %}
     
-    <!-- Analytics (GDPR compliant) -->
-    {% if user.is_authenticated and user.privacy_policy_accepted %}
+    <!-- Template Specific JS -->
     <script>
-        // Your analytics script here (Google Analytics, etc.)
-        // Make sure to include privacy consent check
+        // Back to top button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 100) {
+                $('.back-to-top').addClass('active');
+            } else {
+                $('.back-to-top').removeClass('active');
+            }
+        });
+        
+        $('.back-to-top').click(function(e) {
+            e.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
+        });
+        
+        // Mobile nav toggle
+        $('.mobile-nav-toggle').click(function() {
+            $('#navbar').toggleClass('navbar-mobile');
+            $(this).toggleClass('bi-list bi-x');
+        });
+        
+        // Header scroll effect
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 100) {
+                $('#header').addClass('header-scrolled');
+            } else {
+                $('#header').removeClass('header-scrolled');
+            }
+        });
+        
+        // Smooth scroll for links with .scrollto class
+        $('.scrollto').on('click', function(e) {
+            if (this.hash !== '') {
+                e.preventDefault();
+                const hash = this.hash;
+                $('html, body').animate({
+                    scrollTop: $(hash).offset().top
+                }, 1500, 'easeInOutExpo');
+            }
+        });
+        
+        // Initialize tooltips
+        $(function () {
+            $('[data-bs-toggle="tooltip"]').tooltip()
+        });
+        
+        // Initialize popovers
+        $(function () {
+            $('[data-bs-toggle="popover"]').popover()
+        });
     </script>
-    {% endif %}
     
-    <!-- Toast Container for Notifications -->
+    <!-- Toast Container -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
+            <div class="toast-header bg-primary text-white">
                 <i class="bi bi-bell-fill me-2"></i>
                 <strong class="me-auto">Notification</strong>
                 <small>Just now</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
             </div>
             <div class="toast-body" id="toastMessage">
                 Hello, world! This is a toast message.

@@ -1,0 +1,292 @@
+{% extends 'orders/admin/base.html' %}
+
+{% block title %}Writer Management - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Writer Management</h1>
+        <div class="text-muted">
+            Total Writers: {{ paginator.count }}
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" 
+                               name="search" 
+                               class="form-control" 
+                               placeholder="Search by name or email..." 
+                               value="{{ search_query }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Statuses</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'accounts:admin_writer_list' %}" class="btn btn-outline-secondary w-100">
+                        Clear Filters
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Writers Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if writers %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Writer</th>
+                                <th>Email</th>
+                                <th>Verification Status</th>
+                                <th>Date Joined</th>
+                                <th>Documents</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for writer in writers %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-3">
+                                            <div class="avatar-title bg-light rounded-circle text-primary">
+                                                {{ writer.first_name|first|default:'W' }}{{ writer.last_name|first|default:' ' }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ writer.get_full_name|default:'No Name Provided' }}</h6>
+                                            <small class="text-muted">ID: {{ writer.id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ writer.email }}</td>
+                                <td>
+                                    {% with status=writer.verification_status.state %}
+                                        <span class="badge 
+                                            {% if status == 'approved' %}bg-success
+                                            {% elif status == 'rejected' %}bg-danger
+                                            {% elif status == 'under_admin_review' %}bg-warning
+                                            {% elif status == 'documents_submitted' %}bg-info
+                                            {% elif status == 'revision_required' %}bg-warning
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ writer.verification_status.get_state_display }}
+                                        </span>
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    {{ writer.date_joined|date:"M d, Y" }}<br>
+                                    <small class="text-muted">{{ writer.date_joined|timesince }} ago</small>
+                                </td>
+                                <td>
+                                    {% with docs=writer.documents.all %}
+    <span class="badge bg-light text-dark">
+        {{ docs.count }} uploaded
+    </span>
+    
+    {# FIX: Check for docs directly. Django templates cannot use .filter in this way #}
+                        {% if docs %}
+                            <small class="d-block text-muted mt-1">
+                                {# FIX: Added the missing closing quote after ":3" #}
+                                {% for doc in docs|slice:":3" %}
+                                    <span class="badge bg-secondary me-1">
+                                        {{ doc.get_document_type_display|slice:":10" }}...
+                                    </span>
+                                {% endfor %}
+                                
+                                {% if docs.count > 3 %}
+                                    <span class="badge bg-light text-dark">+{{ docs.count|add:"-3" }}</span>
+                                {% endif %}
+                            </small>
+                        {% endif %}
+                    {% endwith %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split" 
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span class="visually-hidden">Toggle Dropdown</span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="#">
+                                                    <i class="bi bi-file-text me-2"></i> View Details
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#">
+                                                    <i class="bi bi-files me-2"></i> Review Documents
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-warning" href="#">
+                                                    <i class="bi bi-chat-dots me-2"></i> Send Message
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#">
+                                                    <i class="bi bi-slash-circle me-2"></i> Deactivate
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Writer pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">
+                                    First
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">
+                                    Previous
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">
+                                    Next
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">
+                                    Last
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    <div class="text-center text-muted mt-2">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </div>
+                </nav>
+                {% endif %}
+            {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-people display-1 text-muted"></i>
+                    </div>
+                    <h3 class="h4 mb-3">No writers found</h3>
+                    <p class="text-muted mb-4">
+                        {% if search_query or current_status %}
+                            Try adjusting your search or filter criteria
+                        {% else %}
+                            No writers have registered yet
+                        {% endif %}
+                    </p>
+                    {% if search_query or current_status %}
+                        <a href="{% url 'accounts:admin_writer_list' %}" class="btn btn-primary">
+                            Clear Search
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Writers</h6>
+                    <h3 class="mb-0">{{ paginator.count }}</h3>
+                </div>
+            </div>
+        </div>
+        {% for value, label in status_choices %}
+            {% if value != '' %}
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted small text-uppercase fw-bold">{{ label }}</h6>
+                        <h3 class="mb-0">
+                            {# Access the dictionary keys specifically #}
+                            {% if value == 'pending' %}
+                                {{ status_totals.pending|default:0 }}
+                            {% elif value == 'approved' %}
+                                {{ status_totals.approved|default:0 }}
+                            {% elif value == 'rejected' %}
+                                {{ status_totals.rejected|default:0 }}
+                            {% elif value == 'suspended' %}
+                                {{ status_totals.suspended|default:0 }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-submit filter on change
+    document.addEventListener('DOMContentLoaded', function() {
+        // Clear search button
+        const clearBtn = document.querySelector('.btn-clear-search');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+               window.location.href = "{% url 'accounts:admin_writers' %}";
+            });
+        }
+        
+        // Export functionality (placeholder)
+        document.querySelector('.btn-export')?.addEventListener('click', function() {
+            alert('Export functionality would be implemented here.');
+        });
+    });
+</script>
+{% endblock %}

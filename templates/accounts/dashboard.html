@@ -4,140 +4,1411 @@
 {% block title %}Dashboard - EBWriting{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-4">
-    <!-- Dashboard Header -->
-    <div class="row mb-4">
-        <div class="col">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h2 mb-1">Welcome, {{ user.get_short_name }}</h1>
-                    <p class="text-muted mb-0">
-                        <i class="fas fa-calendar-alt me-1"></i>
-                        {{ current_time|date:"l, F j, Y" }}
-                    </p>
-                </div>
-                <div class="d-flex gap-2">
-                    {% if user.is_writer and writer_profile.can_accept_orders %}
-                    <span class="badge bg-success">
-                        <i class="fas fa-check-circle me-1"></i>Available for Orders
-                    </span>
-                    {% elif user.is_writer %}
-                    <span class="badge bg-warning">
-                        <i class="fas fa-clock me-1"></i>Not Available
-                    </span>
-                    {% endif %}
-                    <span class="badge bg-info">
-                        <i class="fas fa-user me-1"></i>
-                        {{ user.get_user_type_display }}
-                    </span>
+<!-- Dashboard Content Header (Minimal - removed duplicate hero) -->
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h2 mb-2">Dashboard</h1>
+            <p class="text-muted mb-0">
+                <i class="bi bi-calendar me-2"></i>
+                {{ current_time|date:"l, F j, Y" }}
+                {% if user.is_writer and writer_profile.can_accept_orders %}
+                • <i class="bi bi-check-circle text-success me-1"></i>Available for Orders
+                {% elif user.is_writer %}
+                • <i class="bi bi-clock text-warning me-1"></i>Not Available
+                {% endif %}
+            </p>
+        </div>
+        <div class="dropdown d-inline-block">
+            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-grid me-2"></i>Quick Apps
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'orders:list' %}"><i class="bi bi-journal-text me-2"></i>Orders</a></li>
+                <li><a class="dropdown-item" href="{% url 'messaging:conversation_list' %}"><i class="bi bi-chat-dots me-2"></i>Messages</a></li>
+                <li><a class="dropdown-item" href="{% url 'reviews:select_order' %}"><i class="bi bi-star me-2"></i>Reviews</a></li>
+                {% if user.is_writer %}
+                <li><a class="dropdown-item" href="{% url 'wallet:dashboard' %}"><i class="bi bi-wallet me-2"></i>Wallet</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounts:verification_status' %}"><i class="bi bi-shield-check me-2"></i>Verification</a></li>
+                <li><a class="dropdown-item" href="{% url 'ai_tools:dashboard' %}"><i class="bi bi-magic me-2"></i>AI Tools</a></li>
+                {% endif %}
+                {% if user.is_staff %}
+                <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear me-2"></i>Admin Panel</a></li>
+                <li><a class="dropdown-item" href="{% url 'analytics:dashboard' %}"><i class="bi bi-graph-up me-2"></i>Analytics</a></li>
+                <li><a class="dropdown-item" href="{% url 'compliance:admin_requests' %}"><i class="bi bi-shield-check me-2"></i>Compliance</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- ======= Main Dashboard Content ======= -->
+<section class="section">
+    <div class="container">
+        <!-- Notifications Section -->
+        {% if notifications %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm card-custom">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-bell me-2"></i>Notifications
+                            {% if notifications.count > 0 %}
+                            <span class="badge bg-danger ms-2">{{ notifications.count }}</span>
+                            {% endif %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            {% for notification in notifications|slice:":5" %}
+                            <div class="list-group-item border-0 px-0 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="avatar avatar-sm 
+                                            {% if notification.type == 'info' %}bg-info
+                                            {% elif notification.type == 'warning' %}bg-warning
+                                            {% elif notification.type == 'success' %}bg-success
+                                            {% else %}bg-secondary{% endif %} 
+                                            text-white d-flex align-items-center justify-content-center">
+                                            <i class="bi {% if notification.type == 'info' %}bi-info-circle
+                                                      {% elif notification.type == 'warning' %}bi-exclamation-triangle
+                                                      {% else %}bi-check-circle{% endif %}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">{{ notification.title }}</h6>
+                                        <p class="mb-1 text-muted small">{{ notification.message|truncatechars:100 }}</p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock me-1"></i>
+                                            {{ notification.timestamp|timesince }} ago
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if notifications.count > 5 %}
+                        <div class="text-center mt-3">
+                            <a href="#" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-arrow-right me-1"></i>View All Notifications
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+        {% endif %}
 
-    <!-- Notifications -->
-    {% if notifications %}
-    <div class="row mb-4">
-        <div class="col">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light py-3">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bell me-2"></i>Notifications
-                    </h5>
+        <!-- Stats Cards Row -->
+        <div class="row mb-4">
+            {% if user.is_client %}
+            <!-- Client Stats -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-primary">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">Active Orders</h6>
+                        <h4 class="stats-value">{{ active_orders_count|default:"0" }}</h4>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        {% for notification in notifications %}
-                        <div class="list-group-item border-0 px-0 py-3">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="avatar-sm rounded-circle 
-                                        {% if notification.type == 'info' %}bg-info
-                                        {% elif notification.type == 'warning' %}bg-warning
-                                        {% elif notification.type == 'success' %}bg-success
-                                        {% else %}bg-secondary{% endif %} 
-                                        text-white d-flex align-items-center justify-content-center">
-                                        <i class="fas fa-{% if notification.type == 'info' %}info-circle{% elif notification.type == 'warning' %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-success">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">Completed</h6>
+                        <h4 class="stats-value">{{ completed_orders_count|default:"0" }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-warning">
+                        <i class="bi bi-clock"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">In Progress</h6>
+                        <h4 class="stats-value">{{ in_progress_orders_count|default:"0" }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-info">
+                        <i class="bi bi-chat-dots"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">Messages</h6>
+                        <h4 class="stats-value">{{ unread_messages_count|default:"0" }}</h4>
+                    </div>
+                </div>
+            </div>
+            
+            {% elif user.is_writer %}
+            <!-- Writer Stats -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-primary">
+                        <i class="bi bi-briefcase"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">Active Orders</h6>
+                        <h4 class="stats-value">{{ writer_active_orders|default:"0" }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-success">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">Earnings</h6>
+                        <h4 class="stats-value">${{ total_earnings|default:"0.00" }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-warning">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">Rating</h6>
+                        <h4 class="stats-value">{{ writer_rating|default:"0.0" }}/5.0</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-info">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">Deadlines</h6>
+                        <h4 class="stats-value">{{ upcoming_deadlines|default:"0" }}</h4>
+                    </div>
+                </div>
+            </div>
+            
+            {% elif user.is_staff %}
+            <!-- Admin Stats -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-primary">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">Total Users</h6>
+                        <h4 class="stats-value">{{ total_users|default:"0" }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-success">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">Total Orders</h6>
+                        <h4 class="stats-value">{{ total_orders|default:"0" }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">Pending Issues</h6>
+                        <h4 class="stats-value">{{ pending_issues|default:"0" }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stats-card">
+                    <div class="stats-icon bg-info">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                    <div class="stats-info">
+                        <h6 class="stats-label">Revenue</h6>
+                        <h4 class="stats-value">${{ total_revenue|default:"0.00" }}</h4>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="row">
+            {% if user.is_client %}
+            <!-- Client Dashboard -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm card-custom mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-journal-text me-2"></i>Recent Orders
+                        </h5>
+                        <div class="dropdown d-inline-block float-end">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-filter me-1"></i>Filter
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="?status=all">All Orders</a></li>
+                                <li><a class="dropdown-item" href="?status=active">Active Only</a></li>
+                                <li><a class="dropdown-item" href="?status=completed">Completed</a></li>
+                                <li><a class="dropdown-item" href="?status=pending">Pending Payment</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Title</th>
+                                        <th>Status</th>
+                                        <th>Deadline</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in recent_orders %}
+                                    <tr>
+                                        <td>#{{ order.id }}</td>
+                                        <td>{{ order.title|truncatechars:30 }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if order.status == 'completed' %}bg-success
+                                                {% elif order.status == 'in_progress' %}bg-primary
+                                                {% elif order.status == 'pending' %}bg-warning
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ order.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ order.deadline|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-gear"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="{% url 'orders:detail' order.id %}"><i class="bi bi-eye me-2"></i>View</a></li>
+                                                    <li><a class="dropdown-item" href="{% url 'messaging:conversation' order.id %}"><i class="bi bi-chat-dots me-2"></i>Message Writer</a></li>
+                                                    {% if order.status == 'delivered' %}
+                                                    <li><a class="dropdown-item" href="{% url 'reviews:create' order.id %}"><i class="bi bi-star me-2"></i>Leave Review</a></li>
+                                                    {% endif %}
+                                                    {% if order.status == 'in_progress' %}
+                                                    <li><a class="dropdown-item" href="{% url 'revisions:request' order.id %}"><i class="bi bi-arrow-clockwise me-2"></i>Request Revision</a></li>
+                                                    {% endif %}
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'orders:list' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-list me-2"></i>View All Orders
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-journal-text display-1 text-muted mb-3"></i>
+                            <p class="text-muted">No orders yet. Place your first order!</p>
+                            <a href="{% url 'orders:create' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Place New Order
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- AI Tools Section -->
+                <div class="card border-0 shadow-sm card-custom">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-magic me-2"></i>AI Writing Tools
+                        </h5>
+                        <div class="dropdown d-inline-block float-end">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-lightning"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><h6 class="dropdown-header">AI Tools Menu</h6></li>
+                                <li><a class="dropdown-item" href="{% url 'ai_tools:outline_helper' %}"><i class="bi bi-diagram-3 me-2"></i>Outline Helper</a></li>
+                                <li><a class="dropdown-item" href="{% url 'ai_tools:grammar_checker' %}"><i class="bi bi-spellcheck me-2"></i>Grammar Checker</a></li>
+                                <li><a class="dropdown-item" href="{% url 'ai_tools:citation_formatter' %}"><i class="bi bi-quote me-2"></i>Citation Formatter</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'ai_tools:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>AI Tools Dashboard</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-diagram-3 text-primary fs-1 mb-3"></i>
+                                        <h6>Outline Helper</h6>
+                                        <p class="small text-muted">Generate structured outlines for your papers</p>
+                                        <a href="{% url 'ai_tools:outline_helper' %}" class="btn btn-sm btn-outline-primary">Try Now</a>
                                     </div>
                                 </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">{{ notification.title }}</h6>
-                                    <p class="mb-1 text-muted">{{ notification.message }}</p>
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock me-1"></i>
-                                        {{ notification.timestamp|timesince }} ago
-                                    </small>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-spellcheck text-success fs-1 mb-3"></i>
+                                        <h6>Grammar Checker</h6>
+                                        <p class="small text-muted">Improve writing quality with AI suggestions</p>
+                                        <a href="{% url 'ai_tools:grammar_checker' %}" class="btn btn-sm btn-outline-success">Check Grammar</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-quote text-warning fs-1 mb-3"></i>
+                                        <h6>Citation Formatter</h6>
+                                        <p class="small text-muted">Format citations in APA, MLA, Chicago styles</p>
+                                        <a href="{% url 'ai_tools:citation_formatter' %}" class="btn btn-sm btn-outline-warning">Format Now</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Main Content -->
-    {% if user_type == 'client' %}
-    {% include "accounts/partials/client_dashboard.html" %}
-    {% elif user_type == 'writer' %}
-    {% include "accounts/partials/writer_dashboard.html" %}
-    {% elif user_type == 'admin' %}
-    {% include "accounts/partials/admin_dashboard.html" %}
-    {% endif %}
-
-    <!-- Quick Actions -->
-    <div class="row mt-4">
-        <div class="col">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light py-3">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bolt me-2"></i>Quick Actions
-                    </h5>
+            
+            <div class="col-lg-4">
+                <!-- Quick Links -->
+                <div class="card border-0 shadow-sm card-custom mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightning me-2"></i>Quick Access
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-journal-text me-2"></i>Orders Management
+                                </button>
+                                <ul class="dropdown-menu w-100">
+                                    <li><a class="dropdown-item" href="{% url 'orders:create' %}"><i class="bi bi-plus-circle me-2"></i>New Order</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'orders:list' %}"><i class="bi bi-list-check me-2"></i>My Orders</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'orders:search' %}"><i class="bi bi-search me-2"></i>Search Orders</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'payments:history' %}"><i class="bi bi-credit-card me-2"></i>Payment History</a></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="dropdown">
+                                <button class="btn btn-outline-success dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-chat-dots me-2"></i>Communication
+                                </button>
+                                <ul class="dropdown-menu w-100">
+                                    <li><a class="dropdown-item" href="{% url 'messaging:conversation_list' %}"><i class="bi bi-inbox me-2"></i>Messages</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-bell me-2"></i>Notifications</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'reviews:select_order' %}"><i class="bi bi-star me-2"></i>Leave Review</a></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="dropdown">
+                                <button class="btn btn-outline-warning dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-tools me-2"></i>Tools & Resources
+                                </button>
+                                <ul class="dropdown-menu w-100">
+                                    <li><a class="dropdown-item" href="{% url 'ai_tools:dashboard' %}"><i class="bi bi-magic me-2"></i>AI Writing Tools</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'blog:home' %}"><i class="bi bi-journal-text me-2"></i>Academic Blog</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Download Templates</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:settings' %}"><i class="bi bi-gear me-2"></i>Account Settings</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        {% if user.is_client %}
-                        <div class="col-md-3">
-                            <a href="{% url 'orders:create' %}" class="btn btn-primary w-100">
-                                <i class="fas fa-plus-circle me-2"></i>New Order
+                
+                <!-- Blog Posts -->
+                <div class="card border-0 shadow-sm card-custom">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-newspaper me-2"></i>Latest Articles
+                            <a href="{% url 'blog:home' %}" class="float-end btn btn-sm btn-outline-primary">
+                                View All
+                            </a>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            {% for post in recent_posts|slice:":3" %}
+                            <a href="{% url 'blog:post_detail' post.slug %}" class="list-group-item list-group-item-action border-0 px-0 py-3">
+                                <div class="d-flex align-items-start">
+                                    {% if post.featured_image %}
+                                    <img src="{{ post.featured_image.url }}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;" alt="{{ post.title }}">
+                                    {% else %}
+                                    <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                                        <i class="bi bi-journal-text"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ post.title|truncatechars:50 }}</h6>
+                                        <small class="text-muted">{{ post.published_at|date:"M d" }} • {{ post.reading_time_minutes }} min read</small>
+                                    </div>
+                                </div>
+                            </a>
+                            {% empty %}
+                            <div class="text-center py-3">
+                                <i class="bi bi-journal-text display-1 text-muted mb-3"></i>
+                                <p class="text-muted">No articles yet</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% elif user.is_writer %}
+            <!-- Writer Dashboard -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm card-custom mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-briefcase me-2"></i>My Active Orders
+                        </h5>
+                        <div class="dropdown d-inline-block float-end">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-plus-circle me-1"></i>New
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'orders:available' %}"><i class="bi bi-search me-2"></i>Find Orders</a></li>
+                                <li><a class="dropdown-item" href="{% url 'orders:writer_orders' %}"><i class="bi bi-list-check me-2"></i>My Orders</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'ai_tools:dashboard' %}"><i class="bi bi-magic me-2"></i>AI Tools</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if writer_active_orders_list %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Title</th>
+                                        <th>Deadline</th>
+                                        <th>Progress</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in writer_active_orders_list %}
+                                    <tr>
+                                        <td>#{{ order.id }}</td>
+                                        <td>{{ order.title|truncatechars:30 }}</td>
+                                        <td>
+                                            <span class="{% if order.is_urgent %}text-danger fw-bold{% endif %}">
+                                                {{ order.deadline|date:"M d, Y" }}
+                                                {% if order.is_urgent %}<i class="bi bi-exclamation-triangle ms-1"></i>{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar {% if order.progress < 50 %}bg-warning{% elif order.progress < 80 %}bg-info{% else %}bg-success{% endif %}" 
+                                                     role="progressbar" style="width: {{ order.progress }}%;"></div>
+                                            </div>
+                                            <small class="text-muted">{{ order.progress }}%</small>
+                                        </td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-gear"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="{% url 'orders:detail' order.id %}"><i class="bi bi-eye me-2"></i>View Details</a></li>
+                                                    <li><a class="dropdown-item" href="{% url 'orders:actions:work_submission' order.id %}"><i class="bi bi-upload me-2"></i>Submit Work</a></li>
+                                                    <li><a class="dropdown-item" href="{% url 'messaging:conversation' order.id %}"><i class="bi bi-chat-dots me-2"></i>Message Client</a></li>
+                                                    {% if order.progress >= 50 %}
+                                                    <li><a class="dropdown-item" href="{% url 'orders:actions:request_extension' order.id %}"><i class="bi bi-clock me-2"></i>Request Extension</a></li>
+                                                    {% endif %}
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'orders:available' %}" class="btn btn-primary">
+                                <i class="bi bi-search me-2"></i>Find More Orders
+                            </a>
+                            <a href="{% url 'orders:writer_orders' %}" class="btn btn-outline-primary ms-2">
+                                <i class="bi bi-list-check me-2"></i>View All Orders
                             </a>
                         </div>
-                        <div class="col-md-3">
-                            <a href="{% url 'orders:list' %}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-list me-2"></i>My Orders
-                            </a>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-briefcase display-1 text-muted mb-3"></i>
+                            <p class="text-muted">No active orders. Find new assignments!</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'orders:available' %}" class="btn btn-primary">
+                                    <i class="bi bi-search me-2"></i>Find Orders
+                                </a>
+                                <a href="{% url 'ai_tools:dashboard' %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-magic me-2"></i>AI Tools
+                                </a>
+                            </div>
                         </div>
                         {% endif %}
-                        
-                        {% if user.is_writer %}
-                        <div class="col-md-3">
-                            <a href="{% url 'orders:writer_available' %}" class="btn btn-success w-100">
-                                <i class="fas fa-search me-2"></i>Find Orders
+                    </div>
+                </div>
+
+                <!-- Writer Tools Section -->
+                <div class="card border-0 shadow-sm card-custom">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-tools me-2"></i>Writer Tools
+                        </h5>
+                        <div class="dropdown d-inline-block float-end">
+                            <button class="btn btn-sm btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-grid"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><h6 class="dropdown-header">Tools Menu</h6></li>
+                                <li><a class="dropdown-item" href="{% url 'ai_tools:dashboard' %}"><i class="bi bi-magic me-2"></i>AI Writing Tools</a></li>
+                                <li><a class="dropdown-item" href="{% url 'plagiarism:check' %}"><i class="bi bi-shield-check me-2"></i>Plagiarism Check</a></li>
+                                <li><a class="dropdown-item" href="{% url 'documents:generate' %}"><i class="bi bi-file-earmark-text me-2"></i>Document Generator</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:writer_profile' %}"><i class="bi bi-person-badge me-2"></i>Profile Settings</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3 col-6">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-magic text-primary fs-2 mb-2"></i>
+                                        <h6 class="mb-0">AI Tools</h6>
+                                        <p class="small text-muted mb-2">Writing assistance</p>
+                                        <a href="{% url 'ai_tools:dashboard' %}" class="btn btn-sm btn-outline-primary">Access</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-shield-check text-success fs-2 mb-2"></i>
+                                        <h6 class="mb-0">Plagiarism</h6>
+                                        <p class="small text-muted mb-2">Check originality</p>
+                                        <a href="{% url 'plagiarism:check' %}" class="btn btn-sm btn-outline-success">Check</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-file-earmark-text text-warning fs-2 mb-2"></i>
+                                        <h6 class="mb-0">Documents</h6>
+                                        <p class="small text-muted mb-2">Generate reports</p>
+                                        <a href="{% url 'documents:generate' %}" class="btn btn-sm btn-outline-warning">Generate</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-graph-up text-info fs-2 mb-2"></i>
+                                        <h6 class="mb-0">Analytics</h6>
+                                        <p class="small text-muted mb-2">Performance stats</p>
+                                        <a href="{% url 'analytics:writer_performance' %}" class="btn btn-sm btn-outline-info">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <!-- Wallet Balance -->
+                <div class="card border-0 shadow-sm card-custom mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-wallet me-2"></i>Wallet Balance
+                        </h5>
+                        <div class="dropdown d-inline-block float-end">
+                            <button class="btn btn-sm btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-currency-dollar"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'wallet:dashboard' %}"><i class="bi bi-eye me-2"></i>View Details</a></li>
+                                <li><a class="dropdown-item" href="{% url 'wallet:transactions' %}"><i class="bi bi-list-check me-2"></i>Transactions</a></li>
+                                {% if wallet_balance|default:0 > 50 %}
+                                <li><a class="dropdown-item" href="{% url 'wallet:request_payout' %}"><i class="bi bi-cash-coin me-2"></i>Request Payout</a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{% url 'wallet:withdraw' %}"><i class="bi bi-arrow-right-circle me-2"></i>Withdraw Funds</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body text-center">
+                        <h2 class="text-success mb-3">${{ wallet_balance|default:"0.00" }}</h2>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Available</small>
+                                <span class="fw-bold">${{ available_balance|default:"0.00" }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Pending</small>
+                                <span class="fw-bold">${{ pending_balance|default:"0.00" }}</span>
+                            </div>
+                        </div>
+                        <div class="progress mb-3" style="height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ payout_eligibility_percentage|default:"0" }}%;"></div>
+                        </div>
+                        <small class="text-muted">Payout eligibility: {{ payout_eligibility_percentage|default:"0" }}%</small>
+                    </div>
+                </div>
+                
+                <!-- Verification Status -->
+                <div class="card border-0 shadow-sm card-custom mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-shield-check me-2"></i>Verification Status
+                        </h5>
+                        <div class="dropdown d-inline-block float-end">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-gear"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'accounts:verification_status' %}"><i class="bi bi-eye me-2"></i>View Status</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:writer_documents' %}"><i class="bi bi-upload me-2"></i>Upload Docs</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:writer_profile' %}"><i class="bi bi-person-badge me-2"></i>Update Profile</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if verification_status == 'approved' %}
+                        <div class="alert alert-success mb-0">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <strong>Verified Writer</strong>
+                            <p class="mb-0 small">Your account is fully verified and can accept orders.</p>
+                        </div>
+                        {% elif verification_status == 'pending' %}
+                        <div class="alert alert-warning mb-0">
+                            <i class="bi bi-clock me-2"></i>
+                            <strong>Under Review</strong>
+                            <p class="mb-0 small">Your documents are being reviewed. This usually takes 24-48 hours.</p>
+                            <div class="progress mt-2" style="height: 6px;">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 75%;"></div>
+                            </div>
+                        </div>
+                        {% elif verification_status == 'rejected' %}
+                        <div class="alert alert-danger mb-0">
+                            <i class="bi bi-x-circle me-2"></i>
+                            <strong>Verification Failed</strong>
+                            <p class="mb-0 small">Please check your email for details and resubmit documents.</p>
+                            <a href="{% url 'accounts:verification_status' %}" class="btn btn-sm btn-danger mt-2">
+                                View Issues
                             </a>
                         </div>
-                        <div class="col-md-3">
-                            <a href="{% url 'accounts:writer_documents' %}" class="btn btn-outline-success w-100">
-                                <i class="fas fa-file-upload me-2"></i>Upload Documents
-                            </a>
+                        {% else %}
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Action Required</strong>
+                            <p class="mb-0 small">Complete verification to start accepting orders.</p>
+                            <div class="d-flex gap-2 mt-2">
+                                <a href="{% url 'accounts:writer_onboarding_step1' %}" class="btn btn-sm btn-primary">
+                                    Start Verification
+                                </a>
+                                <a href="{% url 'accounts:writer_documents' %}" class="btn btn-sm btn-outline-primary">
+                                    Upload Documents
+                                </a>
+                            </div>
                         </div>
                         {% endif %}
-                        
-                        <div class="col-md-3">
-                            <a href="{% url 'accounts:settings' %}" class="btn btn-outline-secondary w-100">
-                                <i class="fas fa-cog me-2"></i>Settings
-                            </a>
+                    </div>
+                </div>
+                
+                <!-- Performance Stats -->
+                <div class="card border-0 shadow-sm card-custom">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up me-2"></i>Performance
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h4 class="mb-1 text-primary">{{ writer_rating|default:"0.0" }}</h4>
+                                <small class="text-muted">Rating</small>
+                                <div class="small">
+                                    {% with rating=writer_rating|default:0 %}
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= rating %}
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                        {% else %}
+                                        <i class="bi bi-star text-muted"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="mb-1 text-success">{{ completed_orders_count|default:"0" }}</h4>
+                                <small class="text-muted">Completed</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="mb-1 text-info">{{ response_time|default:"0" }}h</h4>
+                                <small class="text-muted">Avg Response</small>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <a href="{% url 'accounts:data_request' %}" class="btn btn-outline-info w-100">
-                                <i class="fas fa-shield-alt me-2"></i>Data Request
+                        <div class="text-center mt-3">
+                            <a href="{% url 'reviews:writer_reviews' %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-star me-1"></i>View Reviews
+                            </a>
+                            <a href="{% url 'analytics:writer_performance' %}" class="btn btn-sm btn-outline-info ms-2">
+                                <i class="bi bi-graph-up me-1"></i>Analytics
                             </a>
                         </div>
                     </div>
                 </div>
+            </div>
+            
+            {% elif user.is_staff %}
+            <!-- Admin Dashboard -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm card-custom mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up me-2"></i>Platform Analytics
+                        </h5>
+                        <div class="dropdown d-inline-block float-end">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-calendar me-1"></i>Last 30 Days
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="?period=today">Today</a></li>
+                                <li><a class="dropdown-item" href="?period=week">This Week</a></li>
+                                <li><a class="dropdown-item active" href="?period=month">Last 30 Days</a></li>
+                                <li><a class="dropdown-item" href="?period=quarter">This Quarter</a></li>
+                                <li><a class="dropdown-item" href="?period=year">This Year</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Tabs for different analytics -->
+                        <ul class="nav nav-tabs mb-3" id="analyticsTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button">
+                                    <i class="bi bi-journal-text me-1"></i>Orders
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button">
+                                    <i class="bi bi-people me-1"></i>Users
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="revenue-tab" data-bs-toggle="tab" data-bs-target="#revenue" type="button">
+                                    <i class="bi bi-cash-coin me-1"></i>Revenue
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button">
+                                    <i class="bi bi-speedometer2 me-1"></i>Performance
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="analyticsTabContent">
+                            <div class="tab-pane fade show active" id="orders">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Order Status Distribution</h6>
+                                        <div class="d-flex flex-column gap-2 mt-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Completed</span>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="text-success fw-bold">{{ completed_orders_percent|default:"0" }}%</span>
+                                                    <span class="ms-2 text-muted small">({{ completed_orders|default:"0" }})</span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>In Progress</span>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="text-primary fw-bold">{{ in_progress_percent|default:"0" }}%</span>
+                                                    <span class="ms-2 text-muted small">({{ in_progress_orders|default:"0" }})</span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Pending</span>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="text-warning fw-bold">{{ pending_percent|default:"0" }}%</span>
+                                                    <span class="ms-2 text-muted small">({{ pending_orders|default:"0" }})</span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Overdue</span>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="text-danger fw-bold">{{ overdue_percent|default:"0" }}%</span>
+                                                    <span class="ms-2 text-muted small">({{ overdue_orders|default:"0" }})</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Recent Activity</h6>
+                                        <div class="mt-3">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>New Orders Today:</span>
+                                                <span class="fw-bold">{{ new_orders_today|default:"0" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Orders Due Today:</span>
+                                                <span class="fw-bold">{{ orders_due_today|default:"0" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-3">
+                                                <span>Avg Completion Time:</span>
+                                                <span class="fw-bold">{{ avg_completion_time|default:"0" }} days</span>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <a href="{% url 'orders:admin_list' %}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-journal-text me-1"></i>Manage Orders
+                                                </a>
+                                                <a href="{% url 'analytics:dashboard' %}" class="btn btn-outline-success btn-sm">
+                                                    <i class="bi bi-graph-up me-1"></i>View Reports
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="users">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>User Distribution</h6>
+                                        <div class="d-flex flex-column gap-2 mt-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Total Users:</span>
+                                                <span class="fw-bold">{{ total_users|default:"0" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Clients:</span>
+                                                <span class="text-primary fw-bold">{{ client_count|default:"0" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Writers:</span>
+                                                <span class="text-success fw-bold">{{ writer_count|default:"0" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>New This Month:</span>
+                                                <span class="text-info fw-bold">{{ new_users_month|default:"0" }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>User Activity</h6>
+                                        <div class="mt-3">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Active Writers:</span>
+                                                <span class="fw-bold">{{ active_writers|default:"0" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Active Clients:</span>
+                                                <span class="fw-bold">{{ active_clients|default:"0" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-3">
+                                                <span>Avg Session Duration:</span>
+                                                <span class="fw-bold">{{ avg_session_duration|default:"0" }} min</span>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <a href="{% url 'admin_tools:user_management' %}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-people me-1"></i>Manage Users
+                                                </a>
+                                                <a href="{% url 'admin_tools:writer_review' %}" class="btn btn-outline-success btn-sm">
+                                                    <i class="bi bi-shield-check me-1"></i>Review Writers
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="revenue">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Revenue Overview</h6>
+                                        <div class="d-flex flex-column gap-2 mt-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Total Revenue:</span>
+                                                <span class="fw-bold text-success">${{ total_revenue|default:"0.00" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>This Month:</span>
+                                                <span class="text-primary fw-bold">${{ revenue_this_month|default:"0.00" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Avg Order Value:</span>
+                                                <span class="fw-bold">${{ avg_order_value|default:"0.00" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Conversion Rate:</span>
+                                                <span class="text-info fw-bold">{{ conversion_rate|default:"0" }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Financial Health</h6>
+                                        <div class="mt-3">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Pending Payouts:</span>
+                                                <span class="fw-bold">${{ pending_payouts|default:"0.00" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Refunds Issued:</span>
+                                                <span class="fw-bold">${{ total_refunds|default:"0.00" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-3">
+                                                <span>Platform Commission:</span>
+                                                <span class="fw-bold">{{ commission_rate|default:"20" }}%</span>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <a href="{% url 'payments:admin_escrow' %}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-safe me-1"></i>Escrow Management
+                                                </a>
+                                                <a href="{% url 'analytics:revenue_report' %}" class="btn btn-outline-success btn-sm">
+                                                    <i class="bi bi-cash-coin me-1"></i>Revenue Reports
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="performance">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>System Performance</h6>
+                                        <div class="d-flex flex-column gap-2 mt-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>System Uptime:</span>
+                                                <span class="fw-bold text-success">{{ system_uptime|default:"99.9" }}%</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Avg Response Time:</span>
+                                                <span class="fw-bold">{{ avg_response_time|default:"0.5" }}s</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Active Sessions:</span>
+                                                <span class="fw-bold">{{ active_sessions|default:"0" }}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span>Server Load:</span>
+                                                <span class="fw-bold {% if server_load|default:0 > 80 %}text-danger{% elif server_load|default:0 > 60 %}text-warning{% else %}text-success{% endif %}">
+                                                    {{ server_load|default:"0" }}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Quality Metrics</h6>
+                                        <div class="mt-3">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Client Satisfaction:</span>
+                                                <span class="fw-bold text-success">{{ client_satisfaction|default:"4.5" }}/5.0</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Writer Satisfaction:</span>
+                                                <span class="fw-bold">{{ writer_satisfaction|default:"4.2" }}/5.0</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-3">
+                                                <span>Dispute Rate:</span>
+                                                <span class="fw-bold {% if dispute_rate|default:0 > 5 %}text-danger{% elif dispute_rate|default:0 > 2 %}text-warning{% else %}text-success{% endif %}">
+                                                    {{ dispute_rate|default:"0" }}%
+                                                </span>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <a href="{% url 'analytics:performance_report' %}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-bar-chart me-1"></i>Performance Reports
+                                                </a>
+                                                <a href="{% url 'compliance:dashboard' %}" class="btn btn-outline-success btn-sm">
+                                                    <i class="bi bi-shield me-1"></i>Compliance
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Issues & Alerts -->
+                <div class="card border-0 shadow-sm card-custom">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Issues Requiring Attention
+                            {% if urgent_issues_count|default:0 > 0 %}
+                            <span class="badge bg-danger ms-2">{{ urgent_issues_count }}</span>
+                            {% endif %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if urgent_issues %}
+                        <div class="list-group list-group-flush">
+                            {% for issue in urgent_issues|slice:":5" %}
+                            <div class="list-group-item border-0 px-0 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="avatar avatar-sm 
+                                            {% if issue.priority == 'high' %}bg-danger
+                                            {% elif issue.priority == 'medium' %}bg-warning
+                                            {% else %}bg-info{% endif %} 
+                                            text-white d-flex align-items-center justify-content-center">
+                                            <i class="bi {% if issue.type == 'dispute' %}bi-exclamation-triangle
+                                                      {% elif issue.type == 'refund' %}bi-arrow-counterclockwise
+                                                      {% else %}bi-question-circle{% endif %}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">{{ issue.title }}</h6>
+                                                <p class="mb-1 text-muted small">{{ issue.description|truncatechars:100 }}</p>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock me-1"></i>
+                                                    {{ issue.created_at|timesince }} ago
+                                                </small>
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-gear"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li><a class="dropdown-item" href="{{ issue.link }}"><i class="bi bi-eye me-2"></i>View Details</a></li>
+                                                    {% if issue.type == 'dispute' %}
+                                                    <li><a class="dropdown-item" href="{% url 'disputes:resolve' issue.id %}"><i class="bi bi-hand-thumbs-up me-2"></i>Resolve</a></li>
+                                                    {% elif issue.type == 'refund' %}
+                                                    <li><a class="dropdown-item" href="{% url 'payments:process_refund' issue.id %}"><i class="bi bi-arrow-counterclockwise me-2"></i>Process Refund</a></li>
+                                                    {% endif %}
+                                                    <li><a class="dropdown-item" href="#"><i class="bi bi-chat-dots me-2"></i>Add Note</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if urgent_issues|length > 5 %}
+                        <div class="text-center mt-3">
+                            <a href="#" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-arrow-right me-1"></i>View All Issues
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-check-circle display-1 text-success mb-3"></i>
+                            <p class="text-muted">No urgent issues requiring attention.</p>
+                            <p class="small text-muted">All systems are functioning normally.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <!-- Admin Tools -->
+                <div class="card border-0 shadow-sm card-custom mb-4">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-tools me-2"></i>Admin Tools
+                        </h5>
+                        <div class="dropdown d-inline-block float-end">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear me-2"></i>Admin Panel</a></li>
+                                <li><a class="dropdown-item" href="{% url 'analytics:dashboard' %}"><i class="bi bi-graph-up me-2"></i>Analytics</a></li>
+                                <li><a class="dropdown-item" href="{% url 'compliance:dashboard' %}"><i class="bi bi-shield me-2"></i>Compliance</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-database me-2"></i>System Logs</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <!-- Management Dropdown -->
+                            <div class="dropdown mb-2">
+                                <button class="btn btn-outline-primary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-gear me-2"></i>Platform Management
+                                </button>
+                                <ul class="dropdown-menu w-100">
+                                    <li><h6 class="dropdown-header">Order Management</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'orders:admin_list' %}"><i class="bi bi-journal-text me-2"></i>All Orders</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'admin_tools:order_assignment' %}"><i class="bi bi-person-plus me-2"></i>Order Assignment</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">User Management</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'admin_tools:writer_review' %}"><i class="bi bi-people me-2"></i>Writer Review</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-person-check me-2"></i>Client Management</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Content Management</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'blog:author_dashboard' %}"><i class="bi bi-journal-text me-2"></i>Blog Management</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-megaphone me-2"></i>Announcements</a></li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Financial Dropdown -->
+                            <div class="dropdown mb-2">
+                                <button class="btn btn-outline-success dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-cash-coin me-2"></i>Financial Tools
+                                </button>
+                                <ul class="dropdown-menu w-100">
+                                    <li><a class="dropdown-item" href="{% url 'payments:admin_escrow' %}"><i class="bi bi-safe me-2"></i>Escrow Management</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'payments:process_refund' %}"><i class="bi bi-arrow-counterclockwise me-2"></i>Refund Processing</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'wallet:admin_payout_management' %}"><i class="bi bi-cash-stack me-2"></i>Payout Management</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'analytics:revenue_report' %}"><i class="bi bi-graph-up me-2"></i>Revenue Reports</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-receipt me-2"></i>Invoice Management</a></li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Quality & Compliance Dropdown -->
+                            <div class="dropdown mb-2">
+                                <button class="btn btn-outline-warning dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-shield-check me-2"></i>Quality & Compliance
+                                </button>
+                                <ul class="dropdown-menu w-100">
+                                    <li><a class="dropdown-item" href="{% url 'reviews:admin_moderation_queue' %}"><i class="bi bi-star me-2"></i>Review Moderation</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'plagiarism:admin_check' %}"><i class="bi bi-shield me-2"></i>Plagiarism Checks</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'disputes:list' %}"><i class="bi bi-exclamation-triangle me-2"></i>Dispute Resolution</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'compliance:dashboard' %}"><i class="bi bi-file-earmark-text me-2"></i>Compliance Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-lock me-2"></i>Security Audit</a></li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Analytics & Reports Dropdown -->
+                            <div class="dropdown">
+                                <button class="btn btn-outline-info dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-graph-up me-2"></i>Analytics & Reports
+                                </button>
+                                <ul class="dropdown-menu w-100">
+                                    <li><a class="dropdown-item" href="{% url 'analytics:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Analytics Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'analytics:performance_report' %}"><i class="bi bi-bar-chart me-2"></i>Performance Reports</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'analytics:kpi_list' %}"><i class="bi bi-clipboard-data me-2"></i>KPI Monitoring</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-text me-2"></i>Export Reports</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-calendar-week me-2"></i>Scheduled Reports</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Health -->
+                <div class="card border-0 shadow-sm card-custom">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-heart-pulse me-2"></i>System Health
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-column gap-3">
+                            <!-- Uptime -->
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small>Uptime</small>
+                                    <small class="fw-bold text-success">{{ system_uptime|default:"99.9" }}%</small>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ system_uptime|default:"99.9" }}%;"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Server Load -->
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small>Server Load</small>
+                                    <small class="fw-bold {% if server_load|default:0 > 80 %}text-danger{% elif server_load|default:0 > 60 %}text-warning{% else %}text-success{% endif %}">
+                                        {{ server_load|default:"0" }}%
+                                    </small>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar {% if server_load|default:0 > 80 %}bg-danger{% elif server_load|default:0 > 60 %}bg-warning{% else %}bg-success{% endif %}" 
+                                         role="progressbar" style="width: {{ server_load|default:"0" }}%;"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Disk Space -->
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small>Disk Space</small>
+                                    <small class="fw-bold {% if disk_space_percent|default:0 > 90 %}text-danger{% elif disk_space_percent|default:0 > 75 %}text-warning{% else %}text-success{% endif %}">
+                                        {{ disk_space_percent|default:"0" }}%
+                                    </small>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar {% if disk_space_percent|default:0 > 90 %}bg-danger{% elif disk_space_percent|default:0 > 75 %}bg-warning{% else %}bg-info{% endif %}" 
+                                         role="progressbar" style="width: {{ disk_space_percent|default:"0" }}%;"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Active Users -->
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small>Active Users</small>
+                                    <small class="fw-bold">{{ active_sessions|default:"0" }}</small>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                         style="width: {% widthratio active_sessions|default:0 1000 100 %}%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <button class="btn btn-sm btn-outline-primary" onclick="location.reload()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Refresh Status
+                            </button>
+                            <button class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#systemLogsModal">
+                                <i class="bi bi-list-check me-1"></i>View Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- System Logs Modal -->
+<div class="modal fade" id="systemLogsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-list-check me-2"></i>System Logs
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    System logs for the past 24 hours
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Type</th>
+                                <th>Message</th>
+                                <th>Severity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>12:30 PM</td>
+                                <td><span class="badge bg-success">INFO</span></td>
+                                <td>User authentication successful</td>
+                                <td><span class="badge bg-info">Low</span></td>
+                            </tr>
+                            <tr>
+                                <td>11:45 AM</td>
+                                <td><span class="badge bg-warning">WARNING</span></td>
+                                <td>High server load detected</td>
+                                <td><span class="badge bg-warning">Medium</span></td>
+                            </tr>
+                            <tr>
+                                <td>10:15 AM</td>
+                                <td><span class="badge bg-primary">SYSTEM</span></td>
+                                <td>Database backup completed</td>
+                                <td><span class="badge bg-info">Low</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Export Logs</button>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize dropdowns and tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all dropdowns
+    var dropdownElements = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+    dropdownElements.map(function(element) {
+        return new bootstrap.Dropdown(element);
+    });
+    
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(element) {
+        return new bootstrap.Tooltip(element);
+    });
+    
+    // Tab functionality for admin analytics
+    var triggerTabList = [].slice.call(document.querySelectorAll('#analyticsTab button'));
+    triggerTabList.forEach(function (triggerEl) {
+        var tabTrigger = new bootstrap.Tab(triggerEl);
+        
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault();
+            tabTrigger.show();
+        });
+    });
+    
+    // Auto-refresh dashboard every 60 seconds
+    setTimeout(function() {
+        location.reload();
+    }, 60000);
+    
+    // Notification counter update
+    function updateNotificationCount() {
+        // This would typically make an AJAX call to get new notifications
+        console.log('Checking for new notifications...');
+    }
+    
+    // Check for new notifications every 30 seconds
+    setInterval(updateNotificationCount, 30000);
+    
+    // Progress bar animation
+    function animateProgressBars() {
+        const progressBars = document.querySelectorAll('.progress-bar');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 500);
+        });
+    }
+    
+    // Animate progress bars on page load
+    setTimeout(animateProgressBars, 1000);
+});
+</script>
 {% endblock %}

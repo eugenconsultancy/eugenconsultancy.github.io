@@ -1,0 +1,415 @@
+{% extends 'ai_tools/base.html' %}
+
+{% block title %}Grammar Checker - AI Tools{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Tool Header -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="card-title">
+                            <i class="fas fa-spell-check text-warning"></i> Grammar Checker
+                        </h1>
+                        <p class="card-text">
+                            Check grammar, style, and clarity of your writing. Uses 
+                            <code>GrammarCheckerService</code> with LanguageTool integration.
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <div class="badge bg-warning fs-6 text-dark">
+                            {{ user_limits.tools.grammar_checker.remaining }}/{{ user_limits.tools.grammar_checker.daily_limit }} uses left
+                        </div>
+                        <div>
+                            <small class="text-muted">Max: {{ user_limits.tools.grammar_checker.max_input_length }} chars</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <i class="fas fa-edit"></i> Check Your Text
+            </div>
+            <div class="card-body">
+                <!-- Text Input -->
+                <div class="mb-3">
+                    <label for="textInput" class="form-label">
+                        <i class="fas fa-font"></i> Enter Text to Check *
+                    </label>
+                    <textarea class="form-control" id="textInput" name="text" rows="10" 
+                              placeholder="Paste your text here (minimum 10 characters, maximum 5000 characters)..."
+                              required minlength="10" maxlength="5000"></textarea>
+                    <div class="form-text">
+                        Character count: <span id="charCount">0</span>/5000
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="checkType" class="form-label">
+                            <i class="fas fa-cogs"></i> Check Type
+                        </label>
+                        <select class="form-select" id="checkType" name="check_type">
+                            <option value="all">All Checks (Grammar, Style, Clarity)</option>
+                            <option value="grammar">Grammar Only</option>
+                            <option value="style">Style Only</option>
+                            <option value="clarity">Clarity Only</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="academicLevel" class="form-label">
+                            <i class="fas fa-graduation-cap"></i> Academic Level
+                        </label>
+                        <select class="form-select" id="academicLevel" name="academic_level">
+                            <option value="high_school">High School</option>
+                            <option value="undergraduate" selected>Undergraduate</option>
+                            <option value="graduate">Graduate</option>
+                            <option value="phd">PhD</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Check Button -->
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-warning btn-lg" id="checkBtn">
+                        <i class="fas fa-search"></i> Check Text
+                    </button>
+                    <div class="form-text text-center">
+                        This will use 1 of your {{ user_limits.tools.grammar_checker.daily_limit }} daily uses
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Container -->
+        <div id="resultsContainer" class="mt-4" style="display: none;">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-chart-bar"></i> Check Results
+                </div>
+                <div class="card-body">
+                    <div id="checkResults"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4 mb-4">
+        <!-- What We Check -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-check-double"></i> What We Check
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <strong>Grammar:</strong> Spelling, punctuation, verb tense
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <strong>Style:</strong> Academic tone, sentence structure
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <strong>Clarity:</strong> Readability, vague language
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <strong>Academic:</strong> Formal language, proper citations
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <strong>Flow:</strong> Transition words, paragraph structure
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Service Info -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <i class="fas fa-code"></i> Service Information
+            </div>
+            <div class="card-body">
+                <p class="card-text small">
+                    <strong>GrammarCheckerService:</strong> Uses LanguageTool-Python 
+                    with custom academic rules. Logs feedback in 
+                    <code>WritingFeedback</code> model.
+                </p>
+                <ul class="small">
+                    <li>Process: <code>GrammarCheckerView.post()</code></li>
+                    <li>Validation: <code>GrammarCheckSerializer</code></li>
+                    <li>Logging: <code>AIToolUsageLog</code> model</li>
+                    <li>Feedback: <code>WritingFeedback</code> model</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-lightbulb"></i> Writing Tips
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="fas fa-quote-left"></i>
+                        Use active voice for stronger writing
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-ban"></i>
+                        Avoid contractions in academic writing
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-ruler"></i>
+                        Keep sentences under 30 words
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-paragraph"></i>
+                        Paragraphs should focus on one idea
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-exchange-alt"></i>
+                        Use transition words between paragraphs
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="mt-3">Checking Text...</h5>
+                <p class="text-muted">This may take a few moments</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Character count
+    $('#textInput').on('input', function() {
+        const count = $(this).val().length;
+        $('#charCount').text(count);
+        
+        if (count < 10) {
+            $('#charCount').addClass('text-danger').removeClass('text-success');
+        } else if (count > 5000) {
+            $('#charCount').addClass('text-danger').removeClass('text-success');
+        } else {
+            $('#charCount').addClass('text-success').removeClass('text-danger');
+        }
+    });
+
+    // Check button click
+    $('#checkBtn').click(function() {
+        const text = $('#textInput').val().trim();
+        
+        if (text.length < 10) {
+            alert('Please enter at least 10 characters');
+            return;
+        }
+        
+        if (text.length > 5000) {
+            alert('Text exceeds 5000 character limit');
+            return;
+        }
+
+        // Show loading modal
+        $('#loadingModal').modal('show');
+
+        // Prepare data
+        const formData = {
+            text: text,
+            check_type: $('#checkType').val(),
+            academic_level: $('#academicLevel').val(),
+        };
+
+        // Send request (matches GrammarCheckerView.post())
+        $.ajax({
+            url: "{% url 'ai_tools:grammar_checker' %}",
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                $('#loadingModal').modal('hide');
+                
+                if (response.success) {
+                    displayResults(response.result);
+                    updateUsageDisplay(response.limits);
+                } else {
+                    showError(response.error);
+                }
+            },
+            error: function(xhr) {
+                $('#loadingModal').modal('hide');
+                showError('Error: ' + xhr.responseText);
+            }
+        });
+    });
+
+    function displayResults(result) {
+        let html = `
+            <div class="alert alert-info">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <h1 class="display-4">${result.overall_score.toFixed(1)}/10</h1>
+                        <small>Overall Score</small>
+                    </div>
+                    <div class="col-md-8">
+                        <p><strong>Word Count:</strong> ${result.word_count}</p>
+                        <p><strong>Reading Level:</strong> ${result.reading_level}</p>
+                        <p><strong>Check Type:</strong> ${result.metadata.check_type}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                ${result.disclaimer.replace(/\n/g, '<br>')}
+            </div>
+        `;
+
+        // Suggestions
+        if (result.suggestions && result.suggestions.length > 0) {
+            html += `
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <i class="fas fa-lightbulb"></i> Overall Suggestions
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            ${result.suggestions.map(suggestion => `
+                                <li class="list-group-item">
+                                    <i class="fas fa-check-circle text-success"></i> ${suggestion}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Issues by category
+        const categories = [
+            { key: 'grammar_issues', title: 'Grammar Issues', icon: 'fa-language', color: 'danger' },
+            { key: 'style_issues', title: 'Style Issues', icon: 'fa-pen-fancy', color: 'warning' },
+            { key: 'clarity_issues', title: 'Clarity Issues', icon: 'fa-eye', color: 'info' }
+        ];
+
+        categories.forEach(category => {
+            if (result[category.key] && result[category.key].length > 0) {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header bg-${category.color} text-white">
+                            <i class="fas ${category.icon}"></i> ${category.title} 
+                            <span class="badge bg-light text-dark float-end">${result[category.key].length} found</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="accordion" id="accordion${category.key}">
+                `;
+
+                result[category.key].forEach((issue, index) => {
+                    html += `
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse${category.key}${index}">
+                                    <i class="fas fa-exclamation-circle text-${category.color}"></i>
+                                    ${issue.message}
+                                </button>
+                            </h2>
+                            <div id="collapse${category.key}${index}" 
+                                 class="accordion-collapse collapse" 
+                                 data-bs-parent="#accordion${category.key}">
+                                <div class="accordion-body">
+                                    <p><strong>Context:</strong> ${issue.context || 'N/A'}</p>
+                                    ${issue.suggestion ? `<p><strong>Suggestion:</strong> ${issue.suggestion}</p>` : ''}
+                                    ${issue.matched_text ? `<p><strong>Found:</strong> <code>${issue.matched_text}</code></p>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        // Corrected text
+        if (result.corrected_text && result.corrected_text !== $('#textInput').val()) {
+            html += `
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-check-circle"></i> Corrected Text
+                    </div>
+                    <div class="card-body">
+                        <div class="bg-light p-3 rounded" style="max-height: 300px; overflow-y: auto;">
+                            ${result.corrected_text.replace(/\n/g, '<br>')}
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-primary" onclick="copyCorrectedText()">
+                                <i class="fas fa-copy"></i> Copy Corrected Text
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        $('#checkResults').html(html);
+        $('#resultsContainer').show();
+        $('html, body').animate({ scrollTop: $('#resultsContainer').offset().top }, 500);
+    }
+
+    function copyCorrectedText() {
+        // This would copy the corrected text to clipboard
+        // Implementation depends on your needs
+        alert('Copy functionality would be implemented here');
+    }
+
+    function showError(error) {
+        $('#checkResults').html(`
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> ${error}
+            </div>
+        `);
+        $('#resultsContainer').show();
+    }
+
+    function updateUsageDisplay(limits) {
+        if (limits.tools && limits.tools.grammar_checker) {
+            const tool = limits.tools.grammar_checker;
+            $('.badge.bg-warning.fs-6').text(tool.remaining + '/' + tool.daily_limit + ' uses left');
+        }
+    }
+});
+</script>
+{% endblock %}

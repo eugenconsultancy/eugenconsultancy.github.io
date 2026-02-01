@@ -1,0 +1,534 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Verification Rejected - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-danger text-white text-center py-4">
+                    <i class="fas fa-times-circle fa-3x mb-3"></i>
+                    <h2 class="mb-0">Verification Rejected</h2>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-5">
+                        <div class="status-icon mb-4">
+                            <div class="status-circle">
+                                <i class="fas fa-times fa-2x"></i>
+                            </div>
+                        </div>
+                        <h3 class="mb-3">Application Not Approved</h3>
+                        <p class="text-muted lead mb-4">
+                            We're sorry, but your verification application has been rejected. Please review the reasons below and resubmit.
+                        </p>
+                    </div>
+
+                    <!-- Rejection Reasons -->
+                    <div class="card border-danger mb-5">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Rejection Reasons
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if rejection_reason %}
+                            <div class="alert alert-danger">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-times-circle fa-2x"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="alert-heading mb-2">Primary Reason</h6>
+                                        <p class="mb-0">{{ rejection_reason }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <h6 class="mb-3">Common Issues to Address:</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="issue-card">
+                                        <div class="issue-icon bg-danger">
+                                            <i class="fas fa-file-alt"></i>
+                                        </div>
+                                        <div class="issue-content">
+                                            <h6>Document Issues</h6>
+                                            <ul class="text-muted small mb-0">
+                                                <li>Blurry or unreadable documents</li>
+                                                <li>Incomplete information</li>
+                                                <li>Expired documents</li>
+                                                <li>Incorrect document type</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="issue-card">
+                                        <div class="issue-icon bg-warning">
+                                            <i class="fas fa-user-check"></i>
+                                        </div>
+                                        <div class="issue-content">
+                                            <h6>Profile Issues</h6>
+                                            <ul class="text-muted small mb-0">
+                                                <li>Incomplete profile information</li>
+                                                <li>Inconsistent information</li>
+                                                <li>Missing qualifications</li>
+                                                <li>Unclear specialization</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="issue-card">
+                                        <div class="issue-icon bg-info">
+                                            <i class="fas fa-id-card"></i>
+                                        </div>
+                                        <div class="issue-content">
+                                            <h6>Identity Verification</h6>
+                                            <ul class="text-muted small mb-0">
+                                                <li>ID not clear or valid</li>
+                                                <li>Name mismatch</li>
+                                                <li>Expired identification</li>
+                                                <li>Poor quality image</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="issue-card">
+                                        <div class="issue-icon bg-secondary">
+                                            <i class="fas fa-graduation-cap"></i>
+                                        </div>
+                                        <div class="issue-content">
+                                            <h6>Academic Credentials</h6>
+                                            <ul class="text-muted small mb-0">
+                                                <li>Unverified institution</li>
+                                                <li>Incomplete transcripts</li>
+                                                <li>Degree not visible</li>
+                                                <li>Suspicious credentials</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="mb-5">
+                        <h5 class="mb-3">
+                            <i class="fas fa-redo me-2"></i>How to Resubmit Your Application
+                        </h5>
+                        <div class="steps-timeline">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h6>Review Rejection Reason</h6>
+                                    <p class="text-muted small mb-0">
+                                        Carefully read the rejection reason and understand what needs to be fixed
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h6>Update Your Documents</h6>
+                                    <p class="text-muted small mb-0">
+                                        Upload new or corrected documents that address the issues
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h6>Complete Your Profile</h6>
+                                    <p class="text-muted small mb-0">
+                                        Ensure all profile information is accurate and complete
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">4</div>
+                                <div class="step-content">
+                                    <h6>Resubmit for Review</h6>
+                                    <p class="text-muted small mb-0">
+                                        Submit your updated application for another review
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Document Guidelines -->
+                    <div class="card bg-light border-0 mb-5">
+                        <div class="card-body">
+                            <h5 class="mb-3">
+                                <i class="fas fa-file-alt me-2"></i>Document Submission Guidelines
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="guideline-item">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span>Clear and legible scans</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="guideline-item">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span>All information visible</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="guideline-item">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span>Original documents only</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="guideline-item">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span>Proper file format (PDF, JPG, PNG)</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="guideline-item">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span>Under 10MB per file</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="guideline-item">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        <span>No watermarks or edits</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center mt-5">
+                        <div class="row g-3 justify-content-center">
+                            <div class="col-md-4">
+                                <a href="{% url 'accounts:writer_documents' %}" class="btn btn-danger w-100">
+                                    <i class="fas fa-upload me-2"></i>Update Documents
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'accounts:writer_profile' %}" class="btn btn-warning w-100">
+                                    <i class="fas fa-user-edit me-2"></i>Edit Profile
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'accounts:verification_status' %}" class="btn btn-primary w-100">
+                                    <i class="fas fa-info-circle me-2"></i>View Status
+                                </a>
+                            </div>
+                        </div>
+                        <div class="row g-3 justify-content-center mt-3">
+                            <div class="col-md-6">
+                                <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary w-100">
+                                    <i class="fas fa-home me-2"></i>Go to Dashboard
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-outline-info w-100" data-bs-toggle="modal" 
+                                        data-bs-target="#supportModal">
+                                    <i class="fas fa-question-circle me-2"></i>Contact Support
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Support Information -->
+                    <div class="mt-5 pt-4 border-top">
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-life-ring fa-2x"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="alert-heading mb-2">Need Help?</h6>
+                                    <p class="mb-2">
+                                        If you're having trouble with your application or need clarification on the rejection reasons, 
+                                        our support team is here to help.
+                                    </p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-1">
+                                                <i class="fas fa-envelope me-2"></i>
+                                                <strong>Email:</strong> verification@ebwriting.com
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1">
+                                                <i class="fas fa-clock me-2"></i>
+                                                <strong>Response Time:</strong> 24-48 hours
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <p class="text-muted small">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    You can resubmit your application as many times as needed until approved.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Support Modal -->
+<div class="modal fade" id="supportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-question-circle me-2"></i>Contact Support
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="supportForm">
+                    <div class="mb-3">
+                        <label for="supportSubject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="supportSubject" 
+                               value="Verification Rejection Assistance" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="supportMessage" class="form-label">Message</label>
+                        <textarea class="form-control" id="supportMessage" rows="5" 
+                                  placeholder="Please describe the issue you're facing with your verification..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="supportAttachment" class="form-label">Attachments (Optional)</label>
+                        <input type="file" class="form-control" id="supportAttachment" 
+                               multiple accept=".pdf,.jpg,.jpeg,.png">
+                        <div class="form-text">
+                            You can attach screenshots or documents (max 3 files, 5MB each)
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitSupportRequest()">
+                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Support form submission
+    window.submitSupportRequest = function() {
+        const message = document.getElementById('supportMessage').value;
+        
+        if (!message.trim()) {
+            alert('Please enter a message describing your issue.');
+            return;
+        }
+        
+        // In production, this would make an API call
+        alert('Support request sent successfully! You will receive a response within 24-48 hours.');
+        $('#supportModal').modal('hide');
+        
+        // Reset form
+        document.getElementById('supportMessage').value = '';
+        document.getElementById('supportAttachment').value = '';
+    };
+});
+</script>
+
+<style>
+.card-header.bg-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.status-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(220, 53, 69, 0.3);
+}
+
+.alert-danger {
+    border-left: 4px solid #dc3545;
+}
+
+.alert-danger .alert-heading {
+    color: #b02a37;
+}
+
+/* Issue Cards */
+.issue-card {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.issue-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.issue-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.issue-icon.bg-danger { background-color: #dc3545; }
+.issue-icon.bg-warning { background-color: #ffc107; }
+.issue-icon.bg-info { background-color: #0dcaf0; }
+.issue-icon.bg-secondary { background-color: #6c757d; }
+
+.issue-content h6 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.issue-content ul {
+    padding-left: 1rem;
+    margin-bottom: 0;
+}
+
+.issue-content li {
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Steps Timeline */
+.steps-timeline {
+    position: relative;
+    padding-left: 40px;
+}
+
+.steps-timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #dc3545, #0d6efd);
+}
+
+.step {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.step:last-child {
+    margin-bottom: 0;
+}
+
+.step-number {
+    position: absolute;
+    left: -40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid #dc3545;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #dc3545;
+    z-index: 1;
+}
+
+.step-content {
+    padding-left: 1rem;
+}
+
+.step-content h6 {
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.step-content p {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+/* Guideline Items */
+.guideline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.guideline-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Action Buttons */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Modal */
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+    color: #0d6efd;
+}
+</style>
+{% endblock %}

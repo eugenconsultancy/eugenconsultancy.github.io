@@ -1,143 +1,144 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load humanize %}
 
-{% block title %}Payment History{% endblock %}
+{% block title %}Payment History - EBWriting{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
 <style>
-    .status-badge {
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
+    .payment-status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
     }
-    
-    .status-initiated { background-color: #f8f9fa; color: #6c757d; }
-    .status-processing { background-color: #fff3cd; color: #856404; }
-    .status-held_in_escrow { background-color: #cce5ff; color: #004085; }
-    .status-released_to_wallet { background-color: #d4edda; color: #155724; }
-    .status-refunded { background-color: #f8d7da; color: #721c24; }
-    .status-failed { background-color: #f5c6cb; color: #721c24; }
-    .status-cancelled { background-color: #d6d8d9; color: #1b1e21; }
-    
-    .payment-method-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
+    .payment-card {
+        border-left: 4px solid;
+        transition: all 0.3s;
     }
-    
-    .stripe-icon { background-color: #635bff; color: white; }
-    .paypal-icon { background-color: #003087; color: white; }
-    .wallet-icon { background-color: #28a745; color: white; }
-    .bank-icon { background-color: #6c757d; color: white; }
-    
-    .filter-card {
-        transition: all 0.3s ease;
-    }
-    
-    .filter-card:hover {
+    .payment-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .payment-card.success {
+        border-left-color: #28a745;
+    }
+    .payment-card.pending {
+        border-left-color: #ffc107;
+    }
+    .payment-card.failed {
+        border-left-color: #dc3545;
+    }
+    .payment-card.refunded {
+        border-left-color: #6c757d;
+    }
+    .filter-form .form-control, .filter-form .form-select {
+        height: calc(1.5em + 0.75rem + 2px);
+        font-size: 0.875rem;
+    }
+    .stats-card {
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+    }
+    .stats-value {
+        font-size: 1.5rem;
+        font-weight: bold;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Payment History</h1>
-        <div class="btn-group" role="group">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="bi bi-download"></i> Export
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" onclick="exportToCSV()">CSV</a></li>
-                <li><a class="dropdown-item" href="#" onclick="exportToPDF()">PDF</a></li>
-                <li><a class="dropdown-item" href="#" onclick="printTable()">Print</a></li>
-            </ul>
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Payment History</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-history text-primary me-2"></i>
+                Payment History
+            </h1>
+            <p class="text-muted">View and manage all your payment transactions</p>
         </div>
     </div>
 
-    <!-- Summary Cards -->
+    <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2 filter-card">
+            <div class="card border-start border-primary border-4 shadow-sm h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                        <div class="col me-2">
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">
                                 Total Payments
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_payments }}</div>
+                            <div class="h5 mb-0 fw-bold">{{ total_payments }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="bi bi-credit-card-2-front fa-2x text-gray-300"></i>
+                            <i class="fas fa-credit-card fa-2x text-primary"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
+        
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2 filter-card">
+            <div class="card border-start border-success border-4 shadow-sm h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                        <div class="col me-2">
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">
                                 Total Amount
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_amount|floatformat:2 }}</div>
+                            <div class="h5 mb-0 fw-bold">${{ total_amount|floatformat:2 }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="bi bi-cash-stack fa-2x text-gray-300"></i>
+                            <i class="fas fa-dollar-sign fa-2x text-success"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
+        
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2 filter-card">
+            <div class="card border-start border-warning border-4 shadow-sm h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                        <div class="col me-2">
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">
                                 Active Payments
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_payments }}</div>
+                            <div class="h5 mb-0 fw-bold">{{ active_payments }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="bi bi-clock-history fa-2x text-gray-300"></i>
+                            <i class="fas fa-clock fa-2x text-warning"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
+        
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2 filter-card">
+            <div class="card border-start border-info border-4 shadow-sm h-100">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Avg. Payment
+                        <div class="col me-2">
+                            <div class="text-xs fw-bold text-info text-uppercase mb-1">
+                                Last Payment
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {% if total_payments > 0 %}
-                                ${{ total_amount|div:total_payments|floatformat:2 }}
-                                {% else %}
-                                $0.00
-                                {% endif %}
+                            {% if payments %}
+                            <div class="h6 mb-0 fw-bold">
+                                {{ payments.0.created_at|date:"M d, Y" }}
                             </div>
+                            {% else %}
+                            <div class="h6 mb-0 fw-bold">No payments yet</div>
+                            {% endif %}
                         </div>
                         <div class="col-auto">
-                            <i class="bi bi-graph-up fa-2x text-gray-300"></i>
+                            <i class="fas fa-calendar-alt fa-2x text-info"></i>
                         </div>
                     </div>
                 </div>
@@ -146,92 +147,85 @@
     </div>
 
     <!-- Filters -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="bi bi-funnel"></i> Filter Payments
-            </h6>
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i>
+                Filter Payments
+            </h5>
         </div>
         <div class="card-body">
-            <form method="get" id="filter-form">
-                <div class="row">
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Status</label>
-                        <select name="status" class="form-select">
-                            <option value="">All Statuses</option>
-                            <option value="initiated">Initiated</option>
-                            <option value="processing">Processing</option>
-                            <option value="held_in_escrow">Held in Escrow</option>
-                            <option value="released_to_wallet">Released</option>
-                            <option value="refunded">Refunded</option>
-                            <option value="failed">Failed</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Payment Method</label>
-                        <select name="payment_method" class="form-select">
-                            <option value="">All Methods</option>
-                            <option value="stripe">Stripe</option>
-                            <option value="paypal">PayPal</option>
-                            <option value="wallet">Wallet</option>
-                            <option value="bank_transfer">Bank Transfer</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">From Date</label>
-                        <input type="date" name="date_from" class="form-control">
-                    </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">To Date</label>
-                        <input type="date" name="date_to" class="form-control">
-                    </div>
+            <form method="GET" class="row g-3 filter-form">
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="held_in_escrow">Held in Escrow</option>
+                        <option value="released_to_wallet">Released</option>
+                        <option value="refunded">Refunded</option>
+                        <option value="failed">Failed</option>
+                        <option value="processing">Processing</option>
+                    </select>
                 </div>
-                
-                <div class="row">
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Min Amount</label>
-                        <input type="number" name="min_amount" step="0.01" class="form-control" placeholder="0.00">
-                    </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Max Amount</label>
-                        <input type="number" name="max_amount" step="0.01" class="form-control" placeholder="0.00">
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Search</label>
-                        <input type="text" name="search" class="form-control" 
-                               placeholder="Search by reference, order number, or writer...">
-                    </div>
+                <div class="col-md-3">
+                    <label for="method" class="form-label">Payment Method</label>
+                    <select class="form-select" id="method" name="method">
+                        <option value="">All Methods</option>
+                        <option value="stripe">Stripe</option>
+                        <option value="paypal">PayPal</option>
+                        <option value="wallet">Wallet</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                    </select>
                 </div>
-                
-                <div class="d-flex justify-content-between">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i> Apply Filters
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from">
+                </div>
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to">
+                </div>
+                <div class="col-md-6">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           placeholder="Search by reference, order ID...">
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i> Apply Filters
                     </button>
-                    <button type="button" onclick="resetFilters()" class="btn btn-secondary">
-                        <i class="bi bi-x-circle"></i> Clear Filters
-                    </button>
+                    <a href="{% url 'payments:history' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-undo me-1"></i> Clear
+                    </a>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Payments Table -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="bi bi-list-ul"></i> Recent Payments
-            </h6>
-            <span class="badge bg-primary">{{ payments|length }} payments</span>
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Payment Records
+            </h5>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
+                        data-bs-toggle="dropdown">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-file-csv me-2"></i> CSV</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i> PDF</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2"></i> Excel</a></li>
+                </ul>
+            </div>
         </div>
+        
         <div class="card-body">
+            {% if payments %}
             <div class="table-responsive">
-                <table class="table table-hover" id="paymentsTable" width="100%" cellspacing="0">
+                <table class="table table-hover" id="paymentsTable">
                     <thead>
                         <tr>
                             <th>Reference</th>
@@ -247,95 +241,85 @@
                         {% for payment in payments %}
                         <tr>
                             <td>
-                                <div class="d-flex align-items-center">
-                                    {% if payment.payment_method == 'stripe' %}
-                                    <div class="payment-method-icon stripe-icon me-2">
-                                        <i class="bi bi-credit-card"></i>
-                                    </div>
-                                    {% elif payment.payment_method == 'paypal' %}
-                                    <div class="payment-method-icon paypal-icon me-2">
-                                        <i class="bi bi-paypal"></i>
-                                    </div>
-                                    {% elif payment.payment_method == 'wallet' %}
-                                    <div class="payment-method-icon wallet-icon me-2">
-                                        <i class="bi bi-wallet"></i>
-                                    </div>
-                                    {% elif payment.payment_method == 'bank_transfer' %}
-                                    <div class="payment-method-icon bank-icon me-2">
-                                        <i class="bi bi-bank"></i>
-                                    </div>
-                                    {% endif %}
-                                    <div>
-                                        <strong>{{ payment.reference_number }}</strong>
-                                        <br>
-                                        <small class="text-muted">{{ payment.payment_id|truncatechars:8 }}</small>
-                                    </div>
-                                </div>
+                                <strong>{{ payment.reference_number }}</strong>
+                                <br>
+                                <small class="text-muted">{{ payment.payment_id|truncatechars:10 }}</small>
                             </td>
                             <td>
                                 {% if payment.order %}
-                                <a href="{% url 'orders:detail' payment.order.id %}" class="text-decoration-none">
+                                <a href="{% url 'orders:detail' payment.order.id %}" 
+                                   class="text-decoration-none">
                                     #{{ payment.order.order_number }}
                                 </a>
                                 <br>
-                                <small class="text-muted">{{ payment.order.service_type|title }}</small>
+                                <small class="text-muted">{{ payment.order.topic|truncatechars:30 }}</small>
                                 {% else %}
-                                <span class="text-muted">N/A</span>
+                                <span class="text-muted">No order</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <strong>${{ payment.amount|floatformat:2 }}</strong>
+                                <strong>${{ payment.amount }}</strong>
                                 <br>
                                 <small class="text-muted">{{ payment.currency }}</small>
                             </td>
                             <td>
-                                {{ payment.get_payment_method_display }}
+                                <span class="badge bg-light text-dark">
+                                    <i class="fas fa-{% if payment.payment_method == 'stripe' %}credit-card{% elif payment.payment_method == 'paypal' %}paypal{% elif payment.payment_method == 'wallet' %}wallet{% else %}university{% endif %} me-1"></i>
+                                    {{ payment.get_payment_method_display }}
+                                </span>
                             </td>
                             <td>
-                                <span class="status-badge status-{{ payment.state }}">
-                                    {{ payment.get_state_display }}
-                                </span>
-                                {% if payment.is_in_escrow %}
-                                <br>
-                                <small class="text-muted">
-                                    Held until: {{ payment.escrow_held_until|date:"M d, Y" }}
-                                </small>
+                                {% if payment.state == 'held_in_escrow' %}
+                                    <span class="badge bg-warning payment-status-badge">
+                                        <i class="fas fa-lock me-1"></i> In Escrow
+                                    </span>
+                                {% elif payment.state == 'released_to_wallet' %}
+                                    <span class="badge bg-success payment-status-badge">
+                                        <i class="fas fa-check-circle me-1"></i> Released
+                                    </span>
+                                {% elif payment.state == 'refunded' %}
+                                    <span class="badge bg-secondary payment-status-badge">
+                                        <i class="fas fa-undo me-1"></i> Refunded
+                                    </span>
+                                {% elif payment.state == 'failed' %}
+                                    <span class="badge bg-danger payment-status-badge">
+                                        <i class="fas fa-times-circle me-1"></i> Failed
+                                    </span>
+                                {% elif payment.state == 'processing' %}
+                                    <span class="badge bg-info payment-status-badge">
+                                        <i class="fas fa-spinner me-1"></i> Processing
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark payment-status-badge">
+                                        {{ payment.get_state_display }}
+                                    </span>
                                 {% endif %}
                             </td>
                             <td>
                                 {{ payment.created_at|date:"M d, Y" }}
                                 <br>
-                                <small class="text-muted">{{ payment.created_at|time:"H:i" }}</small>
+                                <small class="text-muted">{{ payment.created_at|date:"H:i" }}</small>
                             </td>
                             <td>
-                                <div class="btn-group btn-group-sm" role="group">
+                                <div class="btn-group btn-group-sm">
                                     <a href="{% url 'payments:detail' payment.payment_id %}" 
-                                       class="btn btn-outline-primary" title="View Details">
-                                        <i class="bi bi-eye"></i>
+                                       class="btn btn-outline-primary" 
+                                       title="View Details">
+                                        <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{% url 'payments:receipt' payment.payment_id %}" 
-                                       class="btn btn-outline-success" title="Receipt">
-                                        <i class="bi bi-receipt"></i>
+                                       target="_blank"
+                                       class="btn btn-outline-success" 
+                                       title="View Receipt">
+                                        <i class="fas fa-receipt"></i>
                                     </a>
-                                    {% if payment.can_be_refunded %}
+                                    {% if payment.state == 'held_in_escrow' and payment.order %}
                                     <a href="{% url 'payments:request_refund' payment.order.id %}" 
-                                       class="btn btn-outline-warning" title="Request Refund">
-                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                       class="btn btn-outline-warning" 
+                                       title="Request Refund">
+                                        <i class="fas fa-undo"></i>
                                     </a>
                                     {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-4">
-                                <div class="text-muted">
-                                    <i class="bi bi-credit-card fa-3x mb-3"></i>
-                                    <p class="h5">No payments found</p>
-                                    <p>You haven't made any payments yet.</p>
-                                    <a href="{% url 'orders:create' %}" class="btn btn-primary">
-                                        <i class="bi bi-plus-circle"></i> Create Order
-                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -343,97 +327,161 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <!-- Pagination -->
-            {% if payments.has_other_pages %}
-            <nav aria-label="Payment pagination">
+            {% if is_paginated %}
+            <nav aria-label="Page navigation">
                 <ul class="pagination justify-content-center">
-                    {% if payments.has_previous %}
+                    {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page=1">&laquo; First</a>
+                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ payments.previous_page_number }}">Previous</a>
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
                     </li>
                     {% endif %}
-                    
-                    {% for num in payments.paginator.page_range %}
-                    {% if payments.number == num %}
-                    <li class="page-item active">
-                        <span class="page-link">{{ num }}</span>
-                    </li>
-                    {% elif num > payments.number|add:'-3' and num < payments.number|add:'3' %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                    </li>
-                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
                     {% endfor %}
-                    
-                    {% if payments.has_next %}
+
+                    {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ payments.next_page_number }}">Next</a>
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ payments.paginator.num_pages }}">Last &raquo;</a>
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
                     </li>
                     {% endif %}
                 </ul>
             </nav>
             {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-credit-card fa-4x text-muted mb-4"></i>
+                <h4 class="text-muted mb-3">No Payments Found</h4>
+                <p class="text-muted mb-4">
+                    You haven't made any payments yet. Start by placing an order.
+                </p>
+                <a href="{% url 'orders:create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i> Place New Order
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Payment Methods Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for method in payment_methods %}
+                        <div class="col-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    {% if method.method == 'stripe' %}
+                                    <i class="fab fa-cc-stripe fa-2x text-primary"></i>
+                                    {% elif method.method == 'paypal' %}
+                                    <i class="fab fa-paypal fa-2x text-info"></i>
+                                    {% elif method.method == 'wallet' %}
+                                    <i class="fas fa-wallet fa-2x text-success"></i>
+                                    {% else %}
+                                    <i class="fas fa-university fa-2x text-secondary"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">{{ method.method|title }}</h6>
+                                    <p class="mb-0">
+                                        <strong>{{ method.count }}</strong> payments
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Recent Activity
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for payment in payments|slice:":5" %}
+                        <div class="list-group-item border-0 px-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">${{ payment.amount }} - {{ payment.get_payment_method_display }}</h6>
+                                    <small class="text-muted">
+                                        {{ payment.created_at|timesince }} ago
+                                    </small>
+                                </div>
+                                <span class="badge {% if payment.state == 'held_in_escrow' %}bg-warning{% elif payment.state == 'released_to_wallet' %}bg-success{% else %}bg-light text-dark{% endif %}">
+                                    {{ payment.get_state_display }}
+                                </span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3">
+                            <p class="text-muted mb-0">No recent activity</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
 <script>
-    // Initialize DataTable
     $(document).ready(function() {
+        // Initialize DataTable
         $('#paymentsTable').DataTable({
-            "order": [[5, "desc"]],
-            "pageLength": 25,
-            "language": {
-                "search": "Search payments:",
-                "lengthMenu": "Show _MENU_ payments per page",
-                "info": "Showing _START_ to _END_ of _TOTAL_ payments",
-                "infoEmpty": "No payments to show",
-                "paginate": {
-                    "previous": "Previous",
-                    "next": "Next"
-                }
-            }
-        });
-        
-        // Set filter values from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.forEach((value, key) => {
-            const element = document.querySelector(`[name="${key}"]`);
-            if (element) {
-                element.value = value;
+            pageLength: 25,
+            order: [[5, 'desc']],
+            language: {
+                search: "Search payments:",
+                lengthMenu: "Show _MENU_ payments per page",
+                info: "Showing _START_ to _END_ of _TOTAL_ payments",
+                infoEmpty: "No payments found",
+                infoFiltered: "(filtered from _MAX_ total payments)"
             }
         });
     });
-    
-    // Export functions
-    function exportToCSV() {
-        alert('CSV export functionality would be implemented here.');
-        // In production, this would generate and download a CSV file
-    }
-    
-    function exportToPDF() {
-        alert('PDF export functionality would be implemented here.');
-        // In production, this would generate and download a PDF file
-    }
-    
-    function printTable() {
-        window.print();
-    }
-    
-    function resetFilters() {
-        document.getElementById('filter-form').reset();
-        window.location.href = window.location.pathname;
-    }
 </script>
 {% endblock %}

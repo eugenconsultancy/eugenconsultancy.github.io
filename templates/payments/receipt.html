@@ -1,28 +1,167 @@
-{% extends 'base/base.html' %}
-{% load static %}
-
-{% block title %}Receipt - {{ payment.reference_number }}{% endblock %}
-
-{% block extra_css %}
-<style>
-    @media print {
-        .no-print {
-            display: none !important;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Receipt - {{ payment.reference_number }} - EBWriting</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
         }
         
         body {
-            background-color: white !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+            background-color: #fff;
         }
         
-        .container-fluid {
-            max-width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 0;
         }
         
-        .receipt-container {
-            border: none !important;
-            box-shadow: none !important;
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            height: 60px;
+            margin-bottom: 10px;
+        }
+        
+        .receipt-title {
+            color: #007bff;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .receipt-subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: #007bff;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .info-item {
+            margin-bottom: 10px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+        
+        .info-value {
+            font-size: 14px;
+        }
+        
+        .amount-box {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .amount-total {
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+            text-align: center;
+        }
+        
+        .amount-label {
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-escrow {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .table td {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .table-total {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            text-align: center;
         }
         
         .watermark {
@@ -30,375 +169,334 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
-            opacity: 0.1;
-            font-size: 100px;
-            color: #666;
+            font-size: 80px;
+            color: rgba(0, 0, 0, 0.1);
+            font-weight: bold;
             pointer-events: none;
-            z-index: 9999;
+            z-index: -1;
         }
-    }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            body {
+                font-size: 12px;
+            }
+            
+            .container {
+                max-width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .watermark {
+                font-size: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">PAID</div>
     
-    .receipt-container {
-        max-width: 800px;
-        margin: 0 auto;
-        border: 1px solid #dee2e6;
-        border-radius: 10px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        padding: 40px;
-        background: white;
-    }
-    
-    .receipt-header {
-        border-bottom: 3px solid #4e73df;
-        padding-bottom: 20px;
-        margin-bottom: 30px;
-    }
-    
-    .watermark {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(-45deg);
-        opacity: 0.05;
-        font-size: 100px;
-        color: #666;
-        pointer-events: none;
-        z-index: -1;
-    }
-    
-    .company-info {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 30px;
-    }
-    
-    .receipt-table {
-        border-collapse: collapse;
-        width: 100%;
-        margin-bottom: 30px;
-    }
-    
-    .receipt-table th {
-        background: #4e73df;
-        color: white;
-        padding: 12px;
-        text-align: left;
-    }
-    
-    .receipt-table td {
-        padding: 12px;
-        border-bottom: 1px solid #dee2e6;
-    }
-    
-    .receipt-table tr:last-child td {
-        border-bottom: none;
-    }
-    
-    .total-row {
-        background: #f8f9fc;
-        font-weight: bold;
-    }
-    
-    .qr-code {
-        border: 1px solid #dee2e6;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-        background: white;
-    }
-    
-    .signature-area {
-        border-top: 2px dashed #dee2e6;
-        padding-top: 40px;
-        margin-top: 40px;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="watermark no-print">PAID</div>
-
-<div class="container-fluid py-5">
-    <div class="receipt-container">
+    <div class="container">
         <!-- Header -->
-        <div class="receipt-header">
-            <div class="row">
-                <div class="col-6">
-                    <h1 class="display-6 text-primary mb-0">RECEIPT</h1>
-                    <p class="text-muted mb-0">Payment Receipt</p>
-                </div>
-                <div class="col-6 text-end">
-                    <p class="mb-1"><strong>Receipt No:</strong> {{ payment.reference_number }}</p>
-                    <p class="mb-0"><strong>Date:</strong> {{ payment.created_at|date:"F d, Y" }}</p>
+        <div class="header">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <!-- Logo would go here -->
+                <div style="font-size: 24px; font-weight: bold; color: #007bff;">EBWriting</div>
+                <div style="color: #666; font-size: 14px;">Academic Writing Services</div>
+            </div>
+            
+            <div style="text-align: center;">
+                <div class="receipt-title">PAYMENT RECEIPT</div>
+                <div class="receipt-subtitle">Official Payment Confirmation</div>
+            </div>
+            
+            <div style="text-align: right; margin-top: 20px;">
+                <div style="font-size: 12px; color: #666;">
+                    Generated: {{ current_date|date:"F d, Y H:i" }}
                 </div>
             </div>
         </div>
 
-        <!-- Company Information -->
-        <div class="company-info">
-            <div class="row">
-                <div class="col-6">
-                    <h5 class="mb-2">EBWriting Platform</h5>
-                    <p class="mb-1">123 Academic Street</p>
-                    <p class="mb-1">Education City, EC 12345</p>
-                    <p class="mb-0">support@ebwriting.com</p>
+        <!-- Payment Information -->
+        <div class="section">
+            <div class="section-title">Payment Information</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Receipt Number</div>
+                    <div class="info-value">{{ payment.reference_number }}</div>
                 </div>
-                <div class="col-6 text-end">
-                    <h5 class="mb-2">Bill To</h5>
-                    <p class="mb-1">{{ payment.user.get_full_name|default:payment.user.email }}</p>
-                    <p class="mb-1">{{ payment.user.email }}</p>
-                    <p class="mb-0">Client ID: {{ payment.user.id }}</p>
+                
+                <div class="info-item">
+                    <div class="info-label">Payment ID</div>
+                    <div class="info-value">{{ payment.payment_id }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Date & Time</div>
+                    <div class="info-value">{{ payment.created_at|date:"F d, Y H:i" }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Status</div>
+                    <div class="info-value">
+                        {% if payment.state == 'held_in_escrow' %}
+                        <span class="status-badge status-escrow">HELD IN ESCROW</span>
+                        {% elif payment.state == 'released_to_wallet' %}
+                        <span class="status-badge status-success">COMPLETED</span>
+                        {% elif payment.state == 'refunded' %}
+                        <span class="status-badge">REFUNDED</span>
+                        {% else %}
+                        <span class="status-badge status-pending">{{ payment.get_state_display|upper }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Payment Method</div>
+                    <div class="info-value">{{ payment.get_payment_method_display }}</div>
+                </div>
+                
+                {% if payment.gateway_transaction_id %}
+                <div class="info-item">
+                    <div class="info-label">Transaction ID</div>
+                    <div class="info-value">{{ payment.gateway_transaction_id }}</div>
+                </div>
+                {% endif %}
+                
+                <div class="info-item">
+                    <div class="info-label">Customer Name</div>
+                    <div class="info-value">{{ payment.user.get_full_name }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Customer Email</div>
+                    <div class="info-value">{{ payment.user.email }}</div>
                 </div>
             </div>
         </div>
 
-        <!-- Payment Details -->
-        <div class="mb-4">
-            <h5 class="mb-3">Payment Information</h5>
-            <table class="receipt-table">
-                <thead>
-                    <tr>
-                        <th>Description</th>
-                        <th>Order No</th>
-                        <th>Payment Method</th>
-                        <th>Status</th>
-                        <th>Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Academic Writing Service</td>
-                        <td>#{{ order.order_number|default:"N/A" }}</td>
-                        <td>{{ payment.get_payment_method_display }}</td>
-                        <td>
-                            <span class="badge bg-success">{{ payment.get_state_display }}</span>
-                        </td>
-                        <td>${{ payment.amount|floatformat:2 }}</td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Amount Box -->
+        <div class="amount-box">
+            <div class="amount-total">${{ payment.amount }} {{ payment.currency }}</div>
+            <div class="amount-label">Total Amount Paid</div>
         </div>
 
-        <!-- Amount Breakdown -->
-        {% if payment.is_in_escrow %}
-        <div class="mb-4">
-            <h5 class="mb-3">Amount Breakdown</h5>
-            <table class="receipt-table">
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Description</th>
-                        <th class="text-end">Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Service Fee</td>
-                        <td>{{ order.service_type|title }} - {{ order.writer_level|title }}</td>
-                        <td class="text-end">${{ payment.writer_amount|floatformat:2 }}</td>
-                    </tr>
-                    <tr>
-                        <td>Platform Fee</td>
-                        <td>Service & Support ({{ platform_fee_percentage|default:20 }}%)</td>
-                        <td class="text-end">${{ payment.platform_fee|floatformat:2 }}</td>
-                    </tr>
-                    <tr class="total-row">
-                        <td colspan="2" class="text-end"><strong>Total Paid:</strong></td>
-                        <td class="text-end"><strong>${{ payment.amount|floatformat:2 }}</strong></td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Order Details -->
+        {% if order %}
+        <div class="section">
+            <div class="section-title">Order Details</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Order Number</div>
+                    <div class="info-value">#{{ order.order_number }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Order Date</div>
+                    <div class="info-value">{{ order.created_at|date:"F d, Y" }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Topic</div>
+                    <div class="info-value">{{ order.topic }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Service Type</div>
+                    <div class="info-value">{{ order.get_service_display }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Pages</div>
+                    <div class="info-value">{{ order.pages }} pages</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Deadline</div>
+                    <div class="info-value">{{ order.deadline|date:"F d, Y" }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Academic Level</div>
+                    <div class="info-value">{{ order.get_academic_level_display }}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Citation Style</div>
+                    <div class="info-value">{{ order.get_citation_style_display }}</div>
+                </div>
+            </div>
         </div>
         {% endif %}
 
-        <!-- Transaction Details -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title">Transaction Details</h6>
-                        <p class="mb-1"><strong>Payment ID:</strong> {{ payment.payment_id }}</p>
-                        {% if payment.gateway_transaction_id %}
-                        <p class="mb-1"><strong>Transaction ID:</strong> {{ payment.gateway_transaction_id }}</p>
-                        {% endif %}
-                        <p class="mb-1"><strong>Date & Time:</strong> {{ payment.created_at|date:"F d, Y H:i:s" }}</p>
-                        <p class="mb-0"><strong>IP Address:</strong> {{ payment.ip_address|default:"N/A" }}</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title">Order Details</h6>
-                        {% if order %}
-                        <p class="mb-1"><strong>Order Number:</strong> #{{ order.order_number }}</p>
-                        <p class="mb-1"><strong>Service:</strong> {{ order.service_type|title }}</p>
-                        <p class="mb-1"><strong>Deadline:</strong> {{ order.deadline|date:"F d, Y H:i" }}</p>
-                        <p class="mb-0"><strong>Status:</strong> {{ order.get_state_display }}</p>
-                        {% else %}
-                        <p class="mb-0 text-muted">No order associated</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+        <!-- Amount Breakdown -->
+        <div class="section">
+            <div class="section-title">Amount Breakdown</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th style="text-align: right;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if order %}
+                    <tr>
+                        <td>Order Amount ({{ order.pages }} pages)</td>
+                        <td style="text-align: right;">${{ order.price }}</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Service Fee</td>
+                        <td style="text-align: right;">${{ order.service_fee }}</td>
+                    </tr>
+                    
+                    {% if order.urgent_fee > 0 %}
+                    <tr>
+                        <td>Urgent Delivery Fee</td>
+                        <td style="text-align: right;">${{ order.urgent_fee }}</td>
+                    </tr>
+                    {% endif %}
+                    
+                    {% if order.additional_pages_fee > 0 %}
+                    <tr>
+                        <td>Additional Pages Fee</td>
+                        <td style="text-align: right;">${{ order.additional_pages_fee }}</td>
+                    </tr>
+                    {% endif %}
+                    
+                    <tr>
+                        <td>Subtotal</td>
+                        <td style="text-align: right;">${{ order.subtotal }}</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>Tax ({{ order.tax_percentage }}%)</td>
+                        <td style="text-align: right;">${{ order.tax_amount }}</td>
+                    </tr>
+                    {% endif %}
+                    
+                    <tr class="table-total">
+                        <td><strong>TOTAL PAID</strong></td>
+                        <td style="text-align: right;">
+                            <strong>${{ payment.amount }} {{ payment.currency }}</strong>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <!-- Escrow Information -->
         {% if payment.is_in_escrow %}
-        <div class="alert alert-info mb-4">
-            <h6 class="alert-heading"><i class="bi bi-shield-lock"></i> Escrow Notice</h6>
-            <p class="mb-2">This payment is being held securely in escrow.</p>
-            <p class="mb-0">
-                <strong>Scheduled Release:</strong> {{ payment.escrow_held_until|date:"F d, Y H:i" }}
-                (in {{ payment.escrow_held_until|timeuntil }})
-            </p>
+        <div class="section">
+            <div class="section-title">Escrow Information</div>
+            <div style="background-color: #f0f8ff; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff;">
+                <p style="margin-bottom: 10px;">
+                    <strong>Important:</strong> Your payment is securely held in escrow until order completion.
+                </p>
+                <div class="info-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="info-item">
+                        <div class="info-label">Held Since</div>
+                        <div class="info-value">{{ payment.held_in_escrow_at|date:"F d, Y" }}</div>
+                    </div>
+                    
+                    {% if payment.escrow_held_until %}
+                    <div class="info-item">
+                        <div class="info-label">Scheduled Release</div>
+                        <div class="info-value">{{ payment.escrow_held_until|date:"F d, Y" }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="info-item">
+                        <div class="info-label">Platform Fee</div>
+                        <div class="info-value">${{ payment.platform_fee }}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">Writer Amount</div>
+                        <div class="info-value">${{ payment.writer_amount }}</div>
+                    </div>
+                </div>
+            </div>
         </div>
         {% endif %}
 
-        <!-- QR Code & Verification -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="qr-code">
-                    <div id="qrcode"></div>
-                    <p class="text-muted mt-2 mb-0">Scan to verify</p>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h6 class="card-title">Verification Information</h6>
-                        <p class="small text-muted mb-2">
-                            This receipt has been digitally signed and verified.
-                        </p>
-                        <p class="mb-1">
-                            <strong>Verification Code:</strong> 
-                            <code>{{ payment.payment_id|slice:":8"|upper }}</code>
-                        </p>
-                        <p class="mb-0">
-                            <strong>Validated:</strong> {{ payment.created_at|date:"Y-m-d H:i:s" }} UTC
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Terms & Signatures -->
-        <div class="signature-area">
-            <div class="row">
-                <div class="col-6">
-                    <p class="mb-4"><strong>For EBWriting Platform:</strong></p>
-                    <div style="border-top: 1px solid #666; width: 200px; margin-top: 30px;">
-                        <p class="text-center mb-0">Authorized Signature</p>
-                    </div>
-                </div>
-                <div class="col-6 text-end">
-                    <p class="mb-4"><strong>Received By:</strong></p>
-                    <div style="border-top: 1px solid #666; width: 200px; margin-left: auto; margin-top: 30px;">
-                        <p class="text-center mb-0">Client Signature</p>
-                    </div>
-                </div>
+        <!-- Terms & Conditions -->
+        <div class="section">
+            <div class="section-title">Terms & Conditions</div>
+            <div style="font-size: 12px; color: #666; line-height: 1.4;">
+                <p>1. This receipt serves as proof of payment for the specified order.</p>
+                <p>2. All payments are processed through secure payment gateways.</p>
+                <p>3. Funds are held in escrow until order completion and customer approval.</p>
+                <p>4. Refunds are processed according to our refund policy available on our website.</p>
+                <p>5. For any discrepancies or questions, please contact support@ebwriting.com</p>
             </div>
         </div>
 
         <!-- Footer -->
-        <div class="mt-5 pt-4 border-top">
-            <div class="row">
-                <div class="col-12 text-center">
-                    <p class="text-muted mb-1">
-                        <i class="bi bi-telephone"></i> +1 (555) 123-4567 | 
-                        <i class="bi bi-envelope"></i> support@ebwriting.com
-                    </p>
-                    <p class="text-muted mb-0 small">
-                        This is an electronically generated receipt. No physical signature required.
-                        Valid for accounting and tax purposes.
-                    </p>
-                    <p class="text-muted mb-0 small">
-                        Generated on: {% now "F d, Y H:i:s" %}
-                    </p>
+        <div class="footer">
+            <div class="footer-grid">
+                <div>
+                    <strong>EBWriting Inc.</strong><br>
+                    123 Academic Street<br>
+                    Education City, EC 12345<br>
+                    United States
+                </div>
+                
+                <div>
+                    <strong>Contact Information</strong><br>
+                    Email: support@ebwriting.com<br>
+                    Phone: +1 (555) 123-4567<br>
+                    Website: www.ebwriting.com
+                </div>
+                
+                <div>
+                    <strong>Business Information</strong><br>
+                    Tax ID: 12-3456789<br>
+                    Registration: 2023-EBW-001<br>
+                    VAT: US123456789
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">
+                <div style="font-size: 11px; color: #999;">
+                    This is an automatically generated receipt. No signature required.<br>
+                    Receipt ID: {{ payment.reference_number }} | Generated: {{ current_date|date:"Y-m-d H:i:s" }}
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Print & Download Buttons -->
-    <div class="text-center mt-4 no-print">
-        <div class="btn-group" role="group">
-            <button onclick="window.print()" class="btn btn-primary">
-                <i class="bi bi-printer"></i> Print Receipt
+        <!-- Print Controls -->
+        <div class="no-print" style="margin-top: 30px; text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
+            <button onclick="window.print()" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px;">
+                <i class="fas fa-print"></i> Print Receipt
             </button>
-            <button onclick="downloadPDF()" class="btn btn-success">
-                <i class="bi bi-download"></i> Download PDF
+            <button onclick="window.close()" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                <i class="fas fa-times"></i> Close Window
             </button>
-            <button onclick="downloadCSV()" class="btn btn-info">
-                <i class="bi bi-file-earmark-text"></i> Download CSV
-            </button>
-            <a href="{% url 'payments:detail' payment.payment_id %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Details
-            </a>
         </div>
     </div>
-</div>
-{% endblock %}
 
-{% block extra_js %}
-<!-- QR Code Library -->
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script>
-    // Generate QR Code
-    document.addEventListener('DOMContentLoaded', function() {
-        const qrData = JSON.stringify({
-            payment_id: '{{ payment.payment_id }}',
-            reference: '{{ payment.reference_number }}',
-            amount: {{ payment.amount }},
-            currency: '{{ payment.currency }}',
-            date: '{{ payment.created_at|date:"c" }}',
-            verified: true
-        });
+    <script>
+        // Auto-print if requested
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('print') === 'true') {
+            window.print();
+        }
         
-        new QRCode(document.getElementById("qrcode"), {
-            text: qrData,
-            width: 128,
-            height: 128,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
-    });
-    
-    // Download functions
-    function downloadPDF() {
-        alert('PDF generation would be implemented here. In production, this would call a PDF generation service.');
-        // Example: window.open('/payments/receipt/{{ payment.payment_id }}/pdf/');
-    }
-    
-    function downloadCSV() {
-        const csvContent = [
-            ['Receipt No', 'Date', 'Amount', 'Currency', 'Payment Method', 'Status'],
-            ['{{ payment.reference_number }}', '{{ payment.created_at|date:"Y-m-d" }}', 
-             {{ payment.amount }}, '{{ payment.currency }}', 
-             '{{ payment.get_payment_method_display }}', '{{ payment.get_state_display }}']
-        ].map(row => row.join(',')).join('\n');
-        
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'receipt-{{ payment.reference_number }}.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-    }
-    
-    // Print optimizations
-    window.addEventListener('beforeprint', () => {
-        document.body.classList.add('printing');
-    });
-    
-    window.addEventListener('afterprint', () => {
-        document.body.classList.remove('printing');
-    });
-</script>
-{% endblock %}
+        // Add print styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @media print {
+                button { display: none !important; }
+                .no-print { display: none !important; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

@@ -1,413 +1,923 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load humanize %}
 
-{% block title %}Escrow Management{% endblock %}
+{% block title %}Escrow Management - Admin - EBWriting{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.2/css/buttons.dataTables.min.css">
 <style>
-    .escrow-stat-card {
+    .escrow-summary-card {
         border-radius: 10px;
-        transition: all 0.3s;
-        overflow: hidden;
+        padding: 1.5rem;
+        text-align: center;
+        height: 100%;
     }
-    
-    .escrow-stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    .escrow-amount {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
     }
-    
-    .stat-icon-wrapper {
-        width: 60px;
-        height: 60px;
-        border-radius: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
+    .escrow-chart-container {
+        height: 300px;
+        position: relative;
     }
-    
-    .ready-release {
-        border-left: 4px solid #28a745;
-        background-color: rgba(40, 167, 69, 0.05);
+    .time-breakdown {
+        font-size: 0.875rem;
     }
-    
-    .future-release {
-        border-left: 4px solid #ffc107;
-        background-color: rgba(255, 193, 7, 0.05);
+    .time-breakdown .progress {
+        height: 8px;
+        margin-top: 5px;
     }
-    
-    .release-badge {
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
+    .payment-row {
+        cursor: pointer;
+        transition: background-color 0.3s;
     }
-    
-    .release-ready { background-color: #d4edda; color: #155724; }
-    .release-future { background-color: #fff3cd; color: #856404; }
-    .release-overdue { background-color: #f8d7da; color: #721c24; }
-    
-    .writer-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
+    .payment-row:hover {
+        background-color: #f8f9fa;
     }
-    
-    .progress-thin {
-        height: 5px;
-        border-radius: 2.5px;
+    .release-eligible {
+        border-left: 4px solid #28a745 !important;
     }
-    
-    .filter-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        margin-bottom: 10px;
+    .release-pending {
+        border-left: 4px solid #ffc107 !important;
     }
-    
-    .filter-tag {
-        padding: 3px 10px;
-        background: #e9ecef;
-        border-radius: 15px;
-        font-size: 0.85rem;
+    .release-overdue {
+        border-left: 4px solid #dc3545 !important;
     }
-    
-    .filter-tag.active {
-        background: #4e73df;
-        color: white;
-    }
-    
-    .bulk-actions {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 20px;
+    .batch-release-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Page Header -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Escrow Management</h1>
-        <div class="btn-group" role="group">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="bi bi-gear"></i> Actions
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" onclick="autoReleaseEligible()">
-                    <i class="bi bi-play-circle"></i> Auto Release Eligible
-                </a></li>
-                <li><a class="dropdown-item" href="#" onclick="exportEscrowReport()">
-                    <i class="bi bi-download"></i> Export Report
-                </a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#settingsModal">
-                    <i class="bi bi-sliders"></i> Escrow Settings
-                </a></li>
-            </ul>
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">Admin</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Escrow Management</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="h2 mb-1">
+                        <i class="fas fa-lock text-primary me-2"></i>
+                        Escrow Management
+                    </h1>
+                    <p class="text-muted">Manage funds held in escrow and release to writers</p>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#autoReleaseModal">
+                        <i class="fas fa-robot me-1"></i> Auto Release
+                    </button>
+                    <a href="{% url 'admin:payments_payment_changelist' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-1"></i> All Payments
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
+    <!-- Summary Cards -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card escrow-stat-card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Escrow Balance
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                ${{ total_escrow_amount|floatformat:2 }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <div class="stat-icon-wrapper bg-primary text-white">
-                                <i class="bi bi-safe"></i>
-                            </div>
-                        </div>
-                    </div>
+            <div class="escrow-summary-card bg-primary bg-opacity-10 border border-primary">
+                <div class="text-primary">
+                    <i class="fas fa-money-bill-wave fa-2x mb-3"></i>
+                    <h6 class="text-uppercase">Total Escrow Balance</h6>
+                    <div class="escrow-amount text-primary">${{ total_escrow_amount|floatformat:2 }}</div>
+                    <small>{{ payment_count }} payments</small>
                 </div>
             </div>
         </div>
-
+        
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card escrow-stat-card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Writer Amount
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                ${{ total_writer_amount|floatformat:2 }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <div class="stat-icon-wrapper bg-success text-white">
-                                <i class="bi bi-person-badge"></i>
-                            </div>
-                        </div>
-                    </div>
+            <div class="escrow-summary-card bg-success bg-opacity-10 border border-success">
+                <div class="text-success">
+                    <i class="fas fa-user-tie fa-2x mb-3"></i>
+                    <h6 class="text-uppercase">Writer Amount</h6>
+                    <div class="escrow-amount text-success">${{ total_writer_amount|floatformat:2 }}</div>
+                    <small>For writers</small>
                 </div>
             </div>
         </div>
-
+        
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card escrow-stat-card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Ready for Release
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ ready_for_release }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <div class="stat-icon-wrapper bg-info text-white">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                        </div>
-                    </div>
+            <div class="escrow-summary-card bg-warning bg-opacity-10 border border-warning">
+                <div class="text-warning">
+                    <i class="fas fa-clock fa-2x mb-3"></i>
+                    <h6 class="text-uppercase">Ready for Release</h6>
+                    <div class="escrow-amount text-warning">{{ ready_for_release }}</div>
+                    <small>Payments eligible</small>
                 </div>
             </div>
         </div>
-
+        
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card escrow-stat-card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Total Payments
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ payments|length }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <div class="stat-icon-wrapper bg-warning text-white">
-                                <i class="bi bi-credit-card-2-front"></i>
-                            </div>
-                        </div>
+            <div class="escrow-summary-card bg-info bg-opacity-10 border border-info">
+                <div class="text-info">
+                    <i class="fas fa-chart-bar fa-2x mb-3"></i>
+                    <h6 class="text-uppercase">Avg Hold Time</h6>
+                    <div class="escrow-amount text-info">
+                        {% if payment_count > 0 %}
+                        {{ avg_hold_days|floatformat:1 }} days
+                        {% else %}
+                        0 days
+                        {% endif %}
                     </div>
+                    <small>Average</small>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="bi bi-funnel"></i> Filter Escrow Payments
-            </h6>
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i>
+                Filter Payments
+            </h5>
         </div>
         <div class="card-body">
-            <!-- Quick Filter Tags -->
-            <div class="filter-tags">
-                <a href="?" class="filter-tag {% if not request.GET.release_filter %}active{% endif %}">
-                    All Payments
-                </a>
-                <a href="?release_filter=ready" class="filter-tag {% if request.GET.release_filter == 'ready' %}active{% endif %}">
-                    Ready for Release
-                </a>
-                <a href="?release_filter=future" class="filter-tag {% if request.GET.release_filter == 'future' %}active{% endif %}">
-                    Future Release
-                </a>
-                <a href="?search=overdue" class="filter-tag">
-                    Overdue
-                </a>
-            </div>
-            
-            <form method="get" id="filterForm">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Search</label>
-                        <div class="input-group">
-                            <input type="text" name="search" class="form-control" 
-                                   value="{{ search }}" placeholder="Search payments...">
-                            <button class="btn btn-outline-primary" type="submit">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Release Date</label>
-                        <select name="release_filter" class="form-select" onchange="this.form.submit()">
-                            <option value="">All Payments</option>
-                            <option value="ready" {% if release_filter == 'ready' %}selected{% endif %}>
-                                Ready for Release
-                            </option>
-                            <option value="future" {% if release_filter == 'future' %}selected{% endif %}>
-                                Future Release
-                            </option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Sort By</label>
-                        <select name="sort" class="form-select" onchange="this.form.submit()">
-                            <option value="">Release Date (Asc)</option>
-                            <option value="amount">Amount (High to Low)</option>
-                            <option value="held_since">Held Since (Oldest)</option>
-                            <option value="writer">Writer Name</option>
-                        </select>
-                    </div>
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ search }}" placeholder="Reference, order, user...">
+                </div>
+                <div class="col-md-4">
+                    <label for="release_filter" class="form-label">Release Status</label>
+                    <select class="form-select" id="release_filter" name="release_filter">
+                        <option value="">All Payments</option>
+                        <option value="ready" {% if release_filter == 'ready' %}selected{% endif %}>Ready for Release</option>
+                        <option value="future" {% if release_filter == 'future' %}selected{% endif %}>Future Release</option>
+                        <option value="overdue" {% if release_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="writer_filter" class="form-label">Writer</label>
+                    <select class="form-select" id="writer_filter" name="writer_filter">
+                        <option value="">All Writers</option>
+                        {% for writer in writers %}
+                        <option value="{{ writer.id }}" {% if writer_filter == writer.id|stringformat:"i" %}selected{% endif %}>
+                            {{ writer.get_full_name|default:writer.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="date_from" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from" 
+                           value="{{ date_from }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="date_to" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to" 
+                           value="{{ date_to }}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i> Apply Filters
+                    </button>
+                    <a href="{% url 'payments:admin_escrow' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-undo me-1"></i> Clear
+                    </a>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Bulk Actions -->
-    <div class="bulk-actions">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="selectAll">
-                    <label class="form-check-label" for="selectAll">
-                        Select all {{ payments|length }} payments
-                    </label>
+    <!-- Time Breakdown -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Escrow Time Breakdown
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="escrow-chart-container">
+                        <canvas id="escrowChart"></canvas>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4 text-end">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-success" onclick="releaseSelected()">
-                        <i class="bi bi-check-circle"></i> Release Selected
-                    </button>
-                    <button type="button" class="btn btn-warning" onclick="extendSelected()">
-                        <i class="bi bi-clock"></i> Extend Selected
-                    </button>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-ol me-2"></i>
+                        Time Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="time-breakdown">
+                        {% for time_period, data in time_distribution.items %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ data.label }}</span>
+                                <span><strong>${{ data.amount|floatformat:2 }}</strong> ({{ data.percentage }}%)</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar {{ data.color }}" 
+                                     role="progressbar" 
+                                     style="width: {{ data.percentage }}%"></div>
+                            </div>
+                            <small class="text-muted">{{ data.count }} payments</small>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Payments Table -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="bi bi-list-ul"></i> Escrow Payments
-            </h6>
-            <span class="badge bg-primary">{{ payments|length }} payments</span>
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Escrow Payments
+                <span class="badge bg-primary ms-2">{{ payment_count }}</span>
+            </h5>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" 
+                        data-bs-toggle="dropdown">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" id="exportCSV"><i class="fas fa-file-csv me-2"></i> CSV</a></li>
+                    <li><a class="dropdown-item" href="#" id="exportPDF"><i class="fas fa-file-pdf me-2"></i> PDF</a></li>
+                    <li><a class="dropdown-item" href="#" id="exportExcel"><i class="fas fa-file-excel me-2"></i> Excel</a></li>
+                </ul>
+            </div>
         </div>
+        
         <div class="card-body">
+            {% if payments %}
             <div class="table-responsive">
-                <table class="table table-hover" id="escrowTable" width="100%" cellspacing="0">
+                <table class="table table-hover" id="escrowTable">
                     <thead>
                         <tr>
-                            <th width="30">
-                                <input type="checkbox" class="form-check-input select-all">
+                            <th width="40">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </div>
                             </th>
-                            <th>Payment Details</th>
-                            <th>Order & Writer</th>
-                            <th>Amount Breakdown</th>
-                            <th>Escrow Status</th>
+                            <th>Reference</th>
+                            <th>Order</th>
+                            <th>Client</th>
+                            <th>Writer</th>
+                            <th>Amount</th>
+                            <th>Held Since</th>
+                            <th>Release Date</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for payment in payments %}
-                        <tr class="{% if payment.escrow_held_until <= now %}ready-release{% else %}future-release{% endif %}">
+                        <tr class="payment-row 
+                            {% if payment.is_release_eligible %}release-eligible
+                            {% elif payment.is_release_overdue %}release-overdue
+                            {% else %}release-pending{% endif %}"
+                            data-payment-id="{{ payment.payment_id }}">
                             <td>
-                                <input type="checkbox" class="form-check-input payment-checkbox" 
-                                       value="{{ payment.id }}">
+                                <div class="form-check">
+                                    <input class="form-check-input payment-checkbox" 
+                                           type="checkbox" 
+                                           value="{{ payment.id }}"
+                                           {% if payment.is_release_eligible %}checked{% endif %}>
+                                </div>
                             </td>
                             <td>
-                                <div>
-                                    <strong>{{ payment.reference_number }}</strong>
-                                    <br>
-                                    <small class="text-muted">Payment ID: {{ payment.payment_id|truncatechars:8 }}</small>
-                                    <br>
-                                    <small class="text-muted">
-                                        Client: {{ payment.user.email|truncatechars:20 }}
-                                    </small>
-                                </div>
+                                <strong>{{ payment.reference_number }}</strong>
+                                <br>
+                                <small class="text-muted">{{ payment.payment_id|truncatechars:10 }}</small>
                             </td>
                             <td>
                                 {% if payment.order %}
-                                <div class="d-flex align-items-center">
-                                    {% if payment.order.writer and payment.order.writer.profile_picture %}
-                                    <img src="{{ payment.order.writer.profile_picture.url }}" 
-                                         class="writer-avatar me-2" alt="Writer">
-                                    {% else %}
-                                    <div class="writer-avatar bg-secondary text-white me-2 d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-person"></i>
-                                    </div>
-                                    {% endif %}
-                                    <div>
-                                        <a href="{% url 'orders:detail' payment.order.id %}" class="text-decoration-none">
-                                            Order #{{ payment.order.order_number }}
-                                        </a>
-                                        <br>
-                                        {% if payment.order.writer %}
-                                        <small class="text-muted">
-                                            {{ payment.order.writer.get_full_name|default:payment.order.writer.email }}
-                                        </small>
-                                        {% else %}
-                                        <small class="text-warning">No writer assigned</small>
-                                        {% endif %}
-                                    </div>
-                                </div>
+                                <a href="{% url 'admin:orders_order_change' payment.order.id %}" 
+                                   class="text-decoration-none" target="_blank">
+                                    #{{ payment.order.order_number }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ payment.order.topic|truncatechars:30 }}</small>
                                 {% else %}
                                 <span class="text-muted">No order</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <div class="mb-1">
-                                    <small class="text-muted">Total: </small>
-                                    <strong>${{ payment.amount|floatformat:2 }}</strong>
-                                </div>
-                                <div class="progress progress-thin mb-1">
-                                    <div class="progress-bar bg-success" role="progressbar" 
-                                         style="width: {{ payment.writer_percentage }}%">
-                                    </div>
-                                    <div class="progress-bar bg-primary" role="progressbar" 
-                                         style="width: {{ payment.platform_percentage }}%">
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between small">
-                                    <span>Writer: ${{ payment.writer_amount|floatformat:2 }}</span>
-                                    <span>Fee: ${{ payment.platform_fee|floatformat:2 }}</span>
-                                </div>
+                                {% if payment.user %}
+                                <a href="{% url 'admin:accounts_user_change' payment.user.id %}" 
+                                   class="text-decoration-none" target="_blank">
+                                    {{ payment.user.get_full_name|default:payment.user.username }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ payment.user.email|truncatechars:20 }}</small>
+                                {% endif %}
                             </td>
                             <td>
-                                <div>
-                                    <span class="release-badge 
-                                        {% if payment.escrow_held_until <= now %}release-ready
-                                        {% else %}release-future{% endif %}">
-                                        {% if payment.escrow_held_until <= now %}
-                                        Ready
-                                        {% else %}
-                                        Future
-                                        {% endif %}
-                                    </span>
-                                    <br>
-                                    <small class="text-muted">Held since:</small>
-                                    <br>
-                                    <small>{{ payment.held_in_escrow_at|date:"M d, Y"|default:"N/A" }}</small>
-                                    <br>
-                                    <small class="text-muted">Release:</small>
-                                    <br>
-                                    <strong>{{ payment.escrow_held_until|date:"M d, Y"|default:"N/A" }}</strong>
-                                    <br>
-                                    <small class="text-muted">
-                                        {% if payment.escrow_held_until > now %}
-                                        in {{ payment.escrow_held_until|timeuntil }}
-                                        {% else %}
-                                        Ready now
-                                        {% endif %}
-                                    </small>
-                                </div>
+                                {% if payment.order and payment.order.writer %}
+                                <a href="{% url 'admin:accounts_user_change' payment.order.writer.id %}" 
+                                   class="text-decoration-none" target="_blank">
+                                    {{ payment.order.writer.get_full_name|default:payment.order.writer.username }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ payment.order.writer.email|truncatechars:20 }}</small>
+                                {% else %}
+                                <span class="text-muted">Unassigned</span>
+                                {% endif %}
                             </td>
                             <td>
-                                <div class="btn-group btn-group-sm" role="group">
+                                <strong>${{ payment.amount }}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    Writer: ${{ payment.writer_amount }}<br>
+                                    Fee: ${{ payment.platform_fee }}
+                                </small>
+                            </td>
+                            <td>
+                                {% if payment.held_in_escrow_at %}
+                                {{ payment.held_in_escrow_at|date:"M d, Y" }}
+                                <br>
+                                <small class="text-muted">{{ payment.time_in_escrow.days }} days</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if payment.escrow_held_until %}
+                                {{ payment.escrow_held_until|date:"M d, Y" }}
+                                <br>
+                                {% if payment.is_release_eligible %}
+                                <span class="badge bg-success">Ready</span>
+                                {% elif payment.is_release_overdue %}
+                                <span class="badge bg-danger">Overdue</span>
+                                {% else %}
+                                <small class="text-muted">{{ payment.time_until_release.days }} days</small>
+                                {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if payment.order %}
+                                <span class="badge {% if payment.order.state == 'completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ payment.order.get_state_display }}
+                                </span>
+                                <br>
+                                <small class="text-muted">Order status</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
                                     <a href="{% url 'payments:release_escrow' payment.payment_id %}" 
-                                       class="btn btn-outline-success" title="Release">
-                                        <i class="bi bi-cash"></i>
-                                   
+                                       class="btn btn-outline-primary" 
+                                       title="Release Funds">
+                                        <i class="fas fa-unlock"></i>
+                                    </a>
+                                    <a href="{% url 'admin:payments_payment_change' payment.id %}" 
+                                       class="btn btn-outline-secondary" 
+                                       title="Edit" target="_blank">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'payments:admin_refund' payment.payment_id %}" 
+                                       class="btn btn-outline-warning" 
+                                       title="Refund">
+                                        <i class="fas fa-undo"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Batch Release Button -->
+            <button type="button" class="btn btn-success batch-release-btn" 
+                    id="batchReleaseBtn" style="display: none;">
+                <i class="fas fa-rocket me-1"></i>
+                Release Selected (<span id="selectedCount">0</span>)
+            </button>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-lock fa-4x text-muted mb-4"></i>
+                <h4 class="text-muted mb-3">No Escrow Payments</h4>
+                <p class="text-muted mb-4">
+                    There are currently no payments held in escrow.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Releases -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-history me-2"></i>
+                Recent Releases
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Payment</th>
+                            <th>Writer</th>
+                            <th>Amount</th>
+                            <th>Released By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for release in recent_releases %}
+                        <tr>
+                            <td>{{ release.released_at|date:"M d, Y H:i" }}</td>
+                            <td>{{ release.reference_number }}</td>
+                            <td>
+                                {% if release.order.writer %}
+                                {{ release.order.writer.get_full_name|default:release.order.writer.username }}
+                                {% endif %}
+                            </td>
+                            <td>${{ release.writer_amount }}</td>
+                            <td>{{ release.released_by.get_full_name|default:release.released_by.username }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">
+                                No recent releases
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto Release Modal -->
+<div class="modal fade" id="autoReleaseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-robot me-2"></i>
+                    Auto Release Configuration
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Configure automatic release of escrow funds for eligible payments.
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Release Schedule</label>
+                    <select class="form-select" id="autoReleaseSchedule">
+                        <option value="daily">Daily (Midnight UTC)</option>
+                        <option value="weekly" selected>Weekly (Sunday Midnight)</option>
+                        <option value="manual">Manual Only</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Minimum Hold Period</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="minHoldDays" value="7" min="1" max="30">
+                        <span class="input-group-text">days</span>
+                    </div>
+                    <div class="form-text">
+                        Minimum days to hold funds in escrow before automatic release
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="notifyWriters" checked>
+                        <label class="form-check-label" for="notifyWriters">
+                            Notify writers on release
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="notifyClients">
+                        <label class="form-check-label" for="notifyClients">
+                            Notify clients on release
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveAutoRelease">
+                    <i class="fas fa-save me-1"></i> Save Settings
+                </button>
+                <button type="button" class="btn btn-success" id="runNowBtn">
+                    <i class="fas fa-play me-1"></i> Run Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Batch Release Modal -->
+<div class="modal fade" id="batchReleaseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-rocket me-2"></i>
+                    Batch Release Confirmation
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    You are about to release funds for <strong id="modalSelectedCount">0</strong> payments.
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Release Notes</label>
+                    <textarea class="form-control" id="releaseNotes" rows="3" 
+                              placeholder="Optional notes about this batch release..."></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="sendNotifications" checked>
+                        <label class="form-check-label" for="sendNotifications">
+                            Send notifications to writers
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="createTransactions" checked>
+                        <label class="form-check-label" for="createTransactions">
+                            Create wallet transactions
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="batchSummary" class="mb-3">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmBatchRelease">
+                    <i class="fas fa-check me-1"></i> Confirm Release
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        const table = $('#escrowTable').DataTable({
+            pageLength: 50,
+            order: [[7, 'asc']], // Sort by release date
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'copy',
+                    text: '<i class="fas fa-copy me-1"></i> Copy',
+                    className: 'btn btn-sm btn-outline-secondary'
+                },
+                {
+                    extend: 'csv',
+                    text: '<i class="fas fa-file-csv me-1"></i> CSV',
+                    className: 'btn btn-sm btn-outline-secondary'
+                },
+                {
+                    extend: 'excel',
+                    text: '<i class="fas fa-file-excel me-1"></i> Excel',
+                    className: 'btn btn-sm btn-outline-secondary'
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="fas fa-file-pdf me-1"></i> PDF',
+                    className: 'btn btn-sm btn-outline-secondary'
+                }
+            ],
+            language: {
+                search: "Search payments:",
+                lengthMenu: "Show _MENU_ payments per page",
+                info: "Showing _START_ to _END_ of _TOTAL_ payments",
+                infoEmpty: "No payments found",
+                infoFiltered: "(filtered from _MAX_ total payments)"
+            }
+        });
+        
+        // Initialize Chart
+        const ctx = document.getElementById('escrowChart').getContext('2d');
+        const escrowChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    'Less than 24h',
+                    '1-3 days',
+                    '3-7 days',
+                    'More than 7 days'
+                ],
+                datasets: [{
+                    data: [
+                        {{ time_distribution.less_than_24h.amount }},
+                        {{ time_distribution.1_to_3_days.amount }},
+                        {{ time_distribution.3_to_7_days.amount }},
+                        {{ time_distribution.more_than_7_days.amount }}
+                    ],
+                    backgroundColor: [
+                        '#28a745',
+                        '#17a2b8',
+                        '#ffc107',
+                        '#dc3545'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Select All checkbox
+        $('#selectAll').change(function() {
+            const isChecked = $(this).prop('checked');
+            $('.payment-checkbox').prop('checked', isChecked);
+            updateSelectedCount();
+        });
+        
+        // Individual checkbox changes
+        $('.payment-checkbox').change(function() {
+            updateSelectedCount();
+        });
+        
+        // Update selected count
+        function updateSelectedCount() {
+            const selectedCount = $('.payment-checkbox:checked').length;
+            $('#selectedCount').text(selectedCount);
+            $('#modalSelectedCount').text(selectedCount);
+            
+            if (selectedCount > 0) {
+                $('#batchReleaseBtn').show();
+            } else {
+                $('#batchReleaseBtn').hide();
+            }
+            
+            // Update batch summary
+            updateBatchSummary();
+        }
+        
+        // Update batch summary
+        function updateBatchSummary() {
+            let totalAmount = 0;
+            let writerAmount = 0;
+            let platformFee = 0;
+            
+            $('.payment-checkbox:checked').each(function() {
+                const row = $(this).closest('tr');
+                const amountText = row.find('td:nth-child(6) strong').text();
+                const detailsText = row.find('td:nth-child(6) small').text();
+                
+                // Parse amounts
+                const amount = parseFloat(amountText.replace('$', ''));
+                const writerMatch = detailsText.match(/Writer: \$(\d+\.?\d*)/);
+                const feeMatch = detailsText.match(/Fee: \$(\d+\.?\d*)/);
+                
+                totalAmount += amount;
+                if (writerMatch) writerAmount += parseFloat(writerMatch[1]);
+                if (feeMatch) platformFee += parseFloat(feeMatch[1]);
+            });
+            
+            $('#batchSummary').html(`
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">Batch Summary</h6>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <small>Total Amount:</small><br>
+                            <strong>$${totalAmount.toFixed(2)}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small>Writer Amount:</small><br>
+                            <strong>$${writerAmount.toFixed(2)}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small>Platform Fee:</small><br>
+                            <strong>$${platformFee.toFixed(2)}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small>Payments:</small><br>
+                            <strong>${$('.payment-checkbox:checked').length}</strong>
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        // Batch release button
+        $('#batchReleaseBtn').click(function() {
+            const selectedCount = $('.payment-checkbox:checked').length;
+            if (selectedCount > 0) {
+                $('#batchReleaseModal').modal('show');
+            }
+        });
+        
+        // Confirm batch release
+        $('#confirmBatchRelease').click(function() {
+            const selectedPayments = [];
+            $('.payment-checkbox:checked').each(function() {
+                selectedPayments.push($(this).val());
+            });
+            
+            const releaseNotes = $('#releaseNotes').val();
+            const sendNotifications = $('#sendNotifications').prop('checked');
+            const createTransactions = $('#createTransactions').prop('checked');
+            
+            // Show loading
+            $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
+            
+            // Make AJAX request
+            $.ajax({
+                url: '{% url "payments:batch_release_escrow" %}',
+                method: 'POST',
+                data: {
+                    payments: selectedPayments,
+                    release_notes: releaseNotes,
+                    send_notifications: sendNotifications,
+                    create_transactions: createTransactions,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert(`Successfully released ${response.released_count} payments.`);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.error);
+                        $('#confirmBatchRelease').prop('disabled', false).html('<i class="fas fa-check me-1"></i> Confirm Release');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred. Please try again.');
+                    $('#confirmBatchRelease').prop('disabled', false).html('<i class="fas fa-check me-1"></i> Confirm Release');
+                }
+            });
+        });
+        
+        // Auto release settings
+        $('#saveAutoRelease').click(function() {
+            const schedule = $('#autoReleaseSchedule').val();
+            const minHoldDays = $('#minHoldDays').val();
+            const notifyWriters = $('#notifyWriters').prop('checked');
+            const notifyClients = $('#notifyClients').prop('checked');
+            
+            // Save settings via AJAX
+            $.ajax({
+                url: '{% url "payments:save_auto_release_settings" %}',
+                method: 'POST',
+                data: {
+                    schedule: schedule,
+                    min_hold_days: minHoldDays,
+                    notify_writers: notifyWriters,
+                    notify_clients: notifyClients,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function() {
+                    alert('Auto release settings saved successfully.');
+                    $('#autoReleaseModal').modal('hide');
+                }
+            });
+        });
+        
+        // Run auto release now
+        $('#runNowBtn').click(function() {
+            if (confirm('Run auto release for all eligible payments now?')) {
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Running...');
+                
+                $.ajax({
+                    url: '{% url "payments:run_auto_release" %}',
+                    method: 'POST',
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        alert(`Auto release completed. ${response.released_count} payments released.`);
+                        location.reload();
+                    }
+                });
+            }
+        });
+        
+        // Export handlers
+        $('#exportCSV').click(function(e) {
+            e.preventDefault();
+            table.button('.buttons-csv').trigger();
+        });
+        
+        $('#exportPDF').click(function(e) {
+            e.preventDefault();
+            table.button('.buttons-pdf').trigger();
+        });
+        
+        $('#exportExcel').click(function(e) {
+            e.preventDefault();
+            table.button('.buttons-excel').trigger();
+        });
+        
+        // Initialize
+        updateSelectedCount();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,669 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}My Wallet - EBWriting{% endblock %}
+
+{% block extra_css %}
+<style>
+    .wallet-balance-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .balance-amount {
+        font-size: 3rem;
+        font-weight: bold;
+        margin: 1rem 0;
+    }
+    .wallet-stats-card {
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        height: 100%;
+    }
+    .transaction-item {
+        border-left: 4px solid;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+    .transaction-item:hover {
+        transform: translateX(5px);
+        background-color: #f8f9fa;
+    }
+    .transaction-deposit {
+        border-left-color: #28a745;
+    }
+    .transaction-withdrawal {
+        border-left-color: #dc3545;
+    }
+    .transaction-payment {
+        border-left-color: #007bff;
+    }
+    .transaction-refund {
+        border-left-color: #ffc107;
+    }
+    .payout-status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    .quick-action-btn {
+        width: 100%;
+        padding: 1rem;
+        text-align: center;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Wallet</li>
+                </ol>
+            </nav>
+            <h1 class="h2 mb-0">
+                <i class="fas fa-wallet text-primary me-2"></i>
+                My Wallet
+            </h1>
+            <p class="text-muted">Manage your earnings and withdrawals</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'payments:withdraw' %}" class="btn btn-primary">
+                <i class="fas fa-money-bill-wave me-1"></i> Withdraw Funds
+            </a>
+        </div>
+    </div>
+
+    <!-- Wallet Balance -->
+    <div class="wallet-balance-card">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h5 class="text-white-50 mb-3">Available Balance</h5>
+                <div class="balance-amount">${{ wallet.balance|floatformat:2 }}</div>
+                <p class="mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Total earnings available for withdrawal
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="mb-3">
+                    <small class="text-white-50">Currency</small>
+                    <div class="h5">{{ wallet.currency }}</div>
+                </div>
+                <div class="mb-3">
+                    <small class="text-white-50">Last Updated</small>
+                    <div class="h5">{{ wallet.updated_at|date:"M d, Y" }}</div>
+                </div>
+                <a href="{% url 'payments:transactions' %}" class="btn btn-light">
+                    <i class="fas fa-history me-1"></i> View All Transactions
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="wallet-stats-card bg-primary bg-opacity-10 border border-primary">
+                <div class="text-primary">
+                    <i class="fas fa-money-bill-wave fa-2x mb-3"></i>
+                    <h6 class="text-uppercase">Total Earned</h6>
+                    <div class="h4 mb-2">${{ total_earned|floatformat:2 }}</div>
+                    <small>Lifetime earnings</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="wallet-stats-card bg-success bg-opacity-10 border border-success">
+                <div class="text-success">
+                    <i class="fas fa-arrow-down fa-2x mb-3"></i>
+                    <h6 class="text-uppercase">Total Withdrawn</h6>
+                    <div class="h4 mb-2">${{ total_withdrawn|floatformat:2 }}</div>
+                    <small>Amount withdrawn</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="wallet-stats-card bg-warning bg-opacity-10 border border-warning">
+                <div class="text-warning">
+                    <i class="fas fa-clock fa-2x mb-3"></i>
+                    <h6 class="text-uppercase">Pending Payouts</h6>
+                    <div class="h4 mb-2">
+                        ${{ pending_payouts_total|default:"0.00"|floatformat:2 }}
+                    </div>
+                    <small>{{ pending_payouts.count }} requests</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="wallet-stats-card bg-info bg-opacity-10 border border-info">
+                <div class="text-info">
+                    <i class="fas fa-chart-line fa-2x mb-3"></i>
+                    <h6 class="text-uppercase">Avg Monthly</h6>
+                    <div class="h4 mb-2">
+                        ${{ avg_monthly|default:"0.00"|floatformat:2 }}
+                    </div>
+                    <small>Average monthly earnings</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column - Charts & Stats -->
+        <div class="col-lg-8">
+            <!-- Earnings Chart -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Earnings Overview
+                    </h5>
+                    <select class="form-select form-select-sm" style="width: auto;" id="chartPeriod">
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d" selected>Last 30 Days</option>
+                        <option value="90d">Last 90 Days</option>
+                        <option value="1y">Last Year</option>
+                    </select>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="earningsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <a href="{% url 'payments:withdraw' %}" class="quick-action-btn btn btn-outline-success">
+                        <i class="fas fa-money-bill-wave fa-2x mb-3"></i>
+                        <h6>Withdraw Funds</h6>
+                        <p class="small text-muted mb-0">Transfer to your account</p>
+                    </a>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <a href="{% url 'payments:transactions' %}" class="quick-action-btn btn btn-outline-primary">
+                        <i class="fas fa-history fa-2x mb-3"></i>
+                        <h6>Transaction History</h6>
+                        <p class="small text-muted mb-0">View all transactions</p>
+                    </a>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <a href="{% url 'orders:writer_list' %}" class="quick-action-btn btn btn-outline-warning">
+                        <i class="fas fa-tasks fa-2x mb-3"></i>
+                        <h6>Available Orders</h6>
+                        <p class="small text-muted mb-0">Find new work</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exchange-alt me-2"></i>
+                        Recent Transactions
+                    </h5>
+                    <a href="{% url 'payments:transactions' %}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_transactions %}
+                    <div class="list-group list-group-flush">
+                        {% for transaction in recent_transactions %}
+                        <div class="list-group-item border-0 px-0">
+                            <div class="transaction-item 
+                                {% if transaction.transaction_type == 'deposit' %}transaction-deposit
+                                {% elif transaction.transaction_type == 'withdrawal' %}transaction-withdrawal
+                                {% elif transaction.transaction_type == 'order_payment' %}transaction-payment
+                                {% elif transaction.transaction_type == 'refund' %}transaction-refund
+                                {% endif %}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {{ transaction.get_transaction_type_display }}
+                                        </h6>
+                                        <p class="text-muted mb-1 small">
+                                            {{ transaction.description|default:"No description" }}
+                                        </p>
+                                        <small class="text-muted">
+                                            {{ transaction.created_at|date:"M d, Y H:i" }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="h6 mb-1 
+                                            {% if transaction.transaction_type in 'deposit order_payment refund' %}text-success
+                                            {% else %}text-danger{% endif %}">
+                                            {% if transaction.transaction_type in 'deposit order_payment refund' %}+
+                                            {% else %}-{% endif %}
+                                            ${{ transaction.amount }}
+                                        </div>
+                                        <span class="badge 
+                                            {% if transaction.status == 'completed' %}bg-success
+                                            {% elif transaction.status == 'pending' %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ transaction.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% if transaction.reference %}
+                                <small class="text-muted d-block mt-2">
+                                    Reference: {{ transaction.reference }}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Transactions Yet</h5>
+                        <p class="text-muted">
+                            Your transaction history will appear here once you start earning.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Payouts & Info -->
+        <div class="col-lg-4">
+            <!-- Pending Payouts -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        Pending Payouts
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_payouts %}
+                    <div class="list-group list-group-flush">
+                        {% for payout in pending_payouts %}
+                        <div class="list-group-item border-0 px-0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong>${{ payout.amount }}</strong>
+                                <span class="payout-status-badge badge bg-warning">
+                                    {{ payout.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <small class="text-muted">{{ payout.get_payment_method_display }}</small>
+                                <small class="text-muted">{{ payout.created_at|date:"M d" }}</small>
+                            </div>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-warning" role="progressbar" 
+                                     style="width: {{ payout.progress_percentage }}%"></div>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                {{ payout.days_pending }} days pending
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3">
+                        <a href="{% url 'wallet:payout_history' %}" class="btn btn-sm btn-outline-warning w-100">
+                            View All Payouts
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+                        <h6 class="text-muted">No Pending Payouts</h6>
+                        <p class="text-muted small mb-0">
+                            All your earnings have been processed.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Withdrawal Limits -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Withdrawal Limits
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Minimum Withdrawal</label>
+                        <div class="h6">${{ min_withdrawal|default:"50.00" }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Daily Limit</label>
+                        <div class="h6">${{ daily_limit|default:"1000.00" }}</div>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar bg-info" role="progressbar" 
+                                 style="width: {{ daily_limit_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">
+                            Used: ${{ daily_used|default:"0.00" }} of ${{ daily_limit|default:"1000.00" }}
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Processing Time</label>
+                        <div class="h6">{{ processing_days|default:"3-5" }} business days</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Withdrawals are processed within {{ processing_days|default:"3-5" }} business days.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>
+                        Payment Methods
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fab fa-paypal fa-2x text-primary me-3"></i>
+                            <div>
+                                <h6 class="mb-1">PayPal</h6>
+                                <small class="text-muted">Recommended for fast transfers</small>
+                            </div>
+                            <div class="ms-auto">
+                                <span class="badge bg-success">Active</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-university fa-2x text-success me-3"></i>
+                            <div>
+                                <h6 class="mb-1">Bank Transfer</h6>
+                                <small class="text-muted">3-5 business days</small>
+                            </div>
+                            <div class="ms-auto">
+                                <span class="badge bg-success">Active</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-money-check-alt fa-2x text-warning me-3"></i>
+                            <div>
+                                <h6 class="mb-1">Check</h6>
+                                <small class="text-muted">7-14 business days</small>
+                            </div>
+                            <div class="ms-auto">
+                                <span class="badge bg-secondary">Inactive</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{% url 'accounts:settings' %}#payment-methods" 
+                           class="btn btn-sm btn-outline-primary w-100">
+                            <i class="fas fa-cog me-1"></i> Manage Payment Methods
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support Card -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-headset me-2"></i>
+                        Need Help?
+                    </h6>
+                    <p class="card-text small text-muted">
+                        If you have questions about payments, withdrawals, or your wallet balance, 
+                        contact our support team.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a href="mailto:support@ebwriting.com" 
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-envelope me-1"></i> Email Support
+                        </a>
+                        <a href="{% url 'dashboard' %}#support" 
+                           class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-comments me-1"></i> Live Chat
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings Breakdown -->
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Earnings Breakdown
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="earningsBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        This Month's Earnings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Week</th>
+                                    <th>Orders</th>
+                                    <th>Earnings</th>
+                                    <th>Avg/Order</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for week in monthly_breakdown %}
+                                <tr>
+                                    <td>Week {{ week.week }}</td>
+                                    <td>{{ week.orders }}</td>
+                                    <td>${{ week.earnings|floatformat:2 }}</td>
+                                    <td>${{ week.average|floatformat:2 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        No earnings this month yet
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            {% if monthly_breakdown %}
+                            <tfoot>
+                                <tr class="table-active">
+                                    <th>Total</th>
+                                    <th>{{ monthly_total.orders }}</th>
+                                    <th>${{ monthly_total.earnings|floatformat:2 }}</th>
+                                    <th>${{ monthly_total.average|floatformat:2 }}</th>
+                                </tr>
+                            </tfoot>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize earnings chart
+        const earningsCtx = document.getElementById('earningsChart').getContext('2d');
+        const earningsChart = new Chart(earningsCtx, {
+            type: 'line',
+            data: {
+                labels: {{ earnings_labels|safe }},
+                datasets: [{
+                    label: 'Earnings',
+                    data: {{ earnings_data|safe }},
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `$${context.raw.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Initialize earnings breakdown chart
+        const breakdownCtx = document.getElementById('earningsBreakdownChart').getContext('2d');
+        const breakdownChart = new Chart(breakdownCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Order Payments', 'Bonuses', 'Referrals', 'Other'],
+                datasets: [{
+                    data: [75, 15, 8, 2],
+                    backgroundColor: [
+                        '#28a745',
+                        '#ffc107',
+                        '#17a2b8',
+                        '#6c757d'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Update chart based on period selection
+        $('#chartPeriod').change(function() {
+            const period = $(this).val();
+            
+            // Here you would typically make an AJAX request to get new data
+            // For now, we'll just update the chart with dummy data
+            updateChartData(period);
+        });
+        
+        function updateChartData(period) {
+            // This is a placeholder function
+            // In a real implementation, you would make an AJAX request
+            console.log('Updating chart for period:', period);
+            
+            // Example of updating chart with new data
+            // earningsChart.data.labels = newLabels;
+            // earningsChart.data.datasets[0].data = newData;
+            // earningsChart.update();
+        }
+        
+        // Animate balance counter
+        const balanceElement = $('.balance-amount');
+        const balance = parseFloat('{{ wallet.balance }}');
+        if (!isNaN(balance)) {
+            const duration = 2000; // 2 seconds
+            const steps = 60;
+            const increment = balance / steps;
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= balance) {
+                    current = balance;
+                    clearInterval(timer);
+                }
+                balanceElement.text('$' + current.toFixed(2));
+            }, duration / steps);
+        }
+        
+        // Update daily limit progress bar
+        const dailyUsed = parseFloat('{{ daily_used|default:"0" }}');
+        const dailyLimit = parseFloat('{{ daily_limit|default:"1000" }}');
+        if (dailyLimit > 0) {
+            const percentage = Math.min((dailyUsed / dailyLimit) * 100, 100);
+            $('.progress-bar').css('width', percentage + '%');
+            
+            // Add warning class if near limit
+            if (percentage > 80) {
+                $('.progress-bar').removeClass('bg-info').addClass('bg-warning');
+            }
+            if (percentage >= 100) {
+                $('.progress-bar').removeClass('bg-warning').addClass('bg-danger');
+            }
+        }
+    });
+</script>
+{% endblock %}

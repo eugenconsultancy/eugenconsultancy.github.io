@@ -1,0 +1,474 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Writer Onboarding - Step 1{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Onboarding Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center">
+                        <h1 class="h2 mb-3">Welcome to Writer Onboarding</h1>
+                        <p class="text-muted mb-4">
+                            Complete your profile to start accepting writing assignments
+                        </p>
+                        
+                        <!-- Progress Steps -->
+                        <div class="progress-steps">
+                            <div class="step active">
+                                <div class="step-number">1</div>
+                                <div class="step-label">Profile</div>
+                            </div>
+                            <div class="step-divider"></div>
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <div class="step-label">Documents</div>
+                            </div>
+                            <div class="step-divider"></div>
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <div class="step-label">Verification</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Step 1: Complete Your Profile
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Personal Information -->
+                        <div class="mb-5">
+                            <h5 class="mb-3 border-bottom pb-2">
+                                <i class="fas fa-user-circle me-2"></i>Personal Information
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="id_first_name" class="form-label">First Name *</label>
+                                    <input type="text" name="first_name" id="id_first_name" 
+                                           class="form-control" 
+                                           value="{{ form.first_name.value|default:user.first_name }}" 
+                                           placeholder="John" required>
+                                    <div class="invalid-feedback">
+                                        Please enter your first name.
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="id_last_name" class="form-label">Last Name *</label>
+                                    <input type="text" name="last_name" id="id_last_name" 
+                                           class="form-control" 
+                                           value="{{ form.last_name.value|default:user.last_name }}" 
+                                           placeholder="Doe" required>
+                                    <div class="invalid-feedback">
+                                        Please enter your last name.
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="id_phone_number" class="form-label">Phone Number *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">+</span>
+                                        <input type="text" name="phone_number" id="id_phone_number" 
+                                               class="form-control" 
+                                               value="{{ form.phone_number.value|default:user.phone_number }}" 
+                                               placeholder="1234567890" required>
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please enter a valid phone number.
+                                    </div>
+                                    <div class="form-text">
+                                        International format (country code + number)
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="id_country" class="form-label">Country *</label>
+                                    <input type="text" name="country" id="id_country" 
+                                           class="form-control" 
+                                           value="{{ form.country.value|default:'' }}" 
+                                           placeholder="United States" required>
+                                    <div class="invalid-feedback">
+                                        Please enter your country.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Educational Background -->
+                        <div class="mb-5">
+                            <h5 class="mb-3 border-bottom pb-2">
+                                <i class="fas fa-graduation-cap me-2"></i>Educational Background
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="id_education_level" class="form-label">
+                                        Highest Education Level *
+                                    </label>
+                                    <select name="education_level" id="id_education_level" 
+                                            class="form-select" required>
+                                        <option value="">Select your education level</option>
+                                        {% for value, label in form.education_level.field.choices %}
+                                        <option value="{{ value }}" 
+                                            {% if form.education_level.value == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select your education level.
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="id_institution" class="form-label">
+                                        Educational Institution *
+                                    </label>
+                                    <input type="text" name="institution" id="id_institution" 
+                                           class="form-control" 
+                                           value="{{ form.institution.value|default:'' }}" 
+                                           placeholder="University of Oxford" required>
+                                    <div class="invalid-feedback">
+                                        Please enter your institution.
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="id_graduation_year" class="form-label">
+                                        Graduation Year *
+                                    </label>
+                                    <input type="number" name="graduation_year" id="id_graduation_year" 
+                                           class="form-control" 
+                                           value="{{ form.graduation_year.value|default:'' }}" 
+                                           min="1900" max="2100" 
+                                           placeholder="2020" required>
+                                    <div class="invalid-feedback">
+                                        Please enter a valid graduation year.
+                                    </div>
+                                    <div class="form-text">
+                                        Year you graduated or expect to graduate
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="id_years_of_experience" class="form-label">
+                                        Years of Academic Writing Experience *
+                                    </label>
+                                    <input type="number" name="years_of_experience" 
+                                           id="id_years_of_experience" 
+                                           class="form-control" 
+                                           value="{{ form.years_of_experience.value|default:0 }}" 
+                                           min="0" max="50" required>
+                                    <div class="invalid-feedback">
+                                        Please enter years of experience.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Professional Information -->
+                        <div class="mb-5">
+                            <h5 class="mb-3 border-bottom pb-2">
+                                <i class="fas fa-briefcase me-2"></i>Professional Information
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="id_hourly_rate" class="form-label">
+                                        Suggested Hourly Rate (USD) *
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" name="hourly_rate" id="id_hourly_rate" 
+                                               class="form-control" 
+                                               value="{{ form.hourly_rate.value|default:'25.00' }}" 
+                                               step="0.01" min="5" max="500" required>
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please enter a valid hourly rate between $5 and $500.
+                                    </div>
+                                    <div class="form-text">
+                                        You can adjust this later based on your experience
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="id_max_orders" class="form-label">
+                                        Maximum Concurrent Orders *
+                                    </label>
+                                    <input type="number" name="max_orders" id="id_max_orders" 
+                                           class="form-control" 
+                                           value="{{ form.max_orders.value|default:3 }}" 
+                                           min="1" max="10" required>
+                                    <div class="invalid-feedback">
+                                        Please enter a number between 1 and 10.
+                                    </div>
+                                    <div class="form-text">
+                                        Maximum number of orders you can handle at once
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="id_specialization" class="form-label">
+                                        Areas of Specialization *
+                                    </label>
+                                    <textarea name="specialization" id="id_specialization" 
+                                              class="form-control" 
+                                              rows="3" 
+                                              placeholder="Computer Science, Business Management, Psychology, Literature" 
+                                              required>{{ form.specialization.value|default:'' }}</textarea>
+                                    <div class="invalid-feedback">
+                                        Please specify at least one area of specialization.
+                                    </div>
+                                    <div class="form-text">
+                                        Comma-separated list of your academic expertise areas
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="id_bio" class="form-label">
+                                        Professional Biography *
+                                    </label>
+                                    <textarea name="bio" id="id_bio" 
+                                              class="form-control" 
+                                              rows="5" 
+                                              placeholder="Tell us about your academic background, writing experience, qualifications, and why you're a great fit for EBWriting..." 
+                                              required>{{ form.bio.value|default:'' }}</textarea>
+                                    <div class="invalid-feedback">
+                                        Please provide a professional biography.
+                                    </div>
+                                    <div class="form-text">
+                                        Maximum 2000 characters. Describe your qualifications and experience.
+                                    </div>
+                                    <div class="mt-1 text-end">
+                                        <small class="text-muted char-count" data-target="id_bio">0/2000</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Availability -->
+                        <div class="mb-5">
+                            <h5 class="mb-3 border-bottom pb-2">
+                                <i class="fas fa-calendar-check me-2"></i>Availability
+                            </h5>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="is_available" id="id_is_available" 
+                                               {% if form.is_available.value %}checked{% endif %}>
+                                        <label class="form-check-label" for="id_is_available">
+                                            I am available to accept assignments
+                                        </label>
+                                        <div class="form-text">
+                                            You can change this setting anytime
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Errors -->
+                        {% if form.errors %}
+                        <div class="alert alert-danger mb-4">
+                            <h6 class="alert-heading">Please fix the following errors:</h6>
+                            <ul class="mb-0">
+                                {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Navigation Buttons -->
+                        <div class="d-flex justify-content-between mt-5">
+                            <a href="{% url 'accounts:dashboard' %}" 
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5">
+                                Continue to Step 2
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Help Information -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3 mb-md-0">
+                            <i class="fas fa-shield-alt fa-2x text-primary mb-3"></i>
+                            <h6>Secure & Private</h6>
+                            <p class="text-muted small">
+                                Your information is protected and will only be used for verification purposes.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3 mb-md-0">
+                            <i class="fas fa-clock fa-2x text-warning mb-3"></i>
+                            <h6>Quick Process</h6>
+                            <p class="text-muted small">
+                                Profile approval typically takes 1-2 business days.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-question-circle fa-2x text-info mb-3"></i>
+                            <h6>Need Help?</h6>
+                            <p class="text-muted small">
+                                Contact our support team at help@ebwriting.com
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter for biography
+    const bioTextarea = document.getElementById('id_bio');
+    const charCount = document.querySelector('.char-count[data-target="id_bio"]');
+    
+    if (bioTextarea && charCount) {
+        function updateCharCount() {
+            const count = bioTextarea.value.length;
+            charCount.textContent = count + '/2000';
+            
+            if (count > 2000) {
+                charCount.classList.add('text-danger');
+                charCount.classList.remove('text-muted');
+            } else {
+                charCount.classList.remove('text-danger');
+                charCount.classList.add('text-muted');
+            }
+        }
+        
+        bioTextarea.addEventListener('input', updateCharCount);
+        updateCharCount(); // Initial count
+    }
+    
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+
+<style>
+.progress-steps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.step.active .step-number {
+    background-color: #0d6efd;
+    color: white;
+    transform: scale(1.1);
+}
+
+.step-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.step.active .step-label {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.step-divider {
+    width: 100px;
+    height: 2px;
+    background-color: #dee2e6;
+    margin: 0 1rem;
+    position: relative;
+    top: -20px;
+}
+
+/* Form Sections */
+h5.border-bottom {
+    border-color: #0d6efd !important;
+    padding-bottom: 0.75rem;
+}
+
+h5 i {
+    color: #0d6efd;
+}
+
+.card-header.bg-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+/* Help Cards */
+.card-body .row > div {
+    padding: 0 1rem;
+}
+
+.card-body .row > div:not(:last-child) {
+    border-right: 1px solid #dee2e6;
+}
+
+@media (max-width: 768px) {
+    .card-body .row > div:not(:last-child) {
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
