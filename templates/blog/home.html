@@ -1,0 +1,322 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Blog - EWBWriting Academic Resources & Insights{% endblock %}
+{% block meta_description %}Read expert articles, writing tips, academic guides, and insights from professional writers at EWBWriting.{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-8">
+            <h1 class="display-4 fw-bold text-dark mb-3">EBWriting Blog</h1>
+            <p class="lead text-muted mb-4">Expert insights, writing tips, and academic guidance from our professional writers and educators.</p>
+            
+            <!-- Search Form -->
+            <form method="get" action="{% url 'blog:search' %}" class="row g-3">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control form-control-lg" 
+                               placeholder="Search blog posts..." value="{{ search_query|default:'' }}">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <a href="#newsletter" class="btn btn-outline-primary btn-lg w-100">
+                        <i class="bi bi-envelope"></i> Subscribe
+                    </a>
+                </div>
+            </form>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <div class="stats-card p-4 bg-light rounded-3 shadow-sm">
+                <h4 class="fw-bold mb-3">Blog Stats</h4>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total Posts:</span>
+                    <span class="fw-bold">{{ posts.latest|length|add:posts.featured|length }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Categories:</span>
+                    <span class="fw-bold">{{ categories|length }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Active Writers:</span>
+                    <span class="fw-bold">200+</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Posts -->
+    {% if posts.featured %}
+    <section class="mb-5">
+        <h2 class="h3 fw-bold mb-4 border-bottom pb-2">Featured Posts</h2>
+        <div class="row g-4">
+            {% for post in posts.featured %}
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm h-100 post-card">
+                    {% if post.featured_image %}
+                    <img src="{{ post.featured_image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="bi bi-journal-text text-white fs-1"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-primary me-2">{{ post.category.name|default:"Uncategorized" }}</span>
+                            <small class="text-muted">{{ post.reading_time_minutes }} min read</small>
+                        </div>
+                        <h3 class="h5 fw-bold">
+                            <a href="{{ post.get_absolute_url }}" class="text-decoration-none text-dark">{{ post.title }}</a>
+                        </h3>
+                        <p class="text-muted small">{{ post.excerpt|truncatechars:120 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="d-flex align-items-center">
+                                {% if post.author.profile_picture %}
+                                <img src="{{ post.author.profile_picture.url }}" class="rounded-circle me-2" width="30" height="30" alt="{{ post.author.get_full_name }}">
+                                {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                                    <i class="bi bi-person text-white"></i>
+                                </div>
+                                {% endif %}
+                                <small class="text-muted">{{ post.author.get_full_name|default:"EBWriting Team" }}</small>
+                            </div>
+                            <small class="text-muted">{{ post.published_at|date:"M d, Y" }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Latest Posts -->
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 fw-bold mb-0">Latest Articles</h2>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-filter"></i> Filter
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="?sort=newest">Newest First</a></li>
+                        <li><a class="dropdown-item" href="?sort=popular">Most Popular</a></li>
+                        <li><a class="dropdown-item" href="?sort=oldest">Oldest First</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            {% if posts.latest %}
+            <div class="row">
+                {% for post in posts.latest %}
+                <div class="col-md-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-secondary">{{ post.category.name|default:"Uncategorized" }}</span>
+                                <small class="text-muted">{{ post.reading_time_minutes }} min</small>
+                            </div>
+                            <h3 class="h5 fw-bold">
+                                <a href="{{ post.get_absolute_url }}" class="text-decoration-none text-dark">{{ post.title }}</a>
+                            </h3>
+                            <p class="text-muted small mb-3">{{ post.excerpt|truncatechars:150 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i> {{ post.published_at|date:"M d, Y" }}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="bi bi-eye me-1"></i> {{ post.view_count }} views
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Blog pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-journal-text fs-1 text-muted mb-3"></i>
+                <h3 class="h4 text-muted">No blog posts yet</h3>
+                <p class="text-muted">Check back soon for new articles!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Categories -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Categories</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        {% for category in categories %}
+                        <li class="mb-2">
+                            <a href="{{ category.get_absolute_url }}" class="text-decoration-none d-flex justify-content-between align-items-center py-2">
+                                <span>{{ category.name }}</span>
+                                <span class="badge bg-light text-dark">{{ category.post_count }}</span>
+                            </a>
+                        </li>
+                        {% empty %}
+                        <li class="text-muted">No categories yet</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Popular Posts -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Popular Posts</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        {% for post in popular_posts %}
+                        <li class="mb-3 pb-3 border-bottom">
+                            <a href="{{ post.get_absolute_url }}" class="text-decoration-none">
+                                <h6 class="fw-bold mb-1">{{ post.title }}</h6>
+                                <div class="d-flex justify-content-between text-muted small">
+                                    <span>{{ post.category.name|default:"General" }}</span>
+                                    <span><i class="bi bi-eye"></i> {{ post.view_count }}</span>
+                                </div>
+                            </a>
+                        </li>
+                        {% empty %}
+                        <li class="text-muted">No popular posts yet</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Popular Tags</h4>
+                </div>
+                <div class="card-body">
+                    <div class="tag-cloud">
+                        {% for tag in popular_tags|slice:":20" %}
+                        <a href="{% url 'blog:tag_list' tag.slug %}" class="badge bg-light text-dark me-1 mb-1">
+                            {{ tag.name }}
+                        </a>
+                        {% empty %}
+                        <p class="text-muted small">No tags yet</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Newsletter Subscription -->
+            <div id="newsletter" class="card border-0 shadow-sm bg-gradient-primary text-white">
+                <div class="card-body">
+                    <h4 class="h5 fw-bold mb-3">Stay Updated</h4>
+                    <p class="small opacity-75 mb-3">Get the latest writing tips and academic insights directly in your inbox.</p>
+                    <form method="post" action="{% url 'blog:subscribe' %}" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <input type="email" name="email" class="form-control" placeholder="Your email address" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid email address.
+                            </div>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="receive_new_posts" id="newPosts" checked>
+                            <label class="form-check-label small" for="newPosts">
+                                New posts notifications
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="receive_weekly_digest" id="weeklyDigest">
+                            <label class="form-check-label small" for="weeklyDigest">
+                                Weekly digest
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-light btn-sm w-100">
+                            Subscribe
+                        </button>
+                        <p class="small opacity-75 mt-2 mb-0">
+                            <i class="bi bi-shield-check"></i> We respect your privacy. Unsubscribe anytime.
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.post-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.tag-cloud a {
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+
+.tag-cloud a:hover {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    transform: translateY(-1px);
+}
+
+.card-img-top {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+}
+</style>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% comment %}
+Review Card Partial Template
+Usage: {% include 'reviews/partials/review_card.html' with review=review %}
+Optional parameters: show_order=true, show_metrics=true, show_actions=true
+{% endcomment %}
+
+{% load static %}
+
+{% if not show_order %}{% assign show_order = false %}{% endif %}
+{% if not show_metrics %}{% assign show_metrics = false %}{% endif %}
+{% if not show_actions %}{% assign show_actions = false %}{% endif %}
+
+<div class="card review-card mb-3">
+    <div class="card-body">
+        <!-- Review Header -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <div class="d-flex align-items-center mb-2">
+                    {% include 'reviews/partials/rating_stars.html' with rating=review.rating size='sm' show_number=true %}
+                    <span class="badge bg-success ms-2">
+                        <i class="fas fa-check-circle me-1"></i>Verified
+                    </span>
+                </div>
+                
+                {% if show_order %}
+                <div class="mb-1">
+                    <small class="text-muted">Order:</small>
+                    <a href="{% url 'orders:order_detail' pk=review.order.id %}" 
+                       class="text-decoration-none ms-1">
+                        #{{ review.order.order_number }}
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="text-end">
+                <div class="text-muted small">
+                    {{ review.created_at|date:"M d, Y" }}
+                </div>
+                {% if review.is_edited %}
+                <div class="small text-muted">
+                    <i class="fas fa-edit me-1"></i>Edited
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Reviewer Info -->
+        <div class="d-flex align-items-center mb-3">
+            <div class="flex-shrink-0">
+                <div class="avatar-circle-sm bg-light border text-dark">
+                    {{ review.customer.email|first|upper }}
+                </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <div class="fw-bold mb-1">{{ review.customer.get_full_name|default:review.customer.email }}</div>
+                <div class="text-muted small">Customer</div>
+            </div>
+        </div>
+        
+        <!-- Review Comment -->
+        {% if review.comment %}
+        <div class="review-comment mb-3">
+            <p class="mb-0">{{ review.comment|truncatechars:200 }}</p>
+        </div>
+        {% endif %}
+        
+        <!-- Quality Metrics -->
+        {% if show_metrics and review.communication_rating %}
+        <div class="quality-metrics mb-3">
+            <h6 class="fw-bold mb-2">Quality Breakdown</h6>
+            <div class="row g-2">
+                <div class="col-6">
+                    <div class="metric-item">
+                        <small class="text-muted">Communication</small>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                <div class="progress-bar bg-info" 
+                                     style="width: {{ review.communication_rating|multiply:20 }}%"></div>
+                            </div>
+                            <small class="fw-bold">{{ review.communication_rating }}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-6">
+                    <div class="metric-item">
+                        <small class="text-muted">Timeliness</small>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                <div class="progress-bar bg-success" 
+                                     style="width: {{ review.timeliness_rating|multiply:20 }}%"></div>
+                            </div>
+                            <small class="fw-bold">{{ review.timeliness_rating }}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if review.quality_rating %}
+                <div class="col-6">
+                    <div class="metric-item">
+                        <small class="text-muted">Quality</small>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                <div class="progress-bar bg-warning" 
+                                     style="width: {{ review.quality_rating|multiply:20 }}%"></div>
+                            </div>
+                            <small class="fw-bold">{{ review.quality_rating }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if review.adherence_rating %}
+                <div class="col-6">
+                    <div class="metric-item">
+                        <small class="text-muted">Adherence</small>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                <div class="progress-bar bg-primary" 
+                                     style="width: {{ review.adherence_rating|multiply:20 }}%"></div>
+                            </div>
+                            <small class="fw-bold">{{ review.adherence_rating }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Actions -->
+        {% if show_actions %}
+        <div class="review-actions d-flex justify-content-between align-items-center pt-3 border-top">
+            <div class="text-muted small">
+                {% if review.helpful_count > 0 %}
+                <i class="fas fa-thumbs-up text-success me-1"></i>
+                {{ review.helpful_count }} helpful
+                {% endif %}
+            </div>
+            <div>
+                <a href="{% url 'reviews:view' review_id=review.id %}" 
+                   class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-eye me-1"></i>View Details
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Writer Response -->
+        {% if review.response and show_actions %}
+        <div class="writer-response mt-3 pt-3 border-top">
+            <div class="d-flex align-items-center mb-2">
+                <div class="flex-shrink-0">
+                    <div class="avatar-circle-sm bg-primary text-white">
+                        {{ review.writer.email|first|upper }}
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <div class="fw-bold mb-1">Writer's Response</div>
+                    <div class="text-muted small">{{ review.response.created_at|date:"M d, Y" }}</div>
+                </div>
+            </div>
+            <div class="response-content small">
+                {{ review.response.response_text|truncatechars:150 }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.review-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.avatar-circle-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.review-comment {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #495057;
+}
+
+.metric-item small {
+    font-size: 0.75rem;
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 3px;
+}
+
+.progress-bar {
+    border-radius: 3px;
+}
+
+.writer-response {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 0.75rem;
+}
+
+.response-content {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #6c757d;
+}
+</style>

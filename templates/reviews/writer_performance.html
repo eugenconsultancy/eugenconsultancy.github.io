@@ -1,0 +1,535 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Performance Report - Writer Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-2">Performance Report</h1>
+            <p class="text-muted mb-0">
+                Period: {{ report.period.start|date:"M d, Y" }} - {{ report.period.end|date:"M d, Y" }}
+            </p>
+        </div>
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="fas fa-download me-2"></i>Export
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="printReport()"><i class="fas fa-print me-2"></i>Print</a></li>
+                <li><a class="dropdown-item" href="#" onclick="exportToPDF()"><i class="fas fa-file-pdf me-2"></i>PDF</a></li>
+                <li><a class="dropdown-item" href="#" onclick="exportToCSV()"><i class="fas fa-file-csv me-2"></i>CSV</a></li>
+            </ul>
+            <a href="{% url 'reviews:writer_reviews' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Reviews
+            </a>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="h2 text-primary mb-2">{{ report.metrics.total_reviews }}</div>
+                    <div class="text-muted">Reviews Received</div>
+                    <div class="small text-muted mt-1">
+                        {{ report.metrics.review_rate|floatformat:1 }}% of completed orders
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="h2 text-success mb-2">{{ report.metrics.completed_orders }}</div>
+                    <div class="text-muted">Completed Orders</div>
+                    <div class="small text-muted mt-1">In reporting period</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="h2 text-warning mb-2">{{ report.metrics.average_rating }}</div>
+                    <div class="text-muted">Average Rating</div>
+                    <div class="small text-muted mt-1">
+                        {% with avg=report.metrics.average_rating|floatformat:"0" %}
+                        {% for i in "12345" %}
+                        {% if forloop.counter <= avg|add:"0" %}
+                        <i class="fas fa-star text-warning"></i>
+                        {% else %}
+                        <i class="far fa-star text-muted"></i>
+                        {% endif %}
+                        {% endfor %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="h2 text-info mb-2">{{ report.metrics.response_rate|floatformat:1 }}%</div>
+                    <div class="text-muted">Response Rate</div>
+                    <div class="small text-muted mt-1">
+                        {% if report.metrics.response_rate > 80 %}
+                        <span class="text-success">Excellent!</span>
+                        {% elif report.metrics.response_rate > 50 %}
+                        <span class="text-warning">Good</span>
+                        {% else %}
+                        <span class="text-danger">Needs improvement</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Charts and Analysis -->
+        <div class="col-lg-8">
+            <!-- Rating Trend Chart -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Rating Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <canvas id="ratingChart" height="250"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="ps-md-4">
+                                <h6 class="mb-3">Analysis</h6>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Positive Reviews (4-5 stars)</span>
+                                        <span class="fw-bold text-success">{{ report.metrics.positive_reviews }}</span>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        {% with positive_rate=report.metrics.positive_reviews|divisibleby:report.metrics.total_reviews|multiply:100 %}
+                                        <div class="progress-bar bg-success" 
+                                             style="width: {{ positive_rate|floatformat:1 }}%"></div>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Negative Reviews (1-2 stars)</span>
+                                        <span class="fw-bold text-danger">{{ report.metrics.negative_reviews }}</span>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        {% with negative_rate=report.metrics.negative_reviews|divisibleby:report.metrics.total_reviews|multiply:100 %}
+                                        <div class="progress-bar bg-danger" 
+                                             style="width: {{ negative_rate|floatformat:1 }}%"></div>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="fas fa-lightbulb me-2"></i>
+                                    <strong>Tip:</strong> 
+                                    {% if report.metrics.positive_reviews > report.metrics.negative_reviews %}
+                                    Great work! Your positive reviews exceed negative ones.
+                                    {% else %}
+                                    Focus on improving service quality to increase positive reviews.
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Reviews -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Reviews</h5>
+                    <span class="badge bg-primary">{{ report.metrics.total_reviews }} total</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if report.recent_reviews %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Order</th>
+                                    <th>Rating</th>
+                                    <th>Feedback</th>
+                                    <th>Response</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for review in report.recent_reviews %}
+                                <tr>
+                                    <td>{{ review.created_at|date:"M d" }}</td>
+                                    <td>
+                                        <a href="{% url 'orders:order_detail' pk=review.order.id %}" 
+                                           class="text-decoration-none">
+                                            #{{ review.order.order_number }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="fw-bold me-2">{{ review.rating }}</span>
+                                            <div>
+                                                {% for i in "12345" %}
+                                                {% if forloop.counter <= review.rating %}
+                                                <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                <i class="far fa-star text-muted"></i>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if review.comment %}
+                                        <span class="d-inline-block text-truncate" style="max-width: 200px;">
+                                            {{ review.comment }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">No comment</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if review.response %}
+                                        <span class="badge bg-success">Responded</span>
+                                        {% else %}
+                                        <a href="{% url 'reviews:create_response' review_id=review.id %}" 
+                                           class="badge bg-warning text-decoration-none">
+                                            Respond
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Reviews in This Period</h5>
+                        <p class="text-muted">You haven't received any reviews during the selected time period.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Performance Tips -->
+        <div class="col-lg-4">
+            <!-- Performance Score -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Performance Score</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <div class="performance-circle mx-auto mb-3">
+                            <div class="circle-progress" 
+                                 data-percent="{% widthratio report.metrics.average_rating 5 100 %}"
+                                 data-color="{% if report.metrics.average_rating >= 4.0 %}success{% elif report.metrics.average_rating >= 3.0 %}warning{% else %}danger{% endif %}">
+                                <span class="progress-value">{{ report.metrics.average_rating|floatformat:1 }}</span>
+                            </div>
+                        </div>
+                        <h4 class="mb-1">
+                            {% if report.metrics.average_rating >= 4.5 %}Excellent
+                            {% elif report.metrics.average_rating >= 4.0 %}Very Good
+                            {% elif report.metrics.average_rating >= 3.5 %}Good
+                            {% elif report.metrics.average_rating >= 3.0 %}Average
+                            {% else %}Needs Improvement{% endif %}
+                        </h4>
+                        <p class="text-muted">Overall Performance</p>
+                    </div>
+                    
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Review Rate</span>
+                            <span class="badge 
+                                {% if report.metrics.review_rate > 60 %}bg-success
+                                {% elif report.metrics.review_rate > 30 %}bg-warning
+                                {% else %}bg-danger{% endif %} rounded-pill">
+                                {{ report.metrics.review_rate|floatformat:1 }}%
+                            </span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Positive/Negative Ratio</span>
+                            <span class="badge 
+                                {% if report.metrics.positive_reviews > report.metrics.negative_reviews %}bg-success
+                                {% else %}bg-danger{% endif %} rounded-pill">
+                                {{ report.metrics.positive_reviews }}:{{ report.metrics.negative_reviews }}
+                            </span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Response Rate</span>
+                            <span class="badge 
+                                {% if report.metrics.response_rate > 80 %}bg-success
+                                {% elif report.metrics.response_rate > 50 %}bg-warning
+                                {% else %}bg-danger{% endif %} rounded-pill">
+                                {{ report.metrics.response_rate|floatformat:1 }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Improvement Tips -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Improvement Tips</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-2">
+                            <i class="fas fa-bullseye text-primary me-2"></i>Focus Areas
+                        </h6>
+                        <ul class="list-unstyled mb-0">
+                            {% if report.metrics.average_rating < 4.0 %}
+                            <li class="mb-2">
+                                <i class="fas fa-exclamation-circle text-warning me-2"></i>
+                                Improve overall quality to reach 4+ stars
+                            </li>
+                            {% endif %}
+                            
+                            {% if report.metrics.response_rate < 80 %}
+                            <li class="mb-2">
+                                <i class="fas fa-reply text-info me-2"></i>
+                                Respond to more reviews (aim for 80%+)
+                            </li>
+                            {% endif %}
+                            
+                            {% if report.metrics.negative_reviews > 0 %}
+                            <li class="mb-2">
+                                <i class="fas fa-thumbs-down text-danger me-2"></i>
+                                Address negative feedback proactively
+                            </li>
+                            {% endif %}
+                            
+                            <li class="mb-2">
+                                <i class="fas fa-comments text-success me-2"></i>
+                                Encourage satisfied customers to leave reviews
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <h6 class="alert-heading mb-2">
+                            <i class="fas fa-trophy me-2"></i>Best Practices
+                        </h6>
+                        <ul class="mb-0 small">
+                            <li>Always respond to reviews within 48 hours</li>
+                            <li>Thank customers for positive reviews</li>
+                            <li>Address concerns in negative reviews professionally</li>
+                            <li>Use feedback to improve your service quality</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Period -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Period Selection</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" id="periodForm">
+                        <div class="mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" 
+                                   name="start_date" 
+                                   class="form-control" 
+                                   value="{{ report.period.start|date:'Y-m-d' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">End Date</label>
+                            <input type="date" 
+                                   name="end_date" 
+                                   class="form-control" 
+                                   value="{{ report.period.end|date:'Y-m-d' }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-sync-alt me-2"></i>Update Report
+                        </button>
+                    </form>
+                    
+                    <div class="mt-3">
+                        <h6 class="fw-bold mb-2">Quick Periods</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="?period=7d" class="btn btn-outline-secondary btn-sm">Last 7 days</a>
+                            <a href="?period=30d" class="btn btn-outline-secondary btn-sm">Last 30 days</a>
+                            <a href="?period=90d" class="btn btn-outline-secondary btn-sm">Last 90 days</a>
+                            <a href="?period=all" class="btn btn-outline-secondary btn-sm">All time</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.performance-circle {
+    position: relative;
+    width: 150px;
+    height: 150px;
+}
+
+.circle-progress {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(
+        var(--circle-color) 0%,
+        var(--circle-color) calc(var(--progress-percent) * 1%),
+        #e9ecef calc(var(--progress-percent) * 1%),
+        #e9ecef 100%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circle-progress::before {
+    content: '';
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    background: white;
+    border-radius: 50%;
+}
+
+.progress-value {
+    position: relative;
+    z-index: 1;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.circle-progress[data-color="success"] {
+    --circle-color: #28a745;
+}
+
+.circle-progress[data-color="warning"] {
+    --circle-color: #ffc107;
+}
+
+.circle-progress[data-color="danger"] {
+    --circle-color: #dc3545;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 4px;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize circle progress
+    const circleProgress = document.querySelector('.circle-progress');
+    if (circleProgress) {
+        const percent = parseFloat(circleProgress.dataset.percent);
+        circleProgress.style.setProperty('--progress-percent', percent);
+    }
+    
+    // Initialize rating chart
+    const ctx = document.getElementById('ratingChart');
+    if (ctx) {
+        const ratingData = {
+            5: {{ rating_summary.rating_5|default:0 }},
+            4: {{ rating_summary.rating_4|default:0 }},
+            3: {{ rating_summary.rating_3|default:0 }},
+            2: {{ rating_summary.rating_2|default:0 }},
+            1: {{ rating_summary.rating_1|default:0 }}
+        };
+        
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'],
+                datasets: [{
+                    data: Object.values(ratingData),
+                    backgroundColor: [
+                        '#28a745', // 5 stars - success
+                        '#17a2b8', // 4 stars - info
+                        '#ffc107', // 3 stars - warning
+                        '#fd7e14', // 2 stars - orange
+                        '#dc3545'  // 1 star - danger
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((context.raw / total) * 100) : 0;
+                                return `${context.label}: ${context.raw} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Period form validation
+    const periodForm = document.getElementById('periodForm');
+    if (periodForm) {
+        periodForm.addEventListener('submit', function(e) {
+            const startDate = this.querySelector('input[name="start_date"]').value;
+            const endDate = this.querySelector('input[name="end_date"]').value;
+            
+            if (!startDate || !endDate) {
+                e.preventDefault();
+                alert('Please select both start and end dates.');
+                return false;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                e.preventDefault();
+                alert('Start date must be before end date.');
+                return false;
+            }
+        });
+    }
+});
+
+// Export functions
+function printReport() {
+    window.print();
+}
+
+function exportToPDF() {
+    alert('PDF export functionality would be implemented here.');
+    // In a real implementation, this would generate a PDF report
+}
+
+function exportToCSV() {
+    alert('CSV export functionality would be implemented here.');
+    // In a real implementation, this would generate a CSV report
+}
+</script>
+{% endblock %}

@@ -1,0 +1,360 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Payment - Order #{{ order.order_number }} - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-credit-card me-2"></i>Complete Your Order</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Order Summary -->
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Order Summary</h5>
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ order.title }}</h6>
+                                    <div class="small text-muted mb-3">
+                                        {{ order.get_academic_level_display }} • {{ order.subject }}
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Pages/Words:</span>
+                                            <span>{{ order.pages }}p / {{ order.words }}w</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Deadline:</span>
+                                            <span>{{ order.deadline|date:"M d, Y" }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Formatting:</span>
+                                            <span>{{ order.formatting_style }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Sources:</span>
+                                            <span>{{ order.sources }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr>
+                                    
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Order Price:</span>
+                                            <span>${{ order.price }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Platform Fee (20%):</span>
+                                            <span>${{ order.platform_fee }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between">
+                                            <span>Writer Payment:</span>
+                                            <span>${{ order.writer_payment }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="border-top pt-2">
+                                        <div class="d-flex justify-content-between fw-bold">
+                                            <span>Total Amount:</span>
+                                            <span class="h5 mb-0 text-primary">${{ order.price }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <small>
+                                    <i class="bi bi-shield-check me-2"></i>
+                                    Your payment is held securely in escrow until order completion.
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Form -->
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Payment Method</h5>
+                            
+                            <div class="mb-4">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="creditCard" checked>
+                                    <label class="form-check-label" for="creditCard">
+                                        <i class="bi bi-credit-card me-2"></i>Credit/Debit Card
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="paypal">
+                                    <label class="form-check-label" for="paypal">
+                                        <i class="bi bi-paypal me-2"></i>PayPal
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="stripe">
+                                    <label class="form-check-label" for="stripe">
+                                        <i class="bi bi-bank me-2"></i>Stripe
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Credit Card Form -->
+                            <div id="creditCardForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Card Number</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="1234 5678 9012 3456">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-credit-card"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Expiry Date</label>
+                                        <input type="text" class="form-control" placeholder="MM/YY">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">CVV</label>
+                                        <input type="text" class="form-control" placeholder="123">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Cardholder Name</label>
+                                    <input type="text" class="form-control" placeholder="John Doe">
+                                </div>
+                            </div>
+                            
+                            <!-- PayPal/Stripe will be loaded dynamically -->
+                            <div id="otherPaymentForms" class="d-none">
+                                <!-- Will be filled by JavaScript -->
+                            </div>
+                            
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" id="saveCard" checked>
+                                <label class="form-check-label" for="saveCard">
+                                    Save card for future payments
+                                </label>
+                            </div>
+                            
+                            <div class="alert alert-warning">
+                                <small>
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    By proceeding, you agree to our <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</a> and confirm that all order details are correct.
+                                </small>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-primary btn-lg" id="processPayment">
+                                    <i class="bi bi-lock me-2"></i>Pay ${{ order.price }}
+                                </button>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <small class="text-muted">
+                                    <i class="bi bi-shield-check me-1"></i>
+                                    Secure payment processed by Stripe
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Protection -->
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>Order Protection</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="mb-2">
+                                <i class="bi bi-safe fs-1 text-success"></i>
+                            </div>
+                            <h6>Secure Escrow</h6>
+                            <p class="small text-muted">Payment held until you approve the work</p>
+                        </div>
+                        
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="mb-2">
+                                <i class="bi bi-arrow-counterclockwise fs-1 text-success"></i>
+                            </div>
+                            <h6>Free Revisions</h6>
+                            <p class="small text-muted">{{ order.max_revisions }} free revisions included</p>
+                        </div>
+                        
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="mb-2">
+                                <i class="bi bi-chat-dots fs-1 text-success"></i>
+                            </div>
+                            <h6>24/7 Support</h6>
+                            <p class="small text-muted">Get help anytime with disputes or issues</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Terms & Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% include 'orders/partials/payment_terms.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Processing Modal -->
+<div class="modal fade" id="processingModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Processing...</span>
+                </div>
+                <h4>Processing Payment</h4>
+                <p class="text-muted">Please wait while we process your payment.</p>
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                </div>
+                <small class="text-muted">Do not close this window or refresh the page.</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Payment method selection
+    $('input[name="paymentMethod"]').change(function() {
+        const method = $(this).attr('id');
+        
+        if (method === 'creditCard') {
+            $('#creditCardForm').removeClass('d-none');
+            $('#otherPaymentForms').addClass('d-none');
+        } else {
+            $('#creditCardForm').addClass('d-none');
+            $('#otherPaymentForms').removeClass('d-none');
+            
+            // Load appropriate payment form
+            if (method === 'paypal') {
+                $('#otherPaymentForms').html(`
+                    <div class="text-center py-4">
+                        <i class="bi bi-paypal fs-1 text-primary mb-3"></i>
+                        <p>You will be redirected to PayPal to complete your payment.</p>
+                        <button type="button" class="btn btn-primary" id="paypalButton">
+                            Pay with PayPal
+                        </button>
+                    </div>
+                `);
+            } else if (method === 'stripe') {
+                $('#otherPaymentForms').html(`
+                    <div class="text-center py-4">
+                        <i class="bi bi-bank fs-1 text-success mb-3"></i>
+                        <p>You will be redirected to Stripe to complete your payment.</p>
+                        <button type="button" class="btn btn-success" id="stripeButton">
+                            Pay with Stripe
+                        </button>
+                    </div>
+                `);
+            }
+        }
+    });
+    
+    // Process payment
+    $('#processPayment').click(function() {
+        const method = $('input[name="paymentMethod"]:checked').attr('id');
+        
+        if (method === 'creditCard') {
+            // Validate card details
+            const cardNumber = $('input[placeholder*="Card Number"]').val().trim();
+            const expiry = $('input[placeholder*="MM/YY"]').val().trim();
+            const cvv = $('input[placeholder*="CVV"]').val().trim();
+            const name = $('input[placeholder*="Cardholder Name"]').val().trim();
+            
+            if (!cardNumber || !expiry || !cvv || !name) {
+                alert('Please fill in all card details.');
+                return;
+            }
+            
+            // Simulate payment processing
+            $('#processingModal').modal('show');
+            
+            setTimeout(function() {
+                // In real app, this would be an AJAX call to your payment endpoint
+                window.location.href = "{% url 'orders:detail' order.pk %}";
+            }, 2000);
+            
+        } else {
+            // For PayPal/Stripe, show processing modal
+            $('#processingModal').modal('show');
+            
+            setTimeout(function() {
+                alert('Redirecting to payment gateway...');
+                // In real app, redirect to PayPal/Stripe
+                $('#processingModal').modal('hide');
+            }, 1000);
+        }
+    });
+    
+    // Card number formatting
+    $('input[placeholder*="Card Number"]').on('input', function() {
+        let value = $(this).val().replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        let formatted = '';
+        
+        for (let i = 0; i < value.length; i++) {
+            if (i > 0 && i % 4 === 0) {
+                formatted += ' ';
+            }
+            formatted += value[i];
+        }
+        
+        $(this).val(formatted.substring(0, 19));
+    });
+    
+    // Expiry date formatting
+    $('input[placeholder*="MM/YY"]').on('input', function() {
+        let value = $(this).val().replace(/[^0-9]/gi, '');
+        
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        }
+        
+        $(this).val(value.substring(0, 5));
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,181 @@
+<!-- templates/messaging/conversation_list.html -->
+{% extends "base/base.html" %}
+
+{% block title %}Messages - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <div class="position-sticky pt-3">
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>Filters</span>
+                </h6>
+                <form method="get" class="px-3">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">All Conversations</option>
+                            <option value="open" {% if request.GET.status == 'open' %}selected{% endif %}>Open</option>
+                            <option value="closed" {% if request.GET.status == 'closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="order_id" class="form-label">Order ID</label>
+                        <input type="text" name="order_id" id="order_id" class="form-control" 
+                               value="{{ request.GET.order_id }}" placeholder="e.g., #12345">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                    <a href="{% url 'messaging:conversation_list' %}" class="btn btn-outline-secondary w-100 mt-2">Clear</a>
+                </form>
+                
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>Quick Actions</span>
+                </h6>
+                <ul class="nav flex-column mb-2">
+                    <li class="nav-item">
+                        <a href="{% url 'orders:order_list' %}" class="nav-link">
+                            <i class="fas fa-shopping-cart"></i> View Orders
+                        </a>
+                    </li>
+                    {% if user.is_staff %}
+                    <li class="nav-item">
+                        <a href="{% url 'messaging:admin_conversation_list' %}" class="nav-link">
+                            <i class="fas fa-eye"></i> Admin View
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Messages</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversations List -->
+            <div class="list-group">
+                {% for conversation in conversations %}
+                <a href="{% url 'messaging:conversation_detail' conversation.id %}" 
+                   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Order #{{ conversation.order.order_id }}</h5>
+                            <small>{{ conversation.updated_at|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">{{ conversation.order.title|truncatewords:10 }}</p>
+                        <div class="d-flex justify-content-between">
+                            <small>
+                                {% if conversation.is_closed %}
+                                <span class="badge bg-secondary">Closed</span>
+                                {% else %}
+                                <span class="badge bg-success">Open</span>
+                                {% endif %}
+                                
+                                {% if conversation.unread_count > 0 %}
+                                <span class="badge bg-danger ms-2">{{ conversation.unread_count }} unread</span>
+                                {% endif %}
+                            </small>
+                            <small>
+                                {% if user == conversation.order.client %}
+                                Writer: {{ conversation.order.assigned_writer.get_full_name|default:conversation.order.assigned_writer.email }}
+                                {% else %}
+                                Client: {{ conversation.order.client.get_full_name|default:conversation.order.client.email }}
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                {% empty %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No conversations found.
+                    {% if not user.is_staff %}
+                    You'll see conversations here once a writer is assigned to your order.
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Conversation pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&laquo; First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </main>
+    </div>
+</div>
+
+<!-- Real-time updates script -->
+<script>
+    // Function to check for new messages
+    function checkForNewMessages() {
+        fetch('{% url "messaging:conversation_list" %}?check_new=true')
+            .then(response => response.json())
+            .then(data => {
+                if (data.has_new_messages) {
+                    // Show notification
+                    showNotification('New messages available', 'info');
+                    // Optionally update badge count
+                    updateBadgeCount(data.unread_count);
+                }
+            })
+            .catch(error => console.error('Error checking for new messages:', error));
+    }
+
+    // Check every 30 seconds
+    setInterval(checkForNewMessages, 30000);
+
+    // Initial check
+    document.addEventListener('DOMContentLoaded', checkForNewMessages);
+
+    function showNotification(message, type) {
+        // Implementation for showing notification
+        console.log('New message notification:', message);
+    }
+
+    function updateBadgeCount(count) {
+        // Update badge count in UI
+        const badge = document.querySelector('.unread-badge');
+        if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline' : 'none';
+        }
+    }
+</script>
+{% endblock %}

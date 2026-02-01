@@ -1,0 +1,187 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Posts tagged "{{ tag }}" - EWBWriting Blog{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Tag Header -->
+    <div class="row mb-5">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'blog:home' %}">Blog</a></li>
+                    <li class="breadcrumb-item"><a href="#">Tags</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ tag }}</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex align-items-center mb-3">
+                <span class="badge bg-primary fs-6 me-3">
+                    <i class="bi bi-tag me-1"></i> Tag
+                </span>
+                <h1 class="display-5 fw-bold text-dark mb-0">{{ tag }}</h1>
+            </div>
+            
+            <p class="lead text-muted">
+                {{ page_obj.paginator.count }} article{% if page_obj.paginator.count != 1 %}s{% endif %} tagged with "{{ tag }}"
+            </p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <div class="d-grid gap-2">
+                <a href="{% url 'blog:home' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-1"></i> All Tags
+                </a>
+                {% if user.is_staff %}
+                <a href="{% url 'blog:create_post' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> New Post with Tag
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Posts List -->
+        <div class="col-lg-8">
+            {% if posts %}
+            <div class="row">
+                {% for post in posts %}
+                <div class="col-md-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        {% if post.featured_image %}
+                        <img src="{{ post.featured_image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 180px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-primary">{{ post.category.name|default:"Uncategorized" }}</span>
+                                <small class="text-muted">{{ post.reading_time_minutes }} min</small>
+                            </div>
+                            <h3 class="h5 fw-bold">
+                                <a href="{{ post.get_absolute_url }}" class="text-decoration-none text-dark">{{ post.title }}</a>
+                            </h3>
+                            <p class="text-muted small mb-3">{{ post.excerpt|truncatechars:120 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i> {{ post.published_at|date:"M d, Y" }}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="bi bi-eye me-1"></i> {{ post.view_count }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Tag pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-tag fs-1 text-muted mb-3"></i>
+                <h3 class="h4 text-muted">No posts with this tag</h3>
+                <p class="text-muted">Try browsing other tags or categories</p>
+                <a href="{% url 'blog:home' %}" class="btn btn-primary mt-3">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Blog
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Related Tags -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Related Tags</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for related_tag in related_tags|slice:":15" %}
+                        <a href="{% url 'blog:tag_list' related_tag.slug %}" 
+                           class="badge {% if related_tag.slug == tag %}bg-primary{% else %}bg-light text-dark{% endif %}">
+                            {{ related_tag.name }}
+                        </a>
+                        {% empty %}
+                        <p class="text-muted small">No related tags</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular Tags -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Popular Tags</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for pop_tag in popular_tags|slice:":20" %}
+                        <a href="{% url 'blog:tag_list' pop_tag.slug %}" 
+                           class="badge {% if pop_tag.slug == tag %}bg-primary{% else %}bg-light text-dark{% endif %}">
+                            {{ pop_tag.name }}
+                        </a>
+                        {% empty %}
+                        <p class="text-muted small">No tags yet</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tag Statistics -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Tag Statistics</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span>Total Posts:</span>
+                            <span class="fw-bold">{{ posts.count }}</span>
+                        </li>
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span>First Post:</span>
+                            <span class="fw-bold">{{ first_post_date|date:"M d, Y"|default:"N/A" }}</span>
+                        </li>
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span>Last Post:</span>
+                            <span class="fw-bold">{{ last_post_date|date:"M d, Y"|default:"N/A" }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between">
+                            <span>Most Viewed:</span>
+                            <span class="fw-bold">{{ most_viewed|default:"N/A" }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

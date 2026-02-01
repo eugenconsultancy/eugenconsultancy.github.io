@@ -1,0 +1,417 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load tz %}
+
+{% block title %}Order #{{ order.order_number }} - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'orders:list' %}">My Orders</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Order #{{ order.order_number }}</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Order #{{ order.order_number }}</h1>
+                    <p class="text-muted mb-0">{{ order.title }}</p>
+                </div>
+                
+                <div class="btn-group" role="group">
+                    {% if order.state == 'draft' %}
+                    <a href="{% url 'orders:pay' order.pk %}" class="btn btn-primary">
+                        <i class="bi bi-credit-card me-2"></i>Pay Now
+                    </a>
+                    <a href="{% url 'orders:update' order.pk %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    {% endif %}
+                    
+                    {% if request.user.is_staff %}
+                    <a href="{% url 'orders:admin_detail' order.pk %}" class="btn btn-outline-info">
+                        <i class="bi bi-gear"></i> Admin View
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Order Status & Timeline -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-activity me-2"></i>Order Status & Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Progress Bar -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Order Progress</span>
+                            <span>{{ order.progress_percentage }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                 style="width: {{ order.progress_percentage }}%" 
+                                 aria-valuenow="{{ order.progress_percentage }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Timeline -->
+                    <div class="timeline">
+                        {% for event in timeline %}
+                        <div class="timeline-item">
+                            <div class="timeline-icon bg-{{ event.color }}">
+                                <i class="bi {{ event.icon }}"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="timeline-header">
+                                    <h6 class="mb-1">{{ event.event }}</h6>
+                                    <small class="text-muted">{{ event.date|date:"M d, Y g:i A" }}</small>
+                                </div>
+                                <p class="mb-0 text-muted">{{ event.description }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Order Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Title</label>
+                            <p class="mb-0">{{ order.title }}</p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Subject Area</label>
+                            <p class="mb-0">{{ order.subject }}</p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Academic Level</label>
+                            <p class="mb-0">{{ order.get_academic_level_display }}</p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Formatting Style</label>
+                            <p class="mb-0">{{ order.formatting_style }}</p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Pages / Words</label>
+                            <p class="mb-0">{{ order.pages }} pages ({{ order.words }} words)</p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Sources Required</label>
+                            <p class="mb-0">{{ order.sources }} sources</p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Urgency</label>
+                            <p class="mb-0">
+                                <span class="badge bg-{% if order.urgency == 'emergency' %}danger{% elif order.urgency == 'very_urgent' %}warning{% else %}info{% endif %}">
+                                    {{ order.get_urgency_display }}
+                                </span>
+                            </p>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Deadline</label>
+                            <p class="mb-0 {% if order.is_overdue %}text-danger{% endif %}">
+                                {{ order.deadline|date:"M d, Y g:i A" }}
+                                {% if order.is_overdue %}
+                                <span class="badge bg-danger ms-2">Overdue</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <div class="col-12 mb-3">
+                            <label class="form-label text-muted">Description</label>
+                            <div class="bg-light p-3 rounded">
+                                {{ order.description|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Files -->
+            {% if files %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-files me-2"></i>Files</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for file in files %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card file-card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="file-icon me-3">
+                                            <i class="bi bi-file-earmark-text fs-3 text-primary"></i>
+                                        </div>
+                                        <div class="file-info flex-grow-1">
+                                            <h6 class="mb-1 text-truncate" title="{{ file.original_filename }}">
+                                                {{ file.original_filename }}
+                                            </h6>
+                                            <small class="text-muted">
+                                                {{ file.get_file_type_display }} • 
+                                                {{ file.file_size|filesizeformat }} •
+                                                Uploaded {{ file.created_at|date:"M d" }}
+                                            </small>
+                                        </div>
+                                        <div class="file-actions">
+                                            <a href="{{ file.download_url }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Order Summary -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Order Status</label>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-{{ order.state|state_bg_color }} rounded-pill me-2">
+                                {{ order.get_state_display }}
+                            </span>
+                            {% if order.is_overdue %}
+                            <span class="badge bg-danger rounded-pill">Overdue</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Client</label>
+                        <p class="mb-0">{{ order.client.get_full_name|default:order.client.email }}</p>
+                    </div>
+                    
+                    {% if order.writer %}
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Writer</label>
+                        <p class="mb-0">{{ order.writer.get_full_name|default:order.writer.email }}</p>
+                        <small class="text-muted">Assigned: {{ order.assigned_at|date:"M d, Y" }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>Order Price</span>
+                            <span>${{ order.price }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span>Writer Payment</span>
+                            <span>${{ order.writer_payment }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Platform Fee</span>
+                            <span>${{ order.platform_fee }}</span>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <strong>Total Amount</strong>
+                            <strong>${{ order.price }}</strong>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Status -->
+                    {% if hasattr order 'payment' %}
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="bi bi-info-circle"></i>
+                            Payment held in escrow until order completion
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Available Actions -->
+            {% if available_actions %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-lightning-charge me-2"></i>Available Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% for action_code, action_label, btn_class in available_actions %}
+                        {% if action_code == 'pay' %}
+                        <a href="{% url 'orders:pay' order.pk %}" class="btn btn-primary">
+                            <i class="bi bi-credit-card me-2"></i>{{ action_label }}
+                        </a>
+                        {% elif action_code == 'request_revision' %}
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#revisionModal">
+                            <i class="bi bi-arrow-clockwise me-2"></i>{{ action_label }}
+                        </button>
+                        {% elif action_code == 'complete' %}
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#completeModal">
+                            <i class="bi bi-check-circle me-2"></i>{{ action_label }}
+                        </button>
+                        {% elif action_code == 'dispute' %}
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#disputeModal">
+                            <i class="bi bi-exclamation-triangle me-2"></i>{{ action_label }}
+                        </button>
+                        {% elif action_code == 'start_work' %}
+                        <form method="post" action="{% url 'orders:start_work' order.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-play-circle me-2"></i>{{ action_label }}
+                            </button>
+                        </form>
+                        {% elif action_code == 'deliver' %}
+                        <a href="{% url 'orders:delivery' order.pk %}" class="btn btn-success">
+                            <i class="bi bi-check-circle me-2"></i>{{ action_label }}
+                        </a>
+                        {% elif action_code == 'accept_revision' %}
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#acceptRevisionModal">
+                            <i class="bi bi-arrow-clockwise me-2"></i>{{ action_label }}
+                        </button>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Time Remaining -->
+            <div class="card mb-4">
+                <div class="card-header bg-{% if order.is_overdue %}danger{% else %}warning{% endif %} text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock me-2"></i>Time Remaining</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if order.is_overdue %}
+                    <div class="display-6 text-danger mb-3">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <h4 class="text-danger">OVERDUE</h4>
+                    <p class="text-muted">Deadline was {{ order.deadline|timesince }} ago</p>
+                    {% else %}
+                    <div class="display-4 text-primary mb-3" id="countdown">
+                        {{ order.time_remaining.days }}d {{ order.time_remaining.seconds|divisibleby:3600 }}h
+                    </div>
+                    <p class="text-muted">Deadline: {{ order.deadline|date:"M d, Y g:i A" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Delivery Checklist -->
+            {% if checklist %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Quality Checklist</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Completion</span>
+                            <span>{{ checklist.completion_percentage|floatformat:0 }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ checklist.completion_percentage }}%" 
+                                 aria-valuenow="{{ checklist.completion_percentage }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    
+                    {% if checklist.passed_quality_check %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Passed quality check
+                    </div>
+                    {% endif %}
+                    
+                    {% if checklist.critical_items_missing %}
+                    <div class="alert alert-warning">
+                        <small>
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Missing critical items:
+                            {{ checklist.critical_items_missing|join:", " }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modals will be included from partials -->
+{% include 'orders/partials/revision_modal.html' %}
+{% include 'orders/partials/complete_modal.html' %}
+{% include 'orders/partials/dispute_modal.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Countdown timer
+function updateCountdown() {
+    const deadline = new Date("{{ order.deadline|date:'c' }}");
+    const now = new Date();
+    const diff = deadline - now;
+    
+    if (diff > 0) {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        const countdownEl = document.getElementById('countdown');
+        if (countdownEl) {
+            countdownEl.textContent = `${days}d ${hours}h ${minutes}m`;
+        }
+    }
+}
+
+// Update countdown every minute
+updateCountdown();
+setInterval(updateCountdown, 60000);
+</script>
+{% endblock %}

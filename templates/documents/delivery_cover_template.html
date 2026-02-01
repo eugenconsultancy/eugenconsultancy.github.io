@@ -1,0 +1,324 @@
+<!-- templates/documents/delivery_cover_template.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery - Order #{{ order.order_id }} - EBWriting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fff;
+            padding: 40px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #27ae60;
+        }
+        
+        .header h1 {
+            font-size: 36px;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            font-size: 20px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .delivery-badge {
+            display: inline-block;
+            background-color: #27ae60;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 18px;
+        }
+        
+        .delivery-info {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px 20px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #3498db;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .instructions {
+            background-color: #e8f6f3;
+            border-left: 4px solid #27ae60;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .instructions h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .notes {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .notes h3 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        
+        .quality-assurance {
+            background-color: #d5f4e6;
+            border: 1px solid #27ae60;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .quality-assurance h3 {
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+        
+        .checklist {
+            margin-left: 20px;
+        }
+        
+        .checklist li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .checklist li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .contact-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .urgent {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ORDER DELIVERY</h1>
+            <div class="subtitle">{{ cover_title }}</div>
+            <div class="delivery-badge">DELIVERED ON {{ delivery_date }}</div>
+        </div>
+        
+        <div class="delivery-info">
+            Your order has been completed and is ready for your review.<br>
+            Please read the following information carefully.
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Delivery Information</h2>
+            
+            <div class="order-details">
+                <div class="detail-item">
+                    <div class="detail-label">Order ID</div>
+                    <div class="detail-value">#{{ order.order_id }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Delivery Date</div>
+                    <div class="detail-value">{{ delivery_date }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Client</div>
+                    <div class="detail-value">{{ client_info.name }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Writer</div>
+                    <div class="detail-value">{{ writer_info.name }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Order Specifications</h2>
+            <div class="info-grid">
+                <div class="info-label">Title:</div>
+                <div>{{ order_details.title }}</div>
+                
+                <div class="info-label">Academic Level:</div>
+                <div>{{ order_details.academic_level }}</div>
+                
+                <div class="info-label">Format:</div>
+                <div>{{ order_details.format }}</div>
+                
+                <div class="info-label">Pages:</div>
+                <div>{{ order_details.pages }}</div>
+                
+                <div class="info-label">Word Count:</div>
+                <div>{{ order_details.words }} words</div>
+                
+                {% if writer_info.writer_id != 'N/A' %}
+                <div class="info-label">Writer ID:</div>
+                <div>{{ writer_info.writer_id }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="quality-assurance">
+            <h3>✅ Quality Assurance Checklist</h3>
+            <p>The delivered work has passed the following quality checks:</p>
+            <ul class="checklist">
+                <li>Formatting according to specified guidelines</li>
+                <li>Adherence to academic level requirements</li>
+                <li>Proper citation and referencing</li>
+                <li>Grammar and spelling check</li>
+                <li>Originality and plagiarism-free guarantee</li>
+                <li>Compliance with order specifications</li>
+            </ul>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Next Steps & Instructions</h3>
+            <ol>
+                {% for step in next_steps %}
+                <li>{{ step }}</li>
+                {% endfor %}
+            </ol>
+        </div>
+        
+        <div class="notes">
+            <h3>⚠ Important Notes</h3>
+            <p>{{ delivery_notes }}</p>
+            <p class="urgent">
+                ⏰ Revision Period: You have {{ order.revision_days|default:"7" }} days to request revisions if needed.
+                After this period, the order will be marked as completed and payment will be released to the writer.
+            </p>
+        </div>
+        
+        <div class="contact-info">
+            <p><strong>Need Help?</strong></p>
+            <p>
+                • For revision requests: Use the "Request Revision" button in your order dashboard<br>
+                • For quality concerns: Contact our support team immediately<br>
+                • For technical issues: Email support@ebwriting.com
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for choosing EBWriting for your academic needs!</p>
+            <p>This delivery cover was automatically generated on {{ delivery_date }}.</p>
+            <p>Document ID: DELIVERY-{{ order.order_id }}-{{ delivery_date|date:"Ymd" }}</p>
+        </div>
+    </div>
+</body>
+</html>

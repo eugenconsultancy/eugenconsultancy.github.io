@@ -1,0 +1,498 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Payment Details - {{ payment.reference_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        border-radius: 10px;
+        transition: all 0.3s;
+    }
+    
+    .detail-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+        margin: 20px 0;
+    }
+    
+    .timeline:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: #e0e0e0;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: -36px;
+        top: 5px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #4e73df;
+        border: 3px solid white;
+    }
+    
+    .timeline-item.completed:before {
+        background: #28a745;
+    }
+    
+    .timeline-item.current:before {
+        background: #ffc107;
+        box-shadow: 0 0 0 5px rgba(255, 193, 7, 0.2);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+    }
+    
+    .escrow-breakdown {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+    }
+    
+    .refund-badge {
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Payment Details</h1>
+        <div class="btn-group" role="group">
+            <a href="{% url 'payments:receipt' payment.payment_id %}" class="btn btn-primary">
+                <i class="bi bi-receipt"></i> View Receipt
+            </a>
+            <a href="{% url 'payments:history' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to History
+            </a>
+        </div>
+    </div>
+
+    <!-- Payment Summary -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow detail-card mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-credit-card"></i> Payment Information
+                    </h6>
+                    <span class="badge bg-primary">{{ payment.get_state_display }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Payment ID</small>
+                            <p class="mb-0"><strong>{{ payment.payment_id }}</strong></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Reference Number</small>
+                            <p class="mb-0"><strong>{{ payment.reference_number }}</strong></p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Order Number</small>
+                            <p class="mb-0">
+                                {% if order %}
+                                <a href="{% url 'orders:detail' order.id %}" class="text-decoration-none">
+                                    #{{ order.order_number }}
+                                </a>
+                                {% else %}
+                                <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Payment Method</small>
+                            <p class="mb-0">{{ payment.get_payment_method_display }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Date & Time</small>
+                            <p class="mb-0">{{ payment.created_at|date:"F d, Y H:i:s" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">IP Address</small>
+                            <p class="mb-0">{{ payment.ip_address|default:"N/A" }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if payment.gateway_transaction_id %}
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <small class="text-muted">Transaction ID</small>
+                            <p class="mb-0">
+                                <code>{{ payment.gateway_transaction_id }}</code>
+                            </p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Order Details -->
+            {% if order %}
+            <div class="card shadow detail-card mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-file-text"></i> Order Details
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Service Type</small>
+                            <p class="mb-0">{{ order.service_type|title }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Writer Level</small>
+                            <p class="mb-0">{{ order.writer_level|title }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Deadline</small>
+                            <p class="mb-0">{{ order.deadline|date:"F d, Y H:i" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Status</small>
+                            <p class="mb-0">
+                                <span class="badge {% if order.state == 'completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ order.get_state_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <small class="text-muted">Instructions</small>
+                            <p class="mb-0">{{ order.instructions|truncatewords:50 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Amount & Actions -->
+        <div class="col-lg-4">
+            <!-- Amount Card -->
+            <div class="card shadow detail-card mb-4">
+                <div class="card-header py-3 bg-primary text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="bi bi-cash-stack"></i> Payment Amount
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="text-primary mb-3">${{ payment.amount|floatformat:2 }}</h2>
+                    <p class="text-muted mb-0">{{ payment.currency }}</p>
+                    
+                    {% if payment.is_in_escrow %}
+                    <div class="escrow-breakdown mt-4">
+                        <h6 class="mb-3">Escrow Breakdown</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Writer Amount:</span>
+                            <strong>${{ payment.writer_amount|floatformat:2 }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Platform Fee:</span>
+                            <strong>${{ payment.platform_fee|floatformat:2 }}</strong>
+                        </div>
+                        <hr class="my-2" style="border-color: rgba(255,255,255,0.2);">
+                        <div class="d-flex justify-content-between">
+                            <span>Total:</span>
+                            <strong>${{ payment.amount|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="card shadow detail-card mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-lightning"></i> Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'payments:receipt' payment.payment_id %}" class="btn btn-outline-primary">
+                            <i class="bi bi-receipt"></i> Download Receipt
+                        </a>
+                        
+                        {% if can_request_refund %}
+                        <a href="{% url 'payments:request_refund' order.id %}" class="btn btn-outline-warning">
+                            <i class="bi bi-arrow-counterclockwise"></i> Request Refund
+                        </a>
+                        {% endif %}
+                        
+                        {% if payment.is_in_escrow %}
+                        <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#escrowModal">
+                            <i class="bi bi-shield-lock"></i> Escrow Details
+                        </button>
+                        {% endif %}
+                        
+                        <button class="btn btn-outline-secondary" onclick="window.print()">
+                            <i class="bi bi-printer"></i> Print Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Card -->
+            <div class="card shadow detail-card">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-clock-history"></i> Payment Timeline
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item {% if payment.created_at %}completed{% endif %}">
+                            <small class="text-muted">Initiated</small>
+                            <p class="mb-0">{{ payment.created_at|date:"M d, H:i"|default:"Pending" }}</p>
+                        </div>
+                        
+                        <div class="timeline-item {% if payment.processed_at %}completed{% endif %}">
+                            <small class="text-muted">Processing</small>
+                            <p class="mb-0">{{ payment.processed_at|date:"M d, H:i"|default:"Pending" }}</p>
+                        </div>
+                        
+                        <div class="timeline-item {% if payment.is_in_escrow %}current{% elif payment.held_in_escrow_at %}completed{% endif %}">
+                            <small class="text-muted">Escrow</small>
+                            <p class="mb-0">
+                                {% if payment.is_in_escrow %}
+                                Held until {{ payment.escrow_held_until|date:"M d" }}
+                                {% elif payment.held_in_escrow_at %}
+                                {{ payment.held_in_escrow_at|date:"M d, H:i" }}
+                                {% else %}
+                                Pending
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <div class="timeline-item {% if payment.released_at %}completed{% endif %}">
+                            <small class="text-muted">Released</small>
+                            <p class="mb-0">{{ payment.released_at|date:"M d, H:i"|default:"Pending" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Refunds Section -->
+    {% if refunds %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-arrow-counterclockwise"></i> Refund History
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Refund ID</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                            <th>Processed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for refund in refunds %}
+                        <tr>
+                            <td>
+                                <strong>{{ refund.reference_number }}</strong>
+                                <br>
+                                <small class="text-muted">{{ refund.refund_id|truncatechars:8 }}</small>
+                            </td>
+                            <td>
+                                <span class="{% if refund.is_full_refund %}text-danger{% else %}text-warning{% endif %}">
+                                    ${{ refund.amount|floatformat:2 }}
+                                </span>
+                                <br>
+                                <small class="text-muted">
+                                    ({{ refund.refund_percentage|floatformat:1 }}% of original)
+                                </small>
+                            </td>
+                            <td>
+                                {{ refund.get_refund_type_display }}
+                                <br>
+                                <small class="text-muted">{{ refund.get_refund_reason_display }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if refund.state == 'completed' %}success{% elif refund.state == 'rejected' %}danger{% else %}warning{% endif %}">
+                                    {{ refund.get_state_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {{ refund.requested_at|date:"M d, Y" }}
+                                <br>
+                                <small class="text-muted">{{ refund.requested_by.email }}</small>
+                            </td>
+                            <td>
+                                {{ refund.completed_at|date:"M d, Y"|default:"Pending" }}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" 
+                                        data-bs-target="#refundModal{{ refund.id }}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        
+                        <!-- Refund Detail Modal -->
+                        <div class="modal fade" id="refundModal{{ refund.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Refund Details</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p><strong>Reason:</strong> {{ refund.get_refund_reason_display }}</p>
+                                        <p><strong>Custom Reason:</strong> {{ refund.custom_reason }}</p>
+                                        <p><strong>Review Notes:</strong> {{ refund.review_notes|default:"N/A" }}</p>
+                                        {% if refund.rejection_reason %}
+                                        <p><strong>Rejection Reason:</strong> {{ refund.rejection_reason }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Fraud Check Details -->
+    {% if payment.fraud_check_details %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-shield-check"></i> Fraud Check Details
+            </h6>
+            <span class="badge {% if payment.fraud_check_passed %}bg-success{% else %}bg-danger{% endif %}">
+                {% if payment.fraud_check_passed %}Passed{% else %}Failed{% endif %}
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Risk Score:</strong> {{ payment.fraud_check_details.risk_score }}/100</p>
+                    <p><strong>Timestamp:</strong> {{ payment.fraud_check_details.timestamp }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Checks Performed:</strong></p>
+                    <ul class="list-unstyled">
+                        {% for check, result in payment.fraud_check_details.checks_performed.items %}
+                        <li>
+                            <i class="bi bi-{% if result %}check-circle text-success{% else %}x-circle text-danger{% endif %}"></i>
+                            {{ check|title }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Escrow Modal -->
+<div class="modal fade" id="escrowModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Escrow Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Held Since:</strong> {{ payment.held_in_escrow_at|date:"F d, Y H:i" }}</p>
+                        <p><strong>Scheduled Release:</strong> {{ payment.escrow_held_until|date:"F d, Y H:i" }}</p>
+                        <p><strong>Time Remaining:</strong> {{ payment.time_until_release|default:"N/A" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Writer Amount:</strong> ${{ payment.writer_amount|floatformat:2 }}</p>
+                        <p><strong>Platform Fee:</strong> ${{ payment.platform_fee|floatformat:2 }}</p>
+                        <p><strong>Total in Escrow:</strong> ${{ payment.amount|floatformat:2 }}</p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>How Escrow Works:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Your payment is securely held in our escrow system</li>
+                        <li>Funds will be released to the writer after you approve the completed work</li>
+                        <li>If unsatisfied, you can request revisions or a refund</li>
+                        <li>Automatic release occurs {{ payment.escrow_held_until|timeuntil }} from now</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gateway Response Modal -->
+{% if payment.gateway_response %}
+<div class="modal fade" id="gatewayModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Gateway Response</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre>{{ payment.gateway_response|pprint }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

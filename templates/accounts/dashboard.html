@@ -1,0 +1,143 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Dashboard Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">Welcome, {{ user.get_short_name }}</h1>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        {{ current_time|date:"l, F j, Y" }}
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if user.is_writer and writer_profile.can_accept_orders %}
+                    <span class="badge bg-success">
+                        <i class="fas fa-check-circle me-1"></i>Available for Orders
+                    </span>
+                    {% elif user.is_writer %}
+                    <span class="badge bg-warning">
+                        <i class="fas fa-clock me-1"></i>Not Available
+                    </span>
+                    {% endif %}
+                    <span class="badge bg-info">
+                        <i class="fas fa-user me-1"></i>
+                        {{ user.get_user_type_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    {% if notifications %}
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell me-2"></i>Notifications
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for notification in notifications %}
+                        <div class="list-group-item border-0 px-0 py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-sm rounded-circle 
+                                        {% if notification.type == 'info' %}bg-info
+                                        {% elif notification.type == 'warning' %}bg-warning
+                                        {% elif notification.type == 'success' %}bg-success
+                                        {% else %}bg-secondary{% endif %} 
+                                        text-white d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-{% if notification.type == 'info' %}info-circle{% elif notification.type == 'warning' %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">{{ notification.title }}</h6>
+                                    <p class="mb-1 text-muted">{{ notification.message }}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ notification.timestamp|timesince }} ago
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    {% if user_type == 'client' %}
+    {% include "accounts/partials/client_dashboard.html" %}
+    {% elif user_type == 'writer' %}
+    {% include "accounts/partials/writer_dashboard.html" %}
+    {% elif user_type == 'admin' %}
+    {% include "accounts/partials/admin_dashboard.html" %}
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% if user.is_client %}
+                        <div class="col-md-3">
+                            <a href="{% url 'orders:create' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-plus-circle me-2"></i>New Order
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'orders:list' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-list me-2"></i>My Orders
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.is_writer %}
+                        <div class="col-md-3">
+                            <a href="{% url 'orders:writer_available' %}" class="btn btn-success w-100">
+                                <i class="fas fa-search me-2"></i>Find Orders
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'accounts:writer_documents' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-file-upload me-2"></i>Upload Documents
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-md-3">
+                            <a href="{% url 'accounts:settings' %}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-cog me-2"></i>Settings
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'accounts:data_request' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-shield-alt me-2"></i>Data Request
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

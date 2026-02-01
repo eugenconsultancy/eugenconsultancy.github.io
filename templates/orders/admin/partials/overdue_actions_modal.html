@@ -1,0 +1,52 @@
+<div class="modal fade" id="overdueActionsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Overdue Order Actions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="bi bi-clock-history me-2"></i>
+                    This order is <strong>{{ order.deadline|timesince }} overdue</strong>.
+                </div>
+                
+                <div class="list-group">
+                    {% if order.writer %}
+                    <a href="mailto:{{ order.writer.email }}?subject=URGENT: Overdue Order {{ order.order_number }}" 
+                       class="list-group-item list-group-item-action">
+                        <i class="bi bi-envelope me-2"></i>
+                        Send urgent email to writer
+                    </a>
+                    
+                    <button class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#reassignModal">
+                        <i class="bi bi-person-dash me-2"></i>
+                        Reassign to different writer
+                    </button>
+                    
+                    <button class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#penaltyModal">
+                        <i class="bi bi-exclamation-octagon me-2"></i>
+                        Apply penalty to writer
+                    </button>
+                    {% endif %}
+                    
+                    <a href="mailto:{{ order.client.email }}?subject=Update on your order {{ order.order_number }}" 
+                       class="list-group-item list-group-item-action">
+                        <i class="bi bi-envelope me-2"></i>
+                        Update client on status
+                    </a>
+                    
+                    <button class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#refundModal">
+                        <i class="bi bi-arrow-counterclockwise me-2"></i>
+                        Process partial refund
+                    </button>
+                    
+                    <button class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#extendDeadlineModal">
+                        <i class="bi bi-calendar-plus me-2"></i>
+                        Extend deadline
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

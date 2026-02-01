@@ -1,0 +1,271 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Sign Up - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h3 class="mb-0 text-center">
+                        <i class="fas fa-user-plus me-2"></i>Create Your Account
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h4 class="text-primary">Choose Your Role</h4>
+                                <div class="role-selection">
+                                    <div class="card role-card" data-role="client">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-user-tie fa-3x text-primary mb-3"></i>
+                                            <h5>Client</h5>
+                                            <p class="text-muted small">Looking for writing services</p>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="user_type" value="client" 
+                                                       id="user_type_client" checked>
+                                                <label class="form-check-label" for="user_type_client">
+                                                    I need writing help
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card role-card mt-3" data-role="writer">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-pen-alt fa-3x text-success mb-3"></i>
+                                            <h5>Writer</h5>
+                                            <p class="text-muted small">Offer academic writing services</p>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="user_type" value="writer" 
+                                                       id="user_type_writer">
+                                                <label class="form-check-label" for="user_type_writer">
+                                                    I'm a professional writer
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <form method="post" action="{% url 'account_signup' %}" id="signupForm" 
+                                  class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                
+                                <div class="mb-3">
+                                    <label for="id_email" class="form-label">Email Address</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        <input type="email" name="email" id="id_email" 
+                                               class="form-control" 
+                                               placeholder="you@example.com" 
+                                               value="{{ form.email.value|default:'' }}" 
+                                               required>
+                                    </div>
+                                    <div class="form-text">We'll send verification to this address</div>
+                                    {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.email.errors|first }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="id_password1" class="form-label">Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" name="password1" id="id_password1" 
+                                               class="form-control" 
+                                               placeholder="Minimum 12 characters" 
+                                               required>
+                                        <button class="btn btn-outline-secondary" type="button" 
+                                                id="togglePassword1">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text small">
+                                        Must contain uppercase, lowercase, numbers, and special characters
+                                    </div>
+                                    {% if form.password1.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.password1.errors|first }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="id_password2" class="form-label">Confirm Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" name="password2" id="id_password2" 
+                                               class="form-control" 
+                                               placeholder="Re-enter your password" 
+                                               required>
+                                        <button class="btn btn-outline-secondary" type="button" 
+                                                id="togglePassword2">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    {% if form.password2.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.password2.errors|first }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3" id="termsSection">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="terms_accepted" id="id_terms_accepted" required>
+                                        <label class="form-check-label" for="id_terms_accepted">
+                                            I accept the <a href="{% url 'terms' %}" target="_blank">Terms of Service</a>
+                                        </label>
+                                        {% if form.terms_accepted.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.terms_accepted.errors|first }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="privacy_policy_accepted" id="id_privacy_policy_accepted" required>
+                                        <label class="form-check-label" for="id_privacy_policy_accepted">
+                                            I accept the <a href="{% url 'privacy' %}" target="_blank">Privacy Policy</a>
+                                        </label>
+                                        {% if form.privacy_policy_accepted.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.privacy_policy_accepted.errors|first }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="marketing_emails" id="id_marketing_emails">
+                                        <label class="form-check-label" for="id_marketing_emails">
+                                            I want to receive marketing emails
+                                            <small class="text-muted d-block">
+                                                You can change this anytime in account settings
+                                            </small>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-user-plus me-2"></i>Create Account
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="mt-4 text-center">
+                                <p class="mb-2">Already have an account?</p>
+                                <a href="{% url 'account_login' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Password visibility toggle
+    const togglePassword1 = document.getElementById('togglePassword1');
+    const togglePassword2 = document.getElementById('togglePassword2');
+    const password1 = document.getElementById('id_password1');
+    const password2 = document.getElementById('id_password2');
+    
+    function setupPasswordToggle(button, input) {
+        button.addEventListener('click', function() {
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    if (togglePassword1 && password1) setupPasswordToggle(togglePassword1, password1);
+    if (togglePassword2 && password2) setupPasswordToggle(togglePassword2, password2);
+    
+    // Role selection styling
+    const roleCards = document.querySelectorAll('.role-card');
+    roleCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const role = this.dataset.role;
+            const radio = this.querySelector(`input[value="${role}"]`);
+            if (radio) {
+                radio.checked = true;
+                
+                // Update styling
+                roleCards.forEach(c => {
+                    c.classList.remove('border-primary', 'border-success');
+                    if (c.dataset.role === 'client') {
+                        c.classList.remove('selected-client');
+                    } else {
+                        c.classList.remove('selected-writer');
+                    }
+                });
+                
+                if (role === 'client') {
+                    this.classList.add('border-primary');
+                    this.classList.add('selected-client');
+                } else {
+                    this.classList.add('border-success');
+                    this.classList.add('selected-writer');
+                }
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.role-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.role-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.role-card.selected-client {
+    border-color: #0d6efd !important;
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.role-card.selected-writer {
+    border-color: #198754 !important;
+    background-color: rgba(25, 135, 84, 0.05);
+}
+
+.role-card .form-check-input {
+    cursor: pointer;
+}
+
+.role-card i {
+    transition: transform 0.3s ease;
+}
+
+.role-card:hover i {
+    transform: scale(1.1);
+}
+</style>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Respond to Review{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Respond to Review</h1>
+                <a href="{% url 'reviews:view' pk=review.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Review
+                </a>
+            </div>
+
+            <!-- Review Summary -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title mb-2">Review for Order #{{ review.order.order_number }}</h5>
+                            <div class="d-flex align-items-center mb-2">
+                                <!-- Rating Stars -->
+                                <div class="me-3">
+                                    {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                    <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                    <i class="far fa-star text-muted"></i>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span class="fw-bold">{{ review.get_rating_display }}</span>
+                            </div>
+                            {% if review.comment %}
+                            <blockquote class="blockquote mb-0">
+                                <p class="text-muted mb-0">"{{ review.comment|truncatechars:200 }}"</p>
+                            </blockquote>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <div class="text-muted small">Review by</div>
+                            <div class="fw-bold">{{ review.customer.get_full_name|default:review.customer.email }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Response Form -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" id="responseForm">
+                        {% csrf_token %}
+                        
+                        <!-- Response Field -->
+                        <div class="mb-4">
+                            <label for="response_text" class="form-label fw-bold">Your Response</label>
+                            <p class="text-muted small mb-2">
+                                Your response will be published once approved by moderators.
+                                Please maintain professionalism and address concerns constructively.
+                            </p>
+                            <textarea name="response_text" 
+                                      id="response_text" 
+                                      class="form-control" 
+                                      rows="8" 
+                                      placeholder="Write your response here... Address the feedback professionally and constructively." 
+                                      required>{{ form.response_text.value|default:'' }}</textarea>
+                            <div class="text-end mt-1">
+                                <small class="text-muted">
+                                    <span id="charCount">0</span> / 2000 characters
+                                </small>
+                            </div>
+                            {% if form.response_text.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.response_text.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Response Guidelines -->
+                        <div class="alert alert-warning">
+                            <div class="d-flex">
+                                <i class="fas fa-exclamation-triangle me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-2">Response Guidelines</h6>
+                                    <ul class="mb-0 small">
+                                        <li>Be professional and courteous</li>
+                                        <li>Address specific points mentioned in the review</li>
+                                        <li>Thank the customer for their feedback</li>
+                                        <li>Explain any misunderstandings constructively</li>
+                                        <li>Avoid defensive or confrontational language</li>
+                                        <li>Do not share personal or confidential information</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tips -->
+                        <div class="alert alert-info">
+                            <div class="d-flex">
+                                <i class="fas fa-lightbulb me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-2">Tips for a Good Response</h6>
+                                    <ul class="mb-0 small">
+                                        <li><strong>For positive reviews:</strong> Thank the customer and express appreciation</li>
+                                        <li><strong>For constructive feedback:</strong> Acknowledge their perspective and explain improvements</li>
+                                        <li><strong>For negative reviews:</strong> Apologize for any shortcomings and explain how you'll improve</li>
+                                        <li><strong>Always:</strong> Maintain a professional tone and focus on service improvement</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <a href="{% url 'reviews:view' pk=review.id %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <div>
+                                <button type="submit" name="save_draft" class="btn btn-outline-primary me-2">
+                                    Save Draft
+                                </button>
+                                <button type="submit" name="submit_response" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>Submit Response
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.blockquote {
+    border-left: 4px solid #4dabf7;
+    padding-left: 1rem;
+    font-style: italic;
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 200px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter
+    const responseTextarea = document.getElementById('response_text');
+    const charCount = document.getElementById('charCount');
+    
+    responseTextarea.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+    });
+    
+    // Initialize count
+    charCount.textContent = responseTextarea.value.length;
+    
+    // Form validation
+    const form = document.getElementById('responseForm');
+    form.addEventListener('submit', function(e) {
+        const response = responseTextarea.value.trim();
+        if (response.length < 20) {
+            e.preventDefault();
+            alert('Please write a more detailed response (minimum 20 characters)');
+            return false;
+        }
+        
+        if (response.length > 2000) {
+            e.preventDefault();
+            alert('Response is too long (maximum 2000 characters)');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

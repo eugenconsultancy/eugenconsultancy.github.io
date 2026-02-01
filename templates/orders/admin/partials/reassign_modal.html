@@ -1,0 +1,55 @@
+<div class="modal fade" id="reassignModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reassign Writer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'orders:admin_reassign' order.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> Reassigning this order will remove it from the current writer's workload.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Current Writer</label>
+                        <input type="text" class="form-control" value="{{ order.writer.get_full_name|default:order.writer.email }}" disabled>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">New Writer</label>
+                        <select class="form-select" name="writer_id" required>
+                            <option value="">Select a writer...</option>
+                            {% for writer in available_writers %}
+                            <option value="{{ writer.id }}">
+                                {{ writer.get_full_name|default:writer.email }} 
+                                (Rating: {{ writer.writer_profile.average_rating|default:"N/A" }}/5.0, 
+                                Load: {{ writer.writer_profile.current_orders }}/{{ writer.writer_profile.max_orders }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Reassignment</label>
+                        <textarea class="form-control" name="reason" rows="3" required
+                                  placeholder="Why are you reassigning this order?"></textarea>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="notify_writers" id="notifyReassign" checked>
+                        <label class="form-check-label" for="notifyReassign">
+                            Notify both writers
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Reassign Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

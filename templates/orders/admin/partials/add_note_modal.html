@@ -1,0 +1,42 @@
+<div class="modal fade" id="addNoteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Admin Note</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'admin:add_note' order.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Note Type</label>
+                        <select class="form-select" name="note_type">
+                            <option value="general">General Note</option>
+                            <option value="warning">Warning</option>
+                            <option value="internal">Internal Only</option>
+                            <option value="client">Client Communication</option>
+                            <option value="writer">Writer Communication</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Note Content</label>
+                        <textarea class="form-control" name="note_content" rows="5" required
+                                  placeholder="Add your admin note here..."></textarea>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="is_private" id="isPrivate">
+                        <label class="form-check-label" for="isPrivate">
+                            Private note (visible only to admins)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Note</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

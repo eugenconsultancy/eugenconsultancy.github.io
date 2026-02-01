@@ -1,0 +1,158 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-search me-2"></i>
+                        Plagiarism Check for Order #{{ order.order_number }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Order Information</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Order Number:</th>
+                                    <td>#{{ order.order_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Title:</th>
+                                    <td>{{ order.title }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Client:</th>
+                                    <td>{{ order.client.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Writer:</th>
+                                    <td>{{ order.writer.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        <span class="badge bg-{{ order.status|status_color }}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Plagiarism Check</h5>
+                            <form method="post" id="plagiarism-form">
+                                {% csrf_token %}
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.source.id_for_label }}" class="form-label">
+                                        Detection Source
+                                    </label>
+                                    {{ form.source }}
+                                    <div class="form-text">
+                                        Select the plagiarism detection service to use.
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.file_to_check.id_for_label }}" class="form-label">
+                                        File to Check (Optional)
+                                    </label>
+                                    {{ form.file_to_check }}
+                                    <div class="form-text">
+                                        Leave empty to use the latest delivery file.
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Plagiarism checks may take several minutes to complete.
+                                    Results will be available in the admin panel.
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-play me-1"></i> Start Plagiarism Check
+                                </button>
+                                <a href="{% url 'admin:orders_order_change' order.id %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i> Back to Order
+                                </a>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    {% if previous_checks %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>Previous Plagiarism Checks</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Source</th>
+                                            <th>Similarity Score</th>
+                                            <th>Risk Level</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for check in previous_checks %}
+                                        <tr>
+                                            <td>{{ check.requested_at|date:"M d, Y H:i" }}</td>
+                                            <td>{{ check.get_source_display }}</td>
+                                            <td>
+                                                {% if check.similarity_score %}
+                                                <span class="badge bg-{{ check.risk_level|risk_color }}">
+                                                    {{ check.similarity_score }}%
+                                                </span>
+                                                {% else %}
+                                                <span class="text-muted">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ check.risk_level|risk_color }}">
+                                                    {{ check.risk_level|title }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ check.status|status_color }}">
+                                                    {{ check.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'admin:plagiarism_plagiarismcheck_change' check.id %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+$(document).ready(function() {
+    $('#plagiarism-form').on('submit', function() {
+        // Show loading indicator
+        $(this).find('button[type="submit"]')
+            .prop('disabled', true)
+            .html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...');
+    });
+});
+</script>
+{% endblock %}

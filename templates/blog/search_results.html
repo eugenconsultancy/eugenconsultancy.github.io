@@ -1,0 +1,216 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Search Results{% if search_query %} for "{{ search_query }}"{% endif %} - EWBWriting Blog{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Search Header -->
+    <div class="row mb-5">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'blog:home' %}">Blog</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Search Results</li>
+                </ol>
+            </nav>
+            
+            <h1 class="display-5 fw-bold text-dark mb-3">
+                {% if search_query %}
+                Search Results for "{{ search_query }}"
+                {% else %}
+                Search Blog
+                {% endif %}
+            </h1>
+            
+            <p class="lead text-muted">
+                {% if search_query %}
+                Found {{ page_obj.paginator.count }} result{% if page_obj.paginator.count != 1 %}s{% endif %} 
+                {% else %}
+                Search our blog for articles, tips, and academic resources
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-lg-4">
+            <form method="get" action="{% url 'blog:search' %}" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="Search blog..." value="{{ search_query }}">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="get" action="{% url 'blog:search' %}" class="row g-3">
+                        <div class="col-md-6">
+                            <input type="text" name="q" class="form-control" placeholder="Search keywords..." value="{{ search_query }}">
+                        </div>
+                        <div class="col-md-4">
+                            <select name="category" class="form-select">
+                                <option value="">All Categories</option>
+                                {% for cat in all_categories %}
+                                <option value="{{ cat.slug }}" {% if selected_category == cat.slug %}selected{% endif %}>
+                                    {{ cat.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="row">
+        <div class="col-lg-8">
+            {% if posts %}
+            <div class="search-results">
+                {% for post in posts %}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            {% if post.featured_image %}
+                            <div class="flex-shrink-0 me-4">
+                                <img src="{{ post.featured_image.url }}" class="rounded" width="120" height="120" alt="{{ post.title }}" style="object-fit: cover;">
+                            </div>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-primary">{{ post.category.name|default:"Uncategorized" }}</span>
+                                    <small class="text-muted">{{ post.published_at|date:"M d, Y" }}</small>
+                                </div>
+                                <h3 class="h5 fw-bold">
+                                    <a href="{{ post.get_absolute_url }}" class="text-decoration-none text-dark">{{ post.title }}</a>
+                                </h3>
+                                <p class="text-muted mb-2">{{ post.excerpt|truncatechars:200 }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i> {{ post.reading_time_minutes }} min read
+                                        <i class="bi bi-eye ms-3 me-1"></i> {{ post.view_count }} views
+                                    </small>
+                                    <a href="{{ post.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
+                                        Read More
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Search pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ search_query }}&category={{ selected_category }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ search_query }}&category={{ selected_category }}&page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ search_query }}&category={{ selected_category }}&page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% elif search_query %}
+            <div class="text-center py-5">
+                <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                <h3 class="h4 text-muted">No results found</h3>
+                <p class="text-muted">Try different keywords or browse our categories</p>
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <a href="{% url 'blog:home' %}" class="btn btn-primary">Browse All Posts</a>
+                    <a href="#categories" class="btn btn-outline-primary">View Categories</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                <h3 class="h4 text-muted">Search Blog Posts</h3>
+                <p class="text-muted">Enter keywords in the search box above to find articles</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Search Tips -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Search Tips</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Use specific keywords</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Try related terms</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Filter by category</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Check spelling</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Browse by tags</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Popular Searches -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Popular Searches</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="?q=academic+writing" class="badge bg-light text-dark">academic writing</a>
+                        <a href="?q=essay+tips" class="badge bg-light text-dark">essay tips</a>
+                        <a href="?q=research+paper" class="badge bg-light text-dark">research paper</a>
+                        <a href="?q=thesis+writing" class="badge bg-light text-dark">thesis writing</a>
+                        <a href="?q=citation+styles" class="badge bg-light text-dark">citation styles</a>
+                        <a href="?q=plagiarism" class="badge bg-light text-dark">plagiarism</a>
+                        <a href="?q=time+management" class="badge bg-light text-dark">time management</a>
+                        <a href="?q=study+tips" class="badge bg-light text-dark">study tips</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Browse by Category</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        {% for category in all_categories|slice:":10" %}
+                        <li class="mb-2">
+                            <a href="{{ category.get_absolute_url }}" class="text-decoration-none d-flex justify-content-between align-items-center py-2">
+                                <span>{{ category.name }}</span>
+                                <span class="badge bg-light text-dark">{{ category.post_count|default:0 }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

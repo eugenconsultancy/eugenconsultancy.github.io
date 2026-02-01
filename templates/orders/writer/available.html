@@ -1,0 +1,393 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Available Orders - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">Available Orders</h1>
+                    <p class="text-muted mb-0">Browse and accept orders that match your expertise</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#availabilityModal">
+                        <i class="bi bi-gear me-2"></i>Availability Settings
+                    </button>
+                    <a href="{% url 'orders:writer_orders' %}" class="btn btn-primary">
+                        <i class="bi bi-list-check me-2"></i>My Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Writer Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card {% if can_accept_orders %}bg-success text-white{% else %}bg-warning{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">
+                                {% if can_accept_orders %}
+                                <i class="bi bi-check-circle me-2"></i>Available for New Orders
+                                {% else %}
+                                <i class="bi bi-exclamation-triangle me-2"></i>Not Available
+                                {% endif %}
+                            </h5>
+                            <p class="mb-0">
+                                Current Load: {{ current_orders }}/{{ max_orders }} orders
+                                {% if specialization %}
+                                • Specialization: {{ specialization }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            {% if can_accept_orders %}
+                            <span class="badge bg-light text-success">ACTIVE</span>
+                            {% else %}
+                            <span class="badge bg-light text-warning">LIMITED</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Subject</label>
+                    <input type="text" name="subject" class="form-control" placeholder="Filter by subject..." value="{{ request.GET.subject }}">
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Academic Level</label>
+                    <select name="academic_level" class="form-select">
+                        <option value="">All Levels</option>
+                        {% for value, label in order.AcademicLevel.choices %}
+                        <option value="{{ value }}" {% if request.GET.academic_level == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Urgency</label>
+                    <select name="urgency" class="form-select">
+                        <option value="">All Urgency</option>
+                        {% for value, label in order.UrgencyLevel.choices %}
+                        <option value="{{ value }}" {% if request.GET.urgency == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Price Range</label>
+                    <select name="price_range" class="form-select">
+                        <option value="">Any Price</option>
+                        <option value="0-50" {% if request.GET.price_range == '0-50' %}selected{% endif %}>$0 - $50</option>
+                        <option value="50-100" {% if request.GET.price_range == '50-100' %}selected{% endif %}>$50 - $100</option>
+                        <option value="100-200" {% if request.GET.price_range == '100-200' %}selected{% endif %}>$100 - $200</option>
+                        <option value="200+" {% if request.GET.price_range == '200+' %}selected{% endif %}>$200+</option>
+                    </select>
+                </div>
+                
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="matchSpecialization" name="match_specialization" 
+                               {% if request.GET.match_specialization %}checked{% endif %}>
+                        <label class="form-check-label" for="matchSpecialization">
+                            Show only orders matching my specialization
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'orders:available' %}" class="btn btn-outline-secondary">Clear Filters</a>
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Orders Grid -->
+    <div class="row">
+        {% if orders %}
+            {% for order in orders %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 order-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="badge bg-{{ order.urgency|urgency_bg_color }}">
+                            {{ order.get_urgency_display }}
+                        </span>
+                        <span class="badge bg-info">
+                            {{ order.get_academic_level_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title" title="{{ order.title }}">
+                            {{ order.title|truncatechars:60 }}
+                        </h5>
+                        
+                        <p class="card-text text-muted small">
+                            <i class="bi bi-journal-text me-1"></i>
+                            {{ order.subject }}
+                        </p>
+                        
+                        <div class="order-details mb-3">
+                            <div class="row small text-muted">
+                                <div class="col-6">
+                                    <i class="bi bi-file-text me-1"></i>
+                                    {{ order.pages }} pages
+                                </div>
+                                <div class="col-6">
+                                    <i class="bi bi-type me-1"></i>
+                                    {{ order.words }} words
+                                </div>
+                                <div class="col-6">
+                                    <i class="bi bi-book me-1"></i>
+                                    {{ order.sources }} sources
+                                </div>
+                                <div class="col-6">
+                                    <i class="bi bi-code-slash me-1"></i>
+                                    {{ order.formatting_style }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="order-deadline mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted">Deadline</small>
+                                    <div class="{% if order.is_overdue %}text-danger{% endif %}">
+                                        {{ order.deadline|date:"M d, Y" }}
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">Time Left</small>
+                                    <div class="{% if order.is_overdue %}text-danger{% endif %}">
+                                        {% if order.is_overdue %}
+                                        <i class="bi bi-exclamation-triangle"></i> Overdue
+                                        {% else %}
+                                        {{ order.time_remaining.days }}d left
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="order-price mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted">Order Price</small>
+                                    <h4 class="mb-0 text-primary">${{ order.price }}</h4>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">Est. Writer Payment</small>
+                                    <div class="h5 mb-0">${{ order.writer_payment }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="client-info mb-3">
+                            <small class="text-muted">Client</small>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-person-circle me-2"></i>
+                                <span>{{ order.client.email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="d-grid">
+                            {% if can_accept_orders %}
+                            <a href="{% url 'orders:assignment' order.pk %}" class="btn btn-primary">
+                                <i class="bi bi-eye me-2"></i>View & Accept
+                            </a>
+                            {% else %}
+                            <button class="btn btn-secondary" disabled>
+                                <i class="bi bi-person-x me-2"></i>Not Available
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-journal-text fs-1 text-muted"></i>
+                    </div>
+                    <h4 class="text-muted">No available orders</h4>
+                    <p class="text-muted">
+                        {% if can_accept_orders %}
+                        There are currently no orders matching your criteria.
+                        {% else %}
+                        You are not available for new orders. Check your availability settings.
+                        {% endif %}
+                    </p>
+                    {% if not can_accept_orders %}
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#availabilityModal">
+                        <i class="bi bi-gear me-2"></i>Update Availability
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Availability Modal -->
+<div class="modal fade" id="availabilityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Availability Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'accounts:update_writer_availability' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="isAvailable" name="is_available" 
+                                   {% if writer_profile.is_available %}checked{% endif %}>
+                            <label class="form-check-label" for="isAvailable">
+                                Available for new orders
+                            </label>
+                        </div>
+                        <small class="text-muted">
+                            When turned off, you won't see new orders in the available list.
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Maximum Concurrent Orders</label>
+                        <input type="range" class="form-range" id="maxOrders" name="max_orders" 
+                               min="1" max="10" value="{{ writer_profile.max_orders|default:5 }}">
+                        <div class="d-flex justify-content-between">
+                            <span>1</span>
+                            <span id="maxOrdersValue">{{ writer_profile.max_orders|default:5 }}</span>
+                            <span>10</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Specialization</label>
+                        <textarea class="form-control" name="specialization" rows="3" 
+                                  placeholder="e.g., Computer Science, Business, Psychology, History">{{ writer_profile.specialization|default:'' }}</textarea>
+                        <small class="text-muted">
+                            Comma-separated list of subjects you specialize in
+                        </small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="bi bi-info-circle"></i>
+                            Current load: {{ current_orders }}/{{ max_orders }} orders
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Update max orders value display
+    $('#maxOrders').on('input', function() {
+        $('#maxOrdersValue').text($(this).val());
+    });
+    
+    // Order card hover effects
+    $('.order-card').hover(
+        function() {
+            $(this).addClass('shadow-lg').css('transform', 'translateY(-2px)');
+        },
+        function() {
+            $(this).removeClass('shadow-lg').css('transform', 'translateY(0)');
+        }
+    );
+    
+    // Update time remaining every minute
+    function updateTimeRemaining() {
+        $('.order-card').each(function() {
+            const deadlineEl = $(this).find('.order-deadline .text-danger, .order-deadline .text-muted');
+            const deadlineText = deadlineEl.text().trim();
+            
+            if (deadlineText.includes('Overdue')) {
+                return; // Already overdue
+            }
+            
+            if (deadlineText.includes('d left')) {
+                const days = parseInt(deadlineText);
+                if (days <= 1) {
+                    deadlineEl.removeClass('text-muted').addClass('text-warning');
+                }
+            }
+        });
+    }
+    
+    updateTimeRemaining();
+    setInterval(updateTimeRemaining, 60000);
+});
+</script>
+{% endblock %}

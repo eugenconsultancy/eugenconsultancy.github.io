@@ -1,0 +1,272 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load order_filters %}
+
+{% block title %}Search Orders - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">Search Orders</h1>
+                    <p class="text-muted mb-0">Advanced search across all orders</p>
+                </div>
+                <a href="{% url 'orders:list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Orders
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-search me-2"></i>Search Parameters</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Search Field</label>
+                    {{ search_form.search_field }}
+                </div>
+                
+                <div class="col-md-5">
+                    <label class="form-label">Search Query</label>
+                    <div class="input-group">
+                        {{ search_form.search_query }}
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Options</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check">
+                            {{ search_form.exact_match }}
+                            <label class="form-check-label" for="{{ search_form.exact_match.id_for_label }}">
+                                Exact match
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            {{ search_form.case_sensitive }}
+                            <label class="form-check-label" for="{{ search_form.case_sensitive.id_for_label }}">
+                                Case sensitive
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'orders:search' %}" class="btn btn-outline-secondary">
+                            Clear Search
+                        </a>
+                        <div>
+                            <a href="{% url 'orders:filter' %}" class="btn btn-outline-info me-2">
+                                <i class="bi bi-funnel me-2"></i>Advanced Filters
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search me-2"></i>Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-search me-2"></i>Search Results
+                    <span class="badge bg-primary ms-2">{{ total_results }}</span>
+                </h5>
+                {% if orders %}
+                <div class="small text-muted">
+                    Showing {{ orders|length }} of {{ total_results }} results
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card-body">
+            {% if orders %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Title</th>
+                            <th>Client</th>
+                            <th>Writer</th>
+                            <th>Status</th>
+                            <th>Deadline</th>
+                            <th>Price</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'orders:detail' order.pk %}" class="text-decoration-none">
+                                    <strong>{{ order.order_number }}</strong>
+                                </a>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 200px;" title="{{ order.title }}">
+                                    {{ order.title }}
+                                </div>
+                                <div class="small text-muted">
+                                    {{ order.get_academic_level_display }}
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ order.client.email }}</div>
+                                <div class="small text-muted">{{ order.client.get_full_name|default:"-" }}</div>
+                            </td>
+                            <td>
+                                {% if order.writer %}
+                                <div>{{ order.writer.email }}</div>
+                                <div class="small text-muted">{{ order.writer.get_full_name|default:"-" }}</div>
+                                {% else %}
+                                <span class="text-warning">Not assigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ order.state|state_bg_color }} rounded-pill">
+                                    {{ order.get_state_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div>{{ order.deadline|date:"M d" }}</div>
+                                <div class="small {% if order.is_overdue %}text-danger{% else %}text-muted{% endif %}">
+                                    {{ order.deadline|time:"g:i A" }}
+                                </div>
+                            </td>
+                            <td>
+                                <strong>${{ order.price }}</strong>
+                            </td>
+                            <td>
+                                {{ order.created_at|date:"M d" }}
+                                <div class="small text-muted">
+                                    {{ order.created_at|timesince }} ago
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'orders:detail' order.pk %}" class="btn btn-outline-primary" title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if request.user.is_staff %}
+                                    <a href="{% url 'orders:admin_detail' order.pk %}" class="btn btn-outline-info" title="Admin View">
+                                        <i class="bi bi-gear"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% elif search_query %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="bi bi-search fs-1 text-muted"></i>
+                </div>
+                <h4 class="text-muted">No results found</h4>
+                <p class="text-muted">No orders match your search criteria for "{{ search_query }}"</p>
+                <div class="mt-3">
+                    <a href="{% url 'orders:search' %}" class="btn btn-primary me-2">
+                        <i class="bi bi-search me-2"></i>Try different search
+                    </a>
+                    <a href="{% url 'orders:list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-list me-2"></i>View all orders
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="bi bi-search fs-1 text-muted"></i>
+                </div>
+                <h4 class="text-muted">Search Orders</h4>
+                <p class="text-muted">Enter search parameters to find orders</p>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    You can search by order number, title, client/writer email, or description.
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Search Tips -->
+    {% if orders %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Search Tips</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h6><i class="bi bi-hash me-2"></i>Order Numbers</h6>
+                    <p class="small text-muted">Search by exact order number like "EB-240101-123456"</p>
+                </div>
+                <div class="col-md-4">
+                    <h6><i class="bi bi-envelope me-2"></i>Emails</h6>
+                    <p class="small text-muted">Search by client or writer email address</p>
+                </div>
+                <div class="col-md-4">
+                    <h6><i class="bi bi-text-paragraph me-2"></i>Descriptions</h6>
+                    <p class="small text-muted">Search within order descriptions for specific terms</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

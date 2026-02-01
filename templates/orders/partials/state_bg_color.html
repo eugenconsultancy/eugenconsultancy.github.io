@@ -1,0 +1,35 @@
+# apps/orders/templatetags/order_filters.py
+from django import template
+
+register = template.Library()
+
+@register.filter
+def state_bg_color(state):
+    color_map = {
+        'draft': 'secondary',
+        'paid': 'info',
+        'assigned': 'primary',
+        'in_progress': 'warning',
+        'delivered': 'success',
+        'revision_requested': 'warning',
+        'in_revision': 'warning',
+        'completed': 'success',
+        'disputed': 'danger',
+        'refunded': 'secondary',
+        'cancelled': 'secondary',
+    }
+    return color_map.get(state, 'secondary')
+
+@register.filter
+def urgency_bg_color(urgency):
+    color_map = {
+        'standard': 'secondary',
+        'urgent': 'warning',
+        'very_urgent': 'danger',
+        'emergency': 'danger',
+    }
+    return color_map.get(urgency, 'secondary')
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)

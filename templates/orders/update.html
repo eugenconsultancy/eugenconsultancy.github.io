@@ -1,0 +1,212 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Update Order #{{ order.order_number }} - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'orders:list' %}">My Orders</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'orders:detail' order.pk %}">Order #{{ order.order_number }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Update Order</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Update Order #{{ order.order_number }}</h4>
+                    <p class="mb-0 small">Only draft orders can be modified. Changes will be saved as a new version.</p>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="updateForm">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Order Title -->
+                        <div class="mb-3">
+                            {{ form.title|as_crispy_field }}
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mb-3">
+                            {{ form.description|as_crispy_field }}
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Subject Area -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.subject|as_crispy_field }}
+                            </div>
+                            
+                            <!-- Academic Level -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.academic_level|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Pages -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.pages|as_crispy_field }}
+                            </div>
+                            
+                            <!-- Words -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.words|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Sources -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.sources|as_crispy_field }}
+                            </div>
+                            
+                            <!-- Formatting Style -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.formatting_style|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Urgency -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.urgency|as_crispy_field }}
+                            </div>
+                            
+                            <!-- Deadline -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.deadline|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <!-- Price/Budget -->
+                        <div class="mb-3">
+                            {{ form.price|as_crispy_field }}
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Note:</strong> You can only update draft orders. Once paid, orders cannot be modified except through revision requests.
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'orders:detail' order.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-1"></i> Save Changes
+                                </button>
+                                {% if order.state == 'draft' %}
+                                <a href="{% url 'orders:delete' order.pk %}" class="btn btn-outline-danger ms-2">
+                                    <i class="bi bi-trash me-1"></i> Delete Order
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Current Order Details -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Current Order Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Order Number:</th>
+                                    <td>{{ order.order_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Created:</th>
+                                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        <span class="badge bg-{{ order.state|state_bg_color }}">
+                                            {{ order.get_state_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Current Price:</th>
+                                    <td>${{ order.price }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Subject:</th>
+                                    <td>{{ order.subject }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Academic Level:</th>
+                                    <td>{{ order.get_academic_level_display }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Pages/Words:</th>
+                                    <td>{{ order.pages }}p / {{ order.words }}w</td>
+                                </tr>
+                                <tr>
+                                    <th>Deadline:</th>
+                                    <td>{{ order.deadline|date:"M d, Y g:i A" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Form validation
+    $('#updateForm').submit(function(e) {
+        const deadline = new Date($('#id_deadline').val());
+        const now = new Date();
+        
+        if (deadline <= now) {
+            e.preventDefault();
+            alert('Deadline must be in the future.');
+            $('#id_deadline').focus();
+            return false;
+        }
+        
+        const words = parseInt($('#id_words').val()) || 0;
+        const pages = parseInt($('#id_pages').val()) || 1;
+        
+        if (words < (pages - 1) * 275 + 1) {
+            e.preventDefault();
+            alert(`Word count seems low for ${pages} page(s). Expected at least ${(pages - 1) * 275 + 1} words.`);
+            $('#id_words').focus();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

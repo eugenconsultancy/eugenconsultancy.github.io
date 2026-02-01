@@ -1,0 +1,229 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Upload File - Order #{{ order.order_number }} - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-upload me-2"></i>Upload File</h4>
+                    <p class="mb-0 small">Order #{{ order.order_number }} - {{ order.title }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Upload files related to this order. This could be:
+                        <ul class="mb-0 mt-2">
+                            <li>Additional instructions or requirements</li>
+                            <li>Reference materials or sources</li>
+                            <li>Work-in-progress files</li>
+                            <li>Final submission files</li>
+                            <li>Revision requests or feedback</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- File Details -->
+                        <div class="mb-4">
+                            <h5>File Details</h5>
+                            
+                            <div class="mb-3">
+                                {{ form.file_type|as_crispy_field }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.file|as_crispy_field }}
+                                <div class="progress mt-2 d-none" id="uploadProgress">
+                                    <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.description|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <!-- File Type Information -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h6><i class="bi bi-info-circle me-2"></i>File Type Guidelines</h6>
+                                <ul class="small mb-0">
+                                    <li><strong>Instructions:</strong> Original order requirements or additional instructions</li>
+                                    <li><strong>Reference Material:</strong> Books, articles, or sources for the writer</li>
+                                    <li><strong>Submission:</strong> Completed work from writer to client</li>
+                                    <li><strong>Revision:</strong> Files related to revision requests</li>
+                                    <li><strong>Other:</strong> Any other relevant files</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Order Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Order Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <th class="text-muted">Order Number:</th>
+                                                <td>{{ order.order_number }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-muted">Title:</th>
+                                                <td>{{ order.title }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-muted">Status:</th>
+                                                <td>
+                                                    <span class="badge bg-{{ order.state|state_bg_color }}">
+                                                        {{ order.get_state_display }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <th class="text-muted">Client:</th>
+                                                <td>{{ order.client.get_full_name|default:order.client.email }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-muted">Writer:</th>
+                                                <td>
+                                                    {% if order.writer %}
+                                                    {{ order.writer.get_full_name|default:order.writer.email }}
+                                                    {% else %}
+                                                    <span class="text-muted">Not assigned</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-muted">Deadline:</th>
+                                                <td>{{ order.deadline|date:"M d, Y H:i" }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'orders:detail' order.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="uploadBtn">
+                                <i class="bi bi-upload me-2"></i>Upload File
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Existing Files -->
+            {% if order.files.all %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-files me-2"></i>Existing Files</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>File Name</th>
+                                    <th>Type</th>
+                                    <th>Uploaded By</th>
+                                    <th>Date</th>
+                                    <th>Size</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for file in order.files.all|slice:":5" %}
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                                        <span title="{{ file.original_filename }}">
+                                            {{ file.original_filename|truncatechars:30 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ file.get_file_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <small>{{ file.uploaded_by.get_full_name|default:file.uploaded_by.email }}</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ file.created_at|date:"M d, Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ file.file_size|filesizeformat }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{{ file.download_url }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if order.files.count > 5 %}
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-sm btn-outline-secondary">
+                            View all {{ order.files.count }} files
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // File upload progress
+    $('input[type="file"]').change(function() {
+        const file = this.files[0];
+        if (file) {
+            const maxSize = 20 * 1024 * 1024; // 20MB
+            
+            if (file.size > maxSize) {
+                alert('File size must be under 20MB.');
+                this.value = '';
+                return;
+            }
+            
+            // Show file info
+            $('#fileName').text(file.name);
+            $('#fileSize').text((file.size / (1024 * 1024)).toFixed(2) + ' MB');
+        }
+    });
+    
+    // Form submission
+    $('form').submit(function() {
+        $('#uploadBtn').prop('disabled', true).html('<i class="bi bi-hourglass-split me-2"></i>Uploading...');
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

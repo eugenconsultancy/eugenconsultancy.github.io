@@ -1,0 +1,135 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Request Revision - Order #{{ order.order_number }} - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0"><i class="bi bi-arrow-clockwise me-2"></i>Request Revision</h4>
+                    <p class="mb-0 small">Order #{{ order.order_number }} - {{ order.title }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        You have <strong>{{ order.max_revisions|subtract:order.revision_count }} revision{{ order.max_revisions|subtract:order.revision_count|pluralize }}</strong> remaining.
+                        This will be revision #{{ order.revision_count|add:1 }}.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Revision Details -->
+                        <div class="mb-4">
+                            <h5>What needs to be revised?</h5>
+                            <p class="text-muted">Be specific about what changes are needed.</p>
+                            
+                            <div class="mb-3">
+                                {{ form.reason|as_crispy_field }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.details|as_crispy_field }}
+                                <small class="form-text text-muted">
+                                    Provide detailed instructions for the writer. You can include:
+                                    <ul class="small">
+                                        <li>Specific sections that need changes</li>
+                                        <li>Formatting requirements</li>
+                                        <li>Additional content needed</li>
+                                        <li>Any missing elements</li>
+                                    </ul>
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Attachments -->
+                        <div class="mb-4">
+                            <h5>Attachments (Optional)</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Upload files for reference</label>
+                                <input type="file" class="form-control" name="attachment" multiple>
+                                <small class="form-text text-muted">
+                                    Upload reference files (PDF, DOC, images) to help the writer understand your requirements.
+                                    Maximum 20MB per file.
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Revision Guidelines -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h6><i class="bi bi-lightbulb me-2"></i>Revision Guidelines</h6>
+                                <ul class="small mb-0">
+                                    <li>Revisions are free for the first {{ order.max_revisions }} requests</li>
+                                    <li>Writers typically complete revisions within 24-48 hours</li>
+                                    <li>Be clear and specific about your requirements</li>
+                                    <li>Review the work thoroughly before requesting revision</li>
+                                    <li>Use the messaging system to communicate with the writer</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirmRevision" required>
+                                <label class="form-check-label" for="confirmRevision">
+                                    I confirm that the delivered work does not meet the specified requirements and I am requesting legitimate revisions.
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'orders:detail' order.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Request Revision
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Recent Files -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-files me-2"></i>Recent Delivery Files</h5>
+                </div>
+                <div class="card-body">
+                    {% if order.files.filter %}
+                    <div class="list-group list-group-flush">
+                        {% for file in order.files.filter|slice:":3" %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                                    {{ file.original_filename|truncatechars:40 }}
+                                </div>
+                                <div>
+                                    <a href="{{ file.download_url }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No delivery files available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

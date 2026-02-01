@@ -1,0 +1,597 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Review Analytics - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-2">Review Analytics</h1>
+            <p class="text-muted mb-0">Monitor review performance and trends</p>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'reviews:moderation_queue' %}" class="btn btn-outline-primary">
+                <i class="fas fa-tasks me-2"></i>Moderation Queue
+            </a>
+        </div>
+    </div>
+
+    <!-- Period Selector -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-bold">Reporting Period:</span>
+                        <div class="btn-group">
+                            <a href="?period=7d" 
+                               class="btn btn-outline-secondary {% if time_period == '7d' %}active{% endif %}">
+                                Last 7 Days
+                            </a>
+                            <a href="?period=30d" 
+                               class="btn btn-outline-secondary {% if time_period == '30d' %}active{% endif %}">
+                                Last 30 Days
+                            </a>
+                            <a href="?period=90d" 
+                               class="btn btn-outline-secondary {% if time_period == '90d' %}active{% endif %}">
+                                Last 90 Days
+                            </a>
+                            <a href="?period=all" 
+                               class="btn btn-outline-secondary {% if time_period == 'all' %}active{% endif %}">
+                                All Time
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="text-muted small">
+                        Data as of {{ stats.timestamp|default:"Just now" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Reviews</h6>
+                            <h3 class="mb-0">{{ stats.total_reviews }}</h3>
+                            <div class="small text-success mt-1">
+                                <i class="fas fa-arrow-up me-1"></i>12% from last period
+                            </div>
+                        </div>
+                        <div class="avatar-sm rounded-circle bg-primary bg-opacity-10">
+                            <i class="fas fa-comments text-primary fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Average Rating</h6>
+                            <h3 class="mb-0">{{ stats.average_rating }}</h3>
+                            <div class="small text-success mt-1">
+                                <i class="fas fa-arrow-up me-1"></i>0.2 from last period
+                            </div>
+                        </div>
+                        <div class="avatar-sm rounded-circle bg-success bg-opacity-10">
+                            <i class="fas fa-star text-success fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Approval Rate</h6>
+                            <h3 class="mb-0">92.5%</h3>
+                            <div class="small text-danger mt-1">
+                                <i class="fas fa-arrow-down me-1"></i>2% from last period
+                            </div>
+                        </div>
+                        <div class="avatar-sm rounded-circle bg-info bg-opacity-10">
+                            <i class="fas fa-check-circle text-info fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Avg Response Time</h6>
+                            <h3 class="mb-0">4.2h</h3>
+                            <div class="small text-success mt-1">
+                                <i class="fas fa-arrow-down me-1"></i>1.3h faster
+                            </div>
+                        </div>
+                        <div class="avatar-sm rounded-circle bg-warning bg-opacity-10">
+                            <i class="fas fa-stopwatch text-warning fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Charts -->
+        <div class="col-lg-8">
+            <!-- Rating Distribution -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Rating Distribution</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                                type="button" 
+                                data-bs-toggle="dropdown">
+                            View by
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="updateChart('distribution', 'percentage')">Percentage</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="updateChart('distribution', 'count')">Count</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <canvas id="ratingDistributionChart" height="250"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="ps-md-4">
+                                <h6 class="fw-bold mb-3">Distribution Analysis</h6>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>5-Star Reviews</span>
+                                        <span class="fw-bold text-success">{{ stats.rating_distribution.5 }}</span>
+                                    </div>
+                                    <div class="progress" style="height: 12px;">
+                                        {% with percent_5=stats.rating_distribution.5|divisibleby:stats.total_reviews|multiply:100 %}
+                                        <div class="progress-bar bg-success" 
+                                             style="width: {{ percent_5|floatformat:1 }}%"></div>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>1-2 Star Reviews</span>
+                                        <span class="fw-bold text-danger">
+                                            {{ stats.rating_distribution.1|add:stats.rating_distribution.2 }}
+                                        </span>
+                                    </div>
+                                    <div class="progress" style="height: 12px;">
+                                        {% with negative_total=stats.rating_distribution.1|add:stats.rating_distribution.2 %}
+                                        {% with percent_neg=negative_total|divisibleby:stats.total_reviews|multiply:100 %}
+                                        <div class="progress-bar bg-danger" 
+                                             style="width: {{ percent_neg|floatformat:1 }}%"></div>
+                                        {% endwith %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading mb-2">
+                                        <i class="fas fa-chart-line me-2"></i>Trend Analysis
+                                    </h6>
+                                    <ul class="mb-0 small">
+                                        <li>Positive reviews (4-5 stars): {{ stats.rating_distribution.4|add:stats.rating_distribution.5 }}</li>
+                                        <li>Neutral reviews (3 stars): {{ stats.rating_distribution.3 }}</li>
+                                        <li>Negative reviews (1-2 stars): {{ stats.rating_distribution.1|add:stats.rating_distribution.2 }}</li>
+                                        <li>Net Promoter Score: 
+                                            {% with promoters=stats.rating_distribution.5|add:stats.rating_distribution.4 %}
+                                            {% with detractors=stats.rating_distribution.1|add:stats.rating_distribution.2 %}
+                                            {{ promoters|subtract:detractors|divisibleby:stats.total_reviews|multiply:100|floatformat:0 }}%
+                                            {% endwith %}
+                                            {% endwith %}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quality Metrics -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Quality Metrics Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for metric_name, metric_value in stats.quality_metrics.items %}
+                        <div class="col-md-6 mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold text-capitalize">{{ metric_name }}</span>
+                                <span class="h5 mb-0">{{ metric_value }}/5</span>
+                            </div>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar 
+                                    {% if metric_value >= 4.0 %}bg-success
+                                    {% elif metric_value >= 3.0 %}bg-warning
+                                    {% else %}bg-danger{% endif %}" 
+                                     style="width: {{ metric_value|multiply:20 }}%">
+                                    <span class="fw-bold">{{ metric_value|floatformat:1 }}</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">Poor</small>
+                                <small class="text-muted">Average</small>
+                                <small class="text-muted">Excellent</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Flags -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Flagged Reviews</h5>
+                    <span class="badge bg-danger">{{ recent_flags|length }} pending</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_flags %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Review ID</th>
+                                    <th>Reason</th>
+                                    <th>Reporter</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for flag in recent_flags %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'reviews:view' review_id=flag.review.id %}" 
+                                           class="text-decoration-none">
+                                            {{ flag.review.id|slice:":8" }}...
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">{{ flag.get_reason_display }}</span>
+                                        {% if flag.description %}
+                                        <div class="small text-muted mt-1">{{ flag.description|truncatechars:50 }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ flag.reporter.email|truncatechars:20 }}</td>
+                                    <td>{{ flag.created_at|date:"M d, H:i" }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'reviews:view' review_id=flag.review.id %}" 
+                                               class="btn btn-outline-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'admin:reviews_reviewflag_change' flag.id %}" 
+                                               class="btn btn-outline-primary" target="_blank">
+                                                <i class="fas fa-cog"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-flag fa-2x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No recent flags to display</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Top Writers -->
+        <div class="col-lg-4">
+            <!-- Top Writers -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Top Writers by Rating</h5>
+                    <span class="badge bg-primary">{{ top_writers|length }} writers</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for writer in top_writers %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle-sm bg-primary text-white me-3">
+                                        {{ writer.writer.email|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ writer.writer.email|truncatechars:20 }}</div>
+                                        <div class="small text-muted">{{ writer.total_reviews }} reviews</div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="h5 mb-0 text-primary">{{ writer.average_rating|floatformat:1 }}</div>
+                                    <div class="small">
+                                        {% with avg=writer.average_rating|floatformat:"0" %}
+                                        {% for i in "12345" %}
+                                        {% if forloop.counter <= avg|add:"0" %}
+                                        <i class="fas fa-star text-warning" style="font-size: 0.7rem;"></i>
+                                        {% endif %}
+                                        {% endfor %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-success" 
+                                     style="width: {{ writer.positive_review_percentage }}%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">{{ writer.positive_review_percentage|floatformat:1 }}% positive</small>
+                                <small class="text-muted">
+                                    {{ writer.positive_reviews }}/{{ writer.total_reviews }}
+                                </small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item text-center py-4">
+                            <i class="fas fa-user-tie fa-2x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No writer data available</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="#" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-list me-2"></i>View All Writers
+                    </a>
+                </div>
+            </div>
+
+            <!-- Review Trends -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Review Trends</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-3">Monthly Review Count</h6>
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-primary"></div>
+                                <div class="timeline-content">
+                                    <div class="d-flex justify-content-between">
+                                        <span>This Month</span>
+                                        <span class="fw-bold">24 reviews</span>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 8px;">
+                                        <div class="progress-bar bg-primary" style="width: 75%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-success"></div>
+                                <div class="timeline-content">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Last Month</span>
+                                        <span class="fw-bold">32 reviews</span>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 8px;">
+                                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-info"></div>
+                                <div class="timeline-content">
+                                    <div class="d-flex justify-content-between">
+                                        <span>2 Months Ago</span>
+                                        <span class="fw-bold">28 reviews</span>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 8px;">
+                                        <div class="progress-bar bg-info" style="width: 87%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <h6 class="alert-heading mb-2">
+                            <i class="fas fa-chart-line me-2"></i>Trend Analysis
+                        </h6>
+                        <ul class="mb-0 small">
+                            <li>Review volume is stable month-over-month</li>
+                            <li>Average rating has increased by 0.2 points</li>
+                            <li>Response rate improved by 15%</li>
+                            <li>Flagged reviews decreased by 8%</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'reviews:moderation_queue' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-tasks me-2"></i>Process Moderation Queue
+                        </a>
+                        <button class="btn btn-outline-info" onclick="generateReport()">
+                            <i class="fas fa-file-export me-2"></i>Generate Monthly Report
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="exportAllData()">
+                            <i class="fas fa-database me-2"></i>Export All Review Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.avatar-sm {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-bar {
+    border-radius: 4px;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -20px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.timeline-content {
+    margin-left: 10px;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize rating distribution chart
+    const ctx = document.getElementById('ratingDistributionChart');
+    if (ctx) {
+        const ratingData = {{ stats.rating_distribution|safe }};
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
+                datasets: [{
+                    label: 'Number of Reviews',
+                    data: [
+                        ratingData['1'] || 0,
+                        ratingData['2'] || 0,
+                        ratingData['3'] || 0,
+                        ratingData['4'] || 0,
+                        ratingData['5'] || 0
+                    ],
+                    backgroundColor: [
+                        '#dc3545', // 1 star
+                        '#fd7e14', // 2 stars
+                        '#ffc107', // 3 stars
+                        '#17a2b8', // 4 stars
+                        '#28a745'  // 5 stars
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = {{ stats.total_reviews }};
+                                const percentage = total > 0 ? 
+                                    Math.round((context.raw / total) * 100) : 0;
+                                return `${context.label}: ${context.raw} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+
+function updateChart(chartId, viewType) {
+    // In a real implementation, this would update the chart data
+    alert(`Switching ${chartId} chart to ${viewType} view`);
+}
+
+function generateReport() {
+    if (confirm('Generate monthly review analytics report?')) {
+        // In a real implementation, this would generate a report
+        alert('Monthly report generation would be implemented here.');
+    }
+}
+
+function exportAllData() {
+    if (confirm('Export all review data for the selected period?')) {
+        // In a real implementation, this would export data
+        alert('Data export functionality would be implemented here.');
+    }
+}
+</script>
+{% endblock %}

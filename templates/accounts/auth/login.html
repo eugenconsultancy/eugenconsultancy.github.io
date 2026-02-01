@@ -1,0 +1,124 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Login - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <h2 class="h3 mb-3 fw-bold text-primary">Welcome Back</h2>
+                        <p class="text-muted">Sign in to your account to continue</p>
+                    </div>
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Invalid credentials!</strong> Please check your email and password.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'account_login' %}" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="id_login" class="form-label">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" name="login" id="id_login" 
+                                       class="form-control {% if form.login.errors %}is-invalid{% endif %}" 
+                                       placeholder="you@example.com" 
+                                       value="{{ form.login.value|default:'' }}" 
+                                       required autofocus>
+                            </div>
+                            {% if form.login.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.login.errors|first }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" name="password" id="id_password" 
+                                       class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
+                                       placeholder="Enter your password" 
+                                       required>
+                                <button class="btn btn-outline-secondary" type="button" 
+                                        id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.password.errors|first }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" 
+                                   name="remember" id="id_remember">
+                            <label class="form-check-label" for="id_remember">
+                                Remember me for 30 days
+                            </label>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </button>
+                        </div>
+
+                        <div class="text-center mb-3">
+                            <a href="{% url 'account_reset_password' %}" class="text-decoration-none">
+                                Forgot your password?
+                            </a>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="text-center">
+                            <p class="mb-2">Don't have an account?</p>
+                            <a href="{% url 'account_signup' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-2"></i>Sign Up Now
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <p class="text-muted small">
+                    By signing in, you agree to our 
+                    <a href="{% url 'terms' %}" class="text-decoration-none">Terms of Service</a> and 
+                    <a href="{% url 'privacy' %}" class="text-decoration-none">Privacy Policy</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('id_password');
+    
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+});
+</script>
+{% endblock %}

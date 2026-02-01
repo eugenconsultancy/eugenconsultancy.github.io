@@ -1,0 +1,439 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Payment History{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<style>
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .status-initiated { background-color: #f8f9fa; color: #6c757d; }
+    .status-processing { background-color: #fff3cd; color: #856404; }
+    .status-held_in_escrow { background-color: #cce5ff; color: #004085; }
+    .status-released_to_wallet { background-color: #d4edda; color: #155724; }
+    .status-refunded { background-color: #f8d7da; color: #721c24; }
+    .status-failed { background-color: #f5c6cb; color: #721c24; }
+    .status-cancelled { background-color: #d6d8d9; color: #1b1e21; }
+    
+    .payment-method-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .stripe-icon { background-color: #635bff; color: white; }
+    .paypal-icon { background-color: #003087; color: white; }
+    .wallet-icon { background-color: #28a745; color: white; }
+    .bank-icon { background-color: #6c757d; color: white; }
+    
+    .filter-card {
+        transition: all 0.3s ease;
+    }
+    
+    .filter-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Payment History</h1>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-download"></i> Export
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="exportToCSV()">CSV</a></li>
+                <li><a class="dropdown-item" href="#" onclick="exportToPDF()">PDF</a></li>
+                <li><a class="dropdown-item" href="#" onclick="printTable()">Print</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2 filter-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Payments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_payments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-credit-card-2-front fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2 filter-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Amount
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_amount|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-cash-stack fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2 filter-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Active Payments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_payments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-clock-history fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2 filter-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Avg. Payment
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if total_payments > 0 %}
+                                ${{ total_amount|div:total_payments|floatformat:2 }}
+                                {% else %}
+                                $0.00
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-graph-up fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-funnel"></i> Filter Payments
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" id="filter-form">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="initiated">Initiated</option>
+                            <option value="processing">Processing</option>
+                            <option value="held_in_escrow">Held in Escrow</option>
+                            <option value="released_to_wallet">Released</option>
+                            <option value="refunded">Refunded</option>
+                            <option value="failed">Failed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select name="payment_method" class="form-select">
+                            <option value="">All Methods</option>
+                            <option value="stripe">Stripe</option>
+                            <option value="paypal">PayPal</option>
+                            <option value="wallet">Wallet</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">From Date</label>
+                        <input type="date" name="date_from" class="form-control">
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">To Date</label>
+                        <input type="date" name="date_to" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Min Amount</label>
+                        <input type="number" name="min_amount" step="0.01" class="form-control" placeholder="0.00">
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Max Amount</label>
+                        <input type="number" name="max_amount" step="0.01" class="form-control" placeholder="0.00">
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Search</label>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Search by reference, order number, or writer...">
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Apply Filters
+                    </button>
+                    <button type="button" onclick="resetFilters()" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Clear Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payments Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-list-ul"></i> Recent Payments
+            </h6>
+            <span class="badge bg-primary">{{ payments|length }} payments</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="paymentsTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Order</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if payment.payment_method == 'stripe' %}
+                                    <div class="payment-method-icon stripe-icon me-2">
+                                        <i class="bi bi-credit-card"></i>
+                                    </div>
+                                    {% elif payment.payment_method == 'paypal' %}
+                                    <div class="payment-method-icon paypal-icon me-2">
+                                        <i class="bi bi-paypal"></i>
+                                    </div>
+                                    {% elif payment.payment_method == 'wallet' %}
+                                    <div class="payment-method-icon wallet-icon me-2">
+                                        <i class="bi bi-wallet"></i>
+                                    </div>
+                                    {% elif payment.payment_method == 'bank_transfer' %}
+                                    <div class="payment-method-icon bank-icon me-2">
+                                        <i class="bi bi-bank"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ payment.reference_number }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ payment.payment_id|truncatechars:8 }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if payment.order %}
+                                <a href="{% url 'orders:detail' payment.order.id %}" class="text-decoration-none">
+                                    #{{ payment.order.order_number }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ payment.order.service_type|title }}</small>
+                                {% else %}
+                                <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>${{ payment.amount|floatformat:2 }}</strong>
+                                <br>
+                                <small class="text-muted">{{ payment.currency }}</small>
+                            </td>
+                            <td>
+                                {{ payment.get_payment_method_display }}
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ payment.state }}">
+                                    {{ payment.get_state_display }}
+                                </span>
+                                {% if payment.is_in_escrow %}
+                                <br>
+                                <small class="text-muted">
+                                    Held until: {{ payment.escrow_held_until|date:"M d, Y" }}
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ payment.created_at|date:"M d, Y" }}
+                                <br>
+                                <small class="text-muted">{{ payment.created_at|time:"H:i" }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'payments:detail' payment.payment_id %}" 
+                                       class="btn btn-outline-primary" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'payments:receipt' payment.payment_id %}" 
+                                       class="btn btn-outline-success" title="Receipt">
+                                        <i class="bi bi-receipt"></i>
+                                    </a>
+                                    {% if payment.can_be_refunded %}
+                                    <a href="{% url 'payments:request_refund' payment.order.id %}" 
+                                       class="btn btn-outline-warning" title="Request Refund">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="bi bi-credit-card fa-3x mb-3"></i>
+                                    <p class="h5">No payments found</p>
+                                    <p>You haven't made any payments yet.</p>
+                                    <a href="{% url 'orders:create' %}" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle"></i> Create Order
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if payments.has_other_pages %}
+            <nav aria-label="Payment pagination">
+                <ul class="pagination justify-content-center">
+                    {% if payments.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&laquo; First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ payments.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in payments.paginator.page_range %}
+                    {% if payments.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > payments.number|add:'-3' and num < payments.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if payments.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ payments.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ payments.paginator.num_pages }}">Last &raquo;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    // Initialize DataTable
+    $(document).ready(function() {
+        $('#paymentsTable').DataTable({
+            "order": [[5, "desc"]],
+            "pageLength": 25,
+            "language": {
+                "search": "Search payments:",
+                "lengthMenu": "Show _MENU_ payments per page",
+                "info": "Showing _START_ to _END_ of _TOTAL_ payments",
+                "infoEmpty": "No payments to show",
+                "paginate": {
+                    "previous": "Previous",
+                    "next": "Next"
+                }
+            }
+        });
+        
+        // Set filter values from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.forEach((value, key) => {
+            const element = document.querySelector(`[name="${key}"]`);
+            if (element) {
+                element.value = value;
+            }
+        });
+    });
+    
+    // Export functions
+    function exportToCSV() {
+        alert('CSV export functionality would be implemented here.');
+        // In production, this would generate and download a CSV file
+    }
+    
+    function exportToPDF() {
+        alert('PDF export functionality would be implemented here.');
+        // In production, this would generate and download a PDF file
+    }
+    
+    function printTable() {
+        window.print();
+    }
+    
+    function resetFilters() {
+        document.getElementById('filter-form').reset();
+        window.location.href = window.location.pathname;
+    }
+</script>
+{% endblock %}

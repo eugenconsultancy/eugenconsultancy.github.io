@@ -1,0 +1,92 @@
+{% extends "base/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Request Revision - Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-sync-alt me-2"></i>
+                        Request Revision - Order #{{ order.order_number }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>Revision Information
+                        </h5>
+                        <ul class="mb-0">
+                            <li>You have <strong>{{ revisions_remaining }}</strong> revisions remaining</li>
+                            <li>Revision period ends: <strong>{{ revision_cycle.ends_at|date:"M d, Y H:i" }}</strong></li>
+                            <li>Please provide clear instructions for the writer</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form|crispy }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="files" class="form-label">Supporting Files (Optional)</label>
+                            <input type="file" class="form-control" id="files" name="files" multiple>
+                            <div class="form-text">
+                                Upload any files that help explain the required changes. Max 10MB per file.
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{% url 'order_detail' order.id %}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Order
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i> Submit Revision Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Previous Revisions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if previous_revisions %}
+                        <div class="list-group">
+                            {% for revision in previous_revisions %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ revision.title }}</h6>
+                                    <small class="text-muted">{{ revision.requested_at|timesince }} ago</small>
+                                </div>
+                                <p class="mb-1">{{ revision.instructions|truncatewords:30 }}</p>
+                                <small>
+                                    Status: 
+                                    <span class="badge bg-{% if revision.status == 'completed' %}success{% elif revision.status == 'in_progress' %}warning{% elif revision.status == 'overdue' %}danger{% else %}info{% endif %}">
+                                        {{ revision.get_status_display }}
+                                    </span>
+                                </small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">No previous revisions for this order.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

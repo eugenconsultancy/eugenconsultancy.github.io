@@ -1,0 +1,274 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Write a Review - Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Write a Review</h1>
+                <a href="{% url 'orders:order_detail' pk=order.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Order
+                </a>
+            </div>
+
+            <!-- Order Info Card -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="card-title mb-1">Order #{{ order.order_number }}</h5>
+                            <p class="text-muted mb-2">{{ order.title }}</p>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-success me-2">Completed</span>
+                                <small class="text-muted">
+                                    Completed: {{ order.completed_at|date:"M d, Y" }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-inline-block text-center">
+                                <div class="h5 mb-1">Writer</div>
+                                <div class="fw-bold">{{ order.writer.get_full_name|default:order.writer.email }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Form -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" id="reviewForm">
+                        {% csrf_token %}
+                        
+                        <!-- Overall Rating -->
+                        <div class="mb-5">
+                            <label class="form-label fw-bold mb-3">Overall Rating</label>
+                            <div class="rating-input-container mb-2">
+                                {% for i in "54321" %}
+                                <input type="radio" 
+                                       id="rating{{ i }}" 
+                                       name="rating" 
+                                       value="{{ i }}" 
+                                       class="visually-hidden" 
+                                       required
+                                       {% if form.rating.value == i %}checked{% endif %}>
+                                <label for="rating{{ i }}" class="rating-star" title="{{ i }} star">
+                                    <i class="fas fa-star"></i>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <div class="text-muted">
+                                <small>1 = Very Poor, 3 = Average, 5 = Excellent</small>
+                            </div>
+                            {% if form.rating.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.rating.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Quality Metrics -->
+                        <div class="mb-5">
+                            <h5 class="mb-3">Quality Metrics</h5>
+                            <p class="text-muted small mb-4">Rate specific aspects of the service (1-5 stars)</p>
+                            
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="metric-card">
+                                        <label class="form-label fw-semibold mb-2">Communication</label>
+                                        <p class="text-muted small mb-2">How responsive and clear was the communication?</p>
+                                        <select name="communication_rating" class="form-select rating-select">
+                                            <option value="">Select rating</option>
+                                            {% for i in "12345" %}
+                                            <option value="{{ i }}" {% if form.communication_rating.value == i %}selected{% endif %}>
+                                                {{ i }} star{% if i != "1" %}s{% endif %}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="metric-card">
+                                        <label class="form-label fw-semibold mb-2">Timeliness</label>
+                                        <p class="text-muted small mb-2">Was the work delivered on time?</p>
+                                        <select name="timeliness_rating" class="form-select rating-select">
+                                            <option value="">Select rating</option>
+                                            {% for i in "12345" %}
+                                            <option value="{{ i }}" {% if form.timeliness_rating.value == i %}selected{% endif %}>
+                                                {{ i }} star{% if i != "1" %}s{% endif %}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="metric-card">
+                                        <label class="form-label fw-semibold mb-2">Quality</label>
+                                        <p class="text-muted small mb-2">How satisfied are you with the quality of work?</p>
+                                        <select name="quality_rating" class="form-select rating-select">
+                                            <option value="">Select rating</option>
+                                            {% for i in "12345" %}
+                                            <option value="{{ i }}" {% if form.quality_rating.value == i %}selected{% endif %}>
+                                                {{ i }} star{% if i != "1" %}s{% endif %}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="metric-card">
+                                        <label class="form-label fw-semibold mb-2">Adherence to Instructions</label>
+                                        <p class="text-muted small mb-2">How well did the writer follow your instructions?</p>
+                                        <select name="adherence_rating" class="form-select rating-select">
+                                            <option value="">Select rating</option>
+                                            {% for i in "12345" %}
+                                            <option value="{{ i }}" {% if form.adherence_rating.value == i %}selected{% endif %}>
+                                                {{ i }} star{% if i != "1" %}s{% endif %}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Comment -->
+                        <div class="mb-4">
+                            <label for="comment" class="form-label fw-bold">Detailed Feedback</label>
+                            <p class="text-muted small mb-2">
+                                Share your experience. What went well? What could be improved?
+                            </p>
+                            <textarea name="comment" 
+                                      id="comment" 
+                                      class="form-control" 
+                                      rows="6" 
+                                      placeholder="Please provide detailed feedback about your experience...">{{ form.comment.value|default:'' }}</textarea>
+                            <div class="text-end mt-1">
+                                <small class="text-muted">
+                                    <span id="charCount">0</span> / 1000 characters
+                                </small>
+                            </div>
+                            {% if form.comment.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.comment.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Review Guidelines -->
+                        <div class="alert alert-info">
+                            <div class="d-flex">
+                                <i class="fas fa-info-circle me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-2">Review Guidelines</h6>
+                                    <ul class="mb-0 small">
+                                        <li>Be honest and specific about your experience</li>
+                                        <li>Focus on the work and service provided</li>
+                                        <li>Avoid personal attacks or inappropriate language</li>
+                                        <li>Your review helps improve our service quality</li>
+                                        <li>Reviews are subject to moderation</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <a href="{% url 'orders:order_detail' pk=order.id %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <div>
+                                <button type="submit" name="save_draft" class="btn btn-outline-primary me-2">
+                                    Save as Draft
+                                </button>
+                                <button type="submit" name="submit_review" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>Submit Review
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-input-container {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.rating-star {
+    font-size: 2.5rem;
+    color: #ddd;
+    cursor: pointer;
+    padding: 0 0.25rem;
+    transition: color 0.2s;
+}
+
+.rating-star:hover,
+.rating-star:hover ~ .rating-star,
+.rating-input-container input:checked ~ .rating-star {
+    color: #ffc107;
+}
+
+.rating-input-container input:checked + .rating-star {
+    color: #ffc107;
+}
+
+.metric-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.25rem;
+    height: 100%;
+}
+
+.rating-select {
+    background-color: white;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.75rem;
+}
+
+.rating-select:focus {
+    border-color: #4dabf7;
+    box-shadow: 0 0 0 0.25rem rgba(77, 171, 247, 0.25);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter
+    const commentTextarea = document.getElementById('comment');
+    const charCount = document.getElementById('charCount');
+    
+    commentTextarea.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+    });
+    
+    // Initialize count
+    charCount.textContent = commentTextarea.value.length;
+    
+    // Form validation
+    const form = document.getElementById('reviewForm');
+    form.addEventListener('submit', function(e) {
+        const rating = document.querySelector('input[name="rating"]:checked');
+        if (!rating) {
+            e.preventDefault();
+            alert('Please select an overall rating');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

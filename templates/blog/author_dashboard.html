@@ -1,0 +1,257 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Author Dashboard - EWBWriting Blog{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Dashboard Header -->
+    <div class="row mb-5">
+        <div class="col-lg-8">
+            <h1 class="display-5 fw-bold text-dark mb-3">Author Dashboard</h1>
+            <p class="lead text-muted">Manage your blog posts and track performance</p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <div class="d-grid gap-2">
+                <a href="{% url 'blog:create_post' %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle me-1"></i> New Post
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="row mb-5">
+        <div class="col-md-3 col-6 mb-4">
+            <div class="stat-card bg-primary text-white rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Total Posts</h6>
+                        <h2 class="display-6 fw-bold my-2">{{ total_posts }}</h2>
+                        <small>All time</small>
+                    </div>
+                    <i class="bi bi-journal-text fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-4">
+            <div class="stat-card bg-success text-white rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Published</h6>
+                        <h2 class="display-6 fw-bold my-2">{{ published_posts }}</h2>
+                        <small>Live posts</small>
+                    </div>
+                    <i class="bi bi-check-circle fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-4">
+            <div class="stat-card bg-warning text-white rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Total Views</h6>
+                        <h2 class="display-6 fw-bold my-2">{{ total_views }}</h2>
+                        <small>All posts</small>
+                    </div>
+                    <i class="bi bi-eye fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-4">
+            <div class="stat-card bg-info text-white rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Avg. Views</h6>
+                        <h2 class="display-6 fw-bold my-2">{{ avg_views|default:"0" }}</h2>
+                        <small>Per post</small>
+                    </div>
+                    <i class="bi bi-graph-up fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Posts -->
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="h5 fw-bold mb-0">Recent Posts</h4>
+                <a href="{% url 'blog:create_post' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle me-1"></i> New Post
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if page_obj.object_list %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Category</th>
+                            <th>Views</th>
+                            <th>Published</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in page_obj.object_list %}
+                        <tr>
+                            <td>
+                                <a href="{{ post.get_absolute_url }}" class="text-decoration-none">
+                                    {{ post.title|truncatechars:50 }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if post.status == 'published' %}success{% elif post.status == 'draft' %}secondary{% else %}warning{% endif %}">
+                                    {{ post.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if post.category %}
+                                <span class="badge bg-light text-dark">{{ post.category.name }}</span>
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ post.view_count }}</td>
+                            <td>
+                                {% if post.published_at %}
+                                {{ post.published_at|date:"M d, Y" }}
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ post.get_absolute_url }}" class="btn btn-outline-primary" target="_blank">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'blog:edit_post' post.slug %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'blog:post_stats' post.slug %}" class="btn btn-outline-info">
+                                        <i class="bi bi-graph-up"></i>
+                                    </a>
+                                    {% if user.has_perm('blog.can_publish_post') and post.status != 'published' %}
+                                    <a href="#" class="btn btn-outline-success">
+                                        <i class="bi bi-check-circle"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Dashboard pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-journal-text fs-1 text-muted mb-3"></i>
+                <h3 class="h4 text-muted">No posts yet</h3>
+                <p class="text-muted">Create your first blog post to get started</p>
+                <a href="{% url 'blog:create_post' %}" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-circle me-1"></i> Create First Post
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Quick Actions</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'blog:create_post' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i> Create New Post
+                        </a>
+                        <a href="{% url 'blog:home' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-journal-text me-2"></i> View Blog
+                        </a>
+                        <a href="#drafts" class="btn btn-outline-secondary">
+                            <i class="bi bi-file-earmark me-2"></i> View Drafts ({{ draft_count|default:0 }})
+                        </a>
+                        <a href="#scheduled" class="btn btn-outline-secondary">
+                            <i class="bi bi-calendar me-2"></i> Scheduled Posts ({{ scheduled_count|default:0 }})
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Performance Overview</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Top Performing Post:</span>
+                        <span class="fw-bold">{{ top_post.title|truncatechars:30|default:"N/A" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Average Views/Post:</span>
+                        <span class="fw-bold">{{ avg_views|default:"0" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Comments Received:</span>
+                        <span class="fw-bold">{{ total_comments|default:"0" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Last Published:</span>
+                        <span class="fw-bold">{{ last_published|date:"M d, Y"|default:"Never" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card {
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+</style>
+{% endblock %}

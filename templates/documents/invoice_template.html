@@ -1,0 +1,304 @@
+<!-- templates/documents/invoice_template.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{ invoice_number }} - EBWriting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fff;
+            padding: 40px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .company-info {
+            flex: 1;
+        }
+        
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .company-details {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .invoice-title {
+            text-align: right;
+        }
+        
+        .invoice-title h1 {
+            font-size: 36px;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        
+        .invoice-number {
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+        
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+        
+        .bill-to, .invoice-info {
+            flex: 1;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px 20px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        .items-table th {
+            background-color: #3498db;
+            color: white;
+            text-align: left;
+            padding: 15px;
+            font-weight: bold;
+        }
+        
+        .items-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .items-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .totals {
+            width: 300px;
+            margin-left: auto;
+            margin-bottom: 40px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .total-row.total {
+            font-weight: bold;
+            font-size: 18px;
+            color: #2c3e50;
+            border-top: 2px solid #3498db;
+            border-bottom: none;
+            padding-top: 15px;
+            margin-top: 10px;
+        }
+        
+        .notes {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .notes h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            background-color: #27ae60;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .due-date {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-info">
+                <div class="company-name">EBWriting</div>
+                <div class="company-details">
+                    {{ company_info.address }}<br>
+                    Phone: {{ company_info.phone }}<br>
+                    Email: {{ company_info.email }}<br>
+                    Website: ebwriting.com
+                </div>
+            </div>
+            <div class="invoice-title">
+                <h1>INVOICE</h1>
+                <div class="invoice-number">{{ invoice_number }}</div>
+            </div>
+        </div>
+        
+        <div class="invoice-details">
+            <div class="bill-to">
+                <h3 class="section-title">Bill To</h3>
+                <div class="info-grid">
+                    <div class="info-label">Name:</div>
+                    <div>{{ client_info.name }}</div>
+                    
+                    <div class="info-label">Email:</div>
+                    <div>{{ client_info.email }}</div>
+                    
+                    <div class="info-label">Order ID:</div>
+                    <div>#{{ order.order_id }}</div>
+                </div>
+            </div>
+            <div class="invoice-info">
+                <h3 class="section-title">Invoice Details</h3>
+                <div class="info-grid">
+                    <div class="info-label">Invoice Date:</div>
+                    <div>{{ invoice_date }}</div>
+                    
+                    <div class="info-label">Due Date:</div>
+                    <div class="due-date">{{ due_date }}</div>
+                    
+                    <div class="info-label">Status:</div>
+                    <div><span class="status">Paid</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th class="text-center">Quantity</th>
+                    <th class="text-right">Unit Price</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <strong>{{ item.description }}</strong><br>
+                        <small>Order #{{ order.order_id }} - Academic Writing Service</small>
+                    </td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">${{ item.unit_price|floatformat:2 }}</td>
+                    <td class="text-right">${{ item.total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>${{ subtotal|floatformat:2 }}</span>
+            </div>
+            {% if tax > 0 %}
+            <div class="total-row">
+                <span>Tax ({{ order.tax_rate|default:"0" }}%):</span>
+                <span>${{ tax|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+            {% if order.discount_amount and order.discount_amount > 0 %}
+            <div class="total-row">
+                <span>Discount:</span>
+                <span>-${{ order.discount_amount|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+            <div class="total-row total">
+                <span>Total Amount:</span>
+                <span>${{ total|floatformat:2 }}</span>
+            </div>
+        </div>
+        
+        <div class="notes">
+            <h3>Payment Information & Notes</h3>
+            <p>
+                This invoice is for academic writing services provided through EBWriting platform.<br>
+                Payment has been processed successfully through our secure payment gateway.<br>
+                All amounts are in US Dollars (USD).
+            </p>
+            <p>
+                <strong>Important:</strong> This is an automated invoice. No further payment is required.<br>
+                For any questions or concerns, please contact our support team at {{ company_info.email }}
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for choosing EBWriting for your academic writing needs!</p>
+            <p>This is an automated document generated on {{ invoice_date }}.</p>
+            <p>Document ID: {{ invoice_number }} | Order ID: {{ order.order_id }}</p>
+        </div>
+    </div>
+</body>
+</html>

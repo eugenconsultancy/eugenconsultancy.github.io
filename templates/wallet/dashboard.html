@@ -1,0 +1,307 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Wallet Dashboard - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Wallet Summary Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-wallet me-2"></i>Wallet Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-2">Available Balance</h6>
+                                    <h3 class="text-success">${{ wallet.balance|floatformat:2 }}</h3>
+                                    {% if wallet.available_for_payout %}
+                                        <span class="badge bg-success">Eligible for Payout</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Minimum: ${{ wallet.minimum_payout_threshold|floatformat:2 }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-2">Pending Balance</h6>
+                                    <h3 class="text-warning">${{ wallet.pending_balance|floatformat:2 }}</h3>
+                                    <small class="text-muted">Awaiting order completion</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-2">Total Earned</h6>
+                                    <h3 class="text-info">${{ wallet.total_earned|floatformat:2 }}</h3>
+                                    <small class="text-muted">All time earnings</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-2">Total Paid Out</h6>
+                                    <h3 class="text-primary">${{ wallet.total_paid_out|floatformat:2 }}</h3>
+                                    <small class="text-muted">Withdrawn funds</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payout Request Section -->
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5>Request Payout</h5>
+                            {% if wallet.available_for_payout %}
+                                <a href="{% url 'wallet:request_payout' %}" class="btn btn-success">
+                                    <i class="fas fa-money-bill-wave me-1"></i> Request Payout
+                                </a>
+                            {% else %}
+                                <button class="btn btn-secondary" disabled>
+                                    Need ${{ wallet.minimum_payout_threshold|floatformat:2 }} minimum
+                                </button>
+                            {% endif %}
+                        </div>
+                        
+                        {% if pending_payouts %}
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-clock me-2"></i>Pending Payout Requests</h6>
+                            <ul class="mb-0">
+                                {% for payout in pending_payouts %}
+                                <li>
+                                    ${{ payout.amount|floatformat:2 }} via {{ payout.get_payout_method_display }}
+                                    <span class="badge bg-{{ payout.status|yesno:'warning,success,info' }}">
+                                        {{ payout.get_status_display }}
+                                    </span>
+                                    <small class="text-muted">- {{ payout.created_at|date:"M d, Y" }}</small>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-history me-2"></i>Recent Transactions</h4>
+                        <a href="{% url 'wallet:transactions' %}" class="btn btn-sm btn-light">View All</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Type</th>
+                                    <th class="text-end">Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td>{{ transaction.created_at|date:"M d" }}</td>
+                                    <td>{{ transaction.description|truncatechars:50 }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ transaction.transaction_type|yesno:'success,danger,info' }}">
+                                            {{ transaction.get_transaction_type_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="fw-bold {% if transaction.transaction_type == 'credit' %}text-success{% else %}text-danger{% endif %}">
+                                            {% if transaction.transaction_type == 'credit' %}+{% else %}-{% endif %}
+                                            ${{ transaction.amount|floatformat:2 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ transaction.status|yesno:'success,warning,secondary' }}">
+                                            {{ transaction.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No transactions yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Commission Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-percentage me-2"></i>Commission Rate</h5>
+                </div>
+                <div class="card-body">
+                    {% if commission_rate %}
+                    <div class="text-center mb-4">
+                        <div class="display-4 text-primary">{{ commission_rate.commission_percentage }}%</div>
+                        <p class="text-muted mb-1">{{ commission_rate.get_writer_level_display }}</p>
+                        {% if commission_rate.bonus_percentage > 0 %}
+                        <span class="badge bg-success">+{{ commission_rate.bonus_percentage }}% bonus</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="progress mb-3" style="height: 20px;">
+                        <div class="progress-bar bg-success" style="width: {{ commission_rate.commission_percentage }}%">
+                            {{ commission_rate.commission_percentage }}%
+                        </div>
+                    </div>
+                    
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Minimum Rating</span>
+                            <span class="badge bg-primary">{{ commission_rate.minimum_rating }}/5</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Orders Required</span>
+                            <span>{{ commission_rate.minimum_completed_orders }}+</span>
+                        </li>
+                    </ul>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-chart-line fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">Commission rate not available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Quick Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>30-Day Earnings</span>
+                            <span class="fw-bold">${{ recent_earnings_30d|floatformat:2 }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Pending Payouts</span>
+                            <span class="fw-bold">${{ pending_payouts_total|default:"0.00" }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Minimum Payout</span>
+                            <span class="fw-bold">${{ wallet.minimum_payout_threshold|floatformat:2 }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Next Payout Eligibility</span>
+                            {% if wallet.available_for_payout %}
+                            <span class="badge bg-success">Now</span>
+                            {% else %}
+                            <span class="text-muted">${{ remaining_for_payout|floatformat:2 }} needed</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment Methods</h5>
+                </div>
+                <div class="card-body">
+                    {% if wallet.default_payment_method %}
+                    <div class="alert alert-success mb-3">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Default: <strong>{{ wallet.get_default_payment_method_display }}</strong>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No default payment method set
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="card text-center border">
+                                <div class="card-body py-2">
+                                    <i class="fab fa-paypal fa-2x text-primary mb-2"></i>
+                                    <p class="mb-0 small">PayPal</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card text-center border">
+                                <div class="card-body py-2">
+                                    <i class="fas fa-university fa-2x text-success mb-2"></i>
+                                    <p class="mb-0 small">Bank Transfer</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card text-center border">
+                                <div class="card-body py-2">
+                                    <i class="fas fa-money-bill-alt fa-2x text-warning mb-2"></i>
+                                    <p class="mb-0 small">Skrill</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card text-center border">
+                                <div class="card-body py-2">
+                                    <i class="fas fa-globe fa-2x text-info mb-2"></i>
+                                    <p class="mb-0 small">Payoneer</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-refresh balance every 30 seconds
+    function refreshBalance() {
+        $.ajax({
+            url: '{% url "wallet:api_summary" %}',
+            success: function(data) {
+                if (data.available_balance) {
+                    $('.balance-display').text('$' + data.available_balance.toFixed(2));
+                    if (data.eligible_for_payout) {
+                        $('.payout-status').html('<span class="badge bg-success">Eligible for Payout</span>');
+                    } else {
+                        const needed = data.minimum_threshold - data.available_balance;
+                        $('.payout-status').html('<span class="badge bg-warning">Need $' + needed.toFixed(2) + ' more</span>');
+                    }
+                }
+            }
+        });
+    }
+    
+    // Refresh every 30 seconds
+    setInterval(refreshBalance, 30000);
+});
+</script>
+{% endblock %}

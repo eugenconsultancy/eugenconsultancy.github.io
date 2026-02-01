@@ -1,0 +1,319 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create New Order - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'orders:list' %}">My Orders</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Create Order</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Create New Order</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="orderForm">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Order Title -->
+                        <div class="mb-3">
+                            {{ form.title|as_crispy_field }}
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mb-3">
+                            {{ form.description|as_crispy_field }}
+                            <small class="form-text text-muted d-block mt-1">
+                                <i class="bi bi-info-circle"></i> Be as detailed as possible. Include specific requirements, formatting preferences, and any reference materials.
+                            </small>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Subject Area -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.subject|as_crispy_field }}
+                            </div>
+                            
+                            <!-- Academic Level -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.academic_level|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Pages -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.pages|as_crispy_field }}
+                            </div>
+                            
+                            <!-- Words -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.words|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Sources -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.sources|as_crispy_field }}
+                            </div>
+                            
+                            <!-- Formatting Style -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.formatting_style|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Urgency -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.urgency|as_crispy_field }}
+                            </div>
+                            
+                            <!-- Deadline -->
+                            <div class="col-md-6 mb-3">
+                                {{ form.deadline|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <!-- Price/Budget -->
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.price|as_crispy_field }}
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-lightbulb"></i> Suggested prices based on your selection:
+                                    <span id="priceSuggestions"></span>
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Confirmation Checkboxes -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    {{ form.agree_to_terms|as_crispy_field }}
+                                    <small class="text-muted">
+                                        I have read and agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Order Terms and Conditions</a>
+                                    </small>
+                                </div>
+                                
+                                <div>
+                                    {{ form.confirm_instructions|as_crispy_field }}
+                                    <small class="text-muted">
+                                        I confirm that all instructions are clear and complete
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'orders:list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i> Create Order
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Price Calculator -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>Price Calculator</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Academic Level</label>
+                        <select class="form-select" id="calcAcademicLevel">
+                            {% for value, label in form.fields.academic_level.choices %}
+                            <option value="{{ value }}" data-rate="{{ price_estimates|get_item:value|default:20 }}">
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Word Count</label>
+                        <input type="range" class="form-range" id="calcWordCount" min="100" max="50000" value="275" step="100">
+                        <div class="d-flex justify-content-between">
+                            <span>100</span>
+                            <span id="calcWordCountValue">275</span>
+                            <span>50,000</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Urgency</label>
+                        <select class="form-select" id="calcUrgency">
+                            {% for value, label in form.fields.urgency.choices %}
+                            <option value="{{ value }}" data-multiplier="{% if value == 'emergency' %}3{% elif value == 'very_urgent' %}2{% elif value == 'urgent' %}1.5{% else %}1{% endif %}">
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>Estimated Price:</strong>
+                        <span class="h5 mb-0 text-primary">$<span id="estimatedPrice">0.00</span></span>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        This is an estimate. Final price may vary based on order complexity.
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Order Guidelines -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Order Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Be specific about requirements</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Include all reference materials</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Set realistic deadlines</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Choose appropriate academic level</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Specify formatting style</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Attach any relevant files</li>
+                    </ul>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <small>
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Important:</strong> Orders cannot be modified after payment. Please review all details carefully.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Order Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% include 'orders/partials/terms_modal.html' %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Price calculator
+    function calculatePrice() {
+        const academicLevel = $('#calcAcademicLevel option:selected');
+        const wordCount = parseInt($('#calcWordCount').val());
+        const urgency = $('#calcUrgency option:selected');
+        
+        const rate = parseFloat(academicLevel.data('rate')) || 0.10;
+        const multiplier = parseFloat(urgency.data('multiplier')) || 1.0;
+        
+        const estimatedPrice = (wordCount * rate * multiplier).toFixed(2);
+        $('#estimatedPrice').text(estimatedPrice);
+        
+        // Update word count display
+        $('#calcWordCountValue').text(wordCount.toLocaleString());
+    }
+    
+    // Initialize calculator
+    calculatePrice();
+    
+    // Bind events
+    $('#calcAcademicLevel, #calcUrgency').change(calculatePrice);
+    $('#calcWordCount').on('input', calculatePrice);
+    
+    // Update price suggestions
+    function updatePriceSuggestions() {
+        const level = $('#id_academic_level').val();
+        const words = $('#id_words').val() || 0;
+        
+        if (level && words > 0) {
+            const baseRate = {
+                'high_school': 0.05,
+                'undergraduate': 0.08,
+                'bachelors': 0.10,
+                'masters': 0.15,
+                'phd': 0.20,
+                'professional': 0.25
+            }[level] || 0.08;
+            
+            const minPrice = (words * baseRate * 0.5).toFixed(2);
+            const suggestedPrice = (words * baseRate).toFixed(2);
+            const maxPrice = (words * baseRate * 2).toFixed(2);
+            
+            $('#priceSuggestions').html(
+                `$${minPrice} - $${maxPrice} (Suggested: $${suggestedPrice})`
+            );
+        }
+    }
+    
+    // Bind to form fields
+    $('#id_academic_level, #id_words').on('change input', updatePriceSuggestions);
+    updatePriceSuggestions();
+    
+    // Form validation
+    $('#orderForm').submit(function(e) {
+        const deadline = new Date($('#id_deadline').val());
+        const now = new Date();
+        
+        if (deadline <= now) {
+            e.preventDefault();
+            alert('Deadline must be in the future.');
+            $('#id_deadline').focus();
+            return false;
+        }
+        
+        const words = parseInt($('#id_words').val()) || 0;
+        const pages = parseInt($('#id_pages').val()) || 1;
+        
+        if (words < (pages - 1) * 275 + 1) {
+            e.preventDefault();
+            alert(`Word count seems low for ${pages} page(s). Expected at least ${(pages - 1) * 275 + 1} words.`);
+            $('#id_words').focus();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

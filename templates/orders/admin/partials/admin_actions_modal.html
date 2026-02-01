@@ -1,0 +1,65 @@
+<div class="modal fade" id="adminActionsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Admin Actions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group">
+                    {% if order.state == 'paid' and not order.writer %}
+                    <a href="{% url 'orders:admin_assign' order.pk %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-person-plus me-2 text-primary"></i>
+                        Assign Writer
+                    </a>
+                    {% endif %}
+                    
+                    {% if order.state == 'disputed' %}
+                    <a href="{% url 'orders:admin_dispute' order.pk %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-hammer me-2 text-danger"></i>
+                        Resolve Dispute
+                    </a>
+                    {% endif %}
+                    
+                    {% if order.state in 'delivered,revision_requested,in_revision' %}
+                    <button class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#forceCompleteModal">
+                        <i class="bi bi-check-circle me-2 text-success"></i>
+                        Force Complete Order
+                    </button>
+                    {% endif %}
+                    
+                    {% if order.state in 'paid,assigned,in_progress' %}
+                    <button class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#cancelOrderModal">
+                        <i class="bi bi-x-circle me-2 text-warning"></i>
+                        Cancel Order
+                    </button>
+                    {% endif %}
+                    
+                    {% if order.state in 'paid,assigned,in_progress,delivered,revision_requested,in_revision' %}
+                    <button class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#refundModal">
+                        <i class="bi bi-arrow-counterclockwise me-2 text-info"></i>
+                        Process Refund
+                    </button>
+                    {% endif %}
+                    
+                    {% if order.writer and order.state in 'assigned,in_progress,in_revision' %}
+                    <button class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#reassignModal">
+                        <i class="bi bi-arrow-left-right me-2 text-secondary"></i>
+                        Reassign Writer
+                    </button>
+                    {% endif %}
+                    
+                    <button class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                        <i class="bi bi-pencil me-2"></i>
+                        Add Admin Note
+                    </button>
+                    
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="bi bi-download me-2"></i>
+                        Export Order Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

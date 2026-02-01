@@ -1,0 +1,107 @@
+{% extends "base/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Open Dispute - Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Open Dispute - Order #{{ order.order_number }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>Important Information
+                        </h5>
+                        <ul class="mb-0">
+                            <li>Disputes should only be opened for serious issues that cannot be resolved through revisions</li>
+                            <li>Please provide detailed information and evidence to support your claim</li>
+                            <li>A dispute will temporarily freeze the order and payments</li>
+                            <li>Our admin team will review your dispute and work towards a fair resolution</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Order Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Title:</strong> {{ order.title }}</p>
+                                    <p><strong>Writer:</strong> {{ order.writer.get_full_name|default:order.writer.email }}</p>
+                                    <p><strong>Amount:</strong> ${{ order.amount }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Status:</strong> 
+                                        <span class="badge bg-{{ order.status|status_color }}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </p>
+                                    <p><strong>Deadline:</strong> {{ order.deadline|date:"M d, Y H:i" }}</p>
+                                    <p><strong>Created:</strong> {{ order.created_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                {{ form|crispy }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="evidence_files" class="form-label">Evidence Files</label>
+                            <input type="file" class="form-control" id="evidence_files" name="evidence_files" multiple>
+                            <div class="form-text">
+                                Upload any files that support your dispute (screenshots, documents, etc.). Max 10MB per file.
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="acknowledge" required>
+                            <label class="form-check-label" for="acknowledge">
+                                I acknowledge that opening a dispute will temporarily freeze this order and that 
+                                I have attempted to resolve this issue through normal channels first.
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'order_detail' order.id %}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-warning" id="submit-btn">
+                                <i class="fas fa-exclamation-triangle me-1"></i> Open Dispute
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+$(document).ready(function() {
+    $('#submit-btn').on('click', function(e) {
+        if (!$('#acknowledge').is(':checked')) {
+            e.preventDefault();
+            alert('Please acknowledge the dispute terms before proceeding.');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

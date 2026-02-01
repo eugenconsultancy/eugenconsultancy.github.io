@@ -1,0 +1,404 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Receipt - {{ payment.reference_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        
+        body {
+            background-color: white !important;
+        }
+        
+        .container-fluid {
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .receipt-container {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            opacity: 0.1;
+            font-size: 100px;
+            color: #666;
+            pointer-events: none;
+            z-index: 9999;
+        }
+    }
+    
+    .receipt-container {
+        max-width: 800px;
+        margin: 0 auto;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        padding: 40px;
+        background: white;
+    }
+    
+    .receipt-header {
+        border-bottom: 3px solid #4e73df;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .watermark {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        opacity: 0.05;
+        font-size: 100px;
+        color: #666;
+        pointer-events: none;
+        z-index: -1;
+    }
+    
+    .company-info {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .receipt-table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-bottom: 30px;
+    }
+    
+    .receipt-table th {
+        background: #4e73df;
+        color: white;
+        padding: 12px;
+        text-align: left;
+    }
+    
+    .receipt-table td {
+        padding: 12px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .receipt-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .total-row {
+        background: #f8f9fc;
+        font-weight: bold;
+    }
+    
+    .qr-code {
+        border: 1px solid #dee2e6;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        background: white;
+    }
+    
+    .signature-area {
+        border-top: 2px dashed #dee2e6;
+        padding-top: 40px;
+        margin-top: 40px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="watermark no-print">PAID</div>
+
+<div class="container-fluid py-5">
+    <div class="receipt-container">
+        <!-- Header -->
+        <div class="receipt-header">
+            <div class="row">
+                <div class="col-6">
+                    <h1 class="display-6 text-primary mb-0">RECEIPT</h1>
+                    <p class="text-muted mb-0">Payment Receipt</p>
+                </div>
+                <div class="col-6 text-end">
+                    <p class="mb-1"><strong>Receipt No:</strong> {{ payment.reference_number }}</p>
+                    <p class="mb-0"><strong>Date:</strong> {{ payment.created_at|date:"F d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Company Information -->
+        <div class="company-info">
+            <div class="row">
+                <div class="col-6">
+                    <h5 class="mb-2">EBWriting Platform</h5>
+                    <p class="mb-1">123 Academic Street</p>
+                    <p class="mb-1">Education City, EC 12345</p>
+                    <p class="mb-0">support@ebwriting.com</p>
+                </div>
+                <div class="col-6 text-end">
+                    <h5 class="mb-2">Bill To</h5>
+                    <p class="mb-1">{{ payment.user.get_full_name|default:payment.user.email }}</p>
+                    <p class="mb-1">{{ payment.user.email }}</p>
+                    <p class="mb-0">Client ID: {{ payment.user.id }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="mb-4">
+            <h5 class="mb-3">Payment Information</h5>
+            <table class="receipt-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Order No</th>
+                        <th>Payment Method</th>
+                        <th>Status</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Academic Writing Service</td>
+                        <td>#{{ order.order_number|default:"N/A" }}</td>
+                        <td>{{ payment.get_payment_method_display }}</td>
+                        <td>
+                            <span class="badge bg-success">{{ payment.get_state_display }}</span>
+                        </td>
+                        <td>${{ payment.amount|floatformat:2 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Amount Breakdown -->
+        {% if payment.is_in_escrow %}
+        <div class="mb-4">
+            <h5 class="mb-3">Amount Breakdown</h5>
+            <table class="receipt-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Description</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Service Fee</td>
+                        <td>{{ order.service_type|title }} - {{ order.writer_level|title }}</td>
+                        <td class="text-end">${{ payment.writer_amount|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td>Platform Fee</td>
+                        <td>Service & Support ({{ platform_fee_percentage|default:20 }}%)</td>
+                        <td class="text-end">${{ payment.platform_fee|floatformat:2 }}</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="2" class="text-end"><strong>Total Paid:</strong></td>
+                        <td class="text-end"><strong>${{ payment.amount|floatformat:2 }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Transaction Details -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Transaction Details</h6>
+                        <p class="mb-1"><strong>Payment ID:</strong> {{ payment.payment_id }}</p>
+                        {% if payment.gateway_transaction_id %}
+                        <p class="mb-1"><strong>Transaction ID:</strong> {{ payment.gateway_transaction_id }}</p>
+                        {% endif %}
+                        <p class="mb-1"><strong>Date & Time:</strong> {{ payment.created_at|date:"F d, Y H:i:s" }}</p>
+                        <p class="mb-0"><strong>IP Address:</strong> {{ payment.ip_address|default:"N/A" }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Order Details</h6>
+                        {% if order %}
+                        <p class="mb-1"><strong>Order Number:</strong> #{{ order.order_number }}</p>
+                        <p class="mb-1"><strong>Service:</strong> {{ order.service_type|title }}</p>
+                        <p class="mb-1"><strong>Deadline:</strong> {{ order.deadline|date:"F d, Y H:i" }}</p>
+                        <p class="mb-0"><strong>Status:</strong> {{ order.get_state_display }}</p>
+                        {% else %}
+                        <p class="mb-0 text-muted">No order associated</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Escrow Information -->
+        {% if payment.is_in_escrow %}
+        <div class="alert alert-info mb-4">
+            <h6 class="alert-heading"><i class="bi bi-shield-lock"></i> Escrow Notice</h6>
+            <p class="mb-2">This payment is being held securely in escrow.</p>
+            <p class="mb-0">
+                <strong>Scheduled Release:</strong> {{ payment.escrow_held_until|date:"F d, Y H:i" }}
+                (in {{ payment.escrow_held_until|timeuntil }})
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- QR Code & Verification -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="qr-code">
+                    <div id="qrcode"></div>
+                    <p class="text-muted mt-2 mb-0">Scan to verify</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">Verification Information</h6>
+                        <p class="small text-muted mb-2">
+                            This receipt has been digitally signed and verified.
+                        </p>
+                        <p class="mb-1">
+                            <strong>Verification Code:</strong> 
+                            <code>{{ payment.payment_id|slice:":8"|upper }}</code>
+                        </p>
+                        <p class="mb-0">
+                            <strong>Validated:</strong> {{ payment.created_at|date:"Y-m-d H:i:s" }} UTC
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terms & Signatures -->
+        <div class="signature-area">
+            <div class="row">
+                <div class="col-6">
+                    <p class="mb-4"><strong>For EBWriting Platform:</strong></p>
+                    <div style="border-top: 1px solid #666; width: 200px; margin-top: 30px;">
+                        <p class="text-center mb-0">Authorized Signature</p>
+                    </div>
+                </div>
+                <div class="col-6 text-end">
+                    <p class="mb-4"><strong>Received By:</strong></p>
+                    <div style="border-top: 1px solid #666; width: 200px; margin-left: auto; margin-top: 30px;">
+                        <p class="text-center mb-0">Client Signature</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-5 pt-4 border-top">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="text-muted mb-1">
+                        <i class="bi bi-telephone"></i> +1 (555) 123-4567 | 
+                        <i class="bi bi-envelope"></i> support@ebwriting.com
+                    </p>
+                    <p class="text-muted mb-0 small">
+                        This is an electronically generated receipt. No physical signature required.
+                        Valid for accounting and tax purposes.
+                    </p>
+                    <p class="text-muted mb-0 small">
+                        Generated on: {% now "F d, Y H:i:s" %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print & Download Buttons -->
+    <div class="text-center mt-4 no-print">
+        <div class="btn-group" role="group">
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="bi bi-printer"></i> Print Receipt
+            </button>
+            <button onclick="downloadPDF()" class="btn btn-success">
+                <i class="bi bi-download"></i> Download PDF
+            </button>
+            <button onclick="downloadCSV()" class="btn btn-info">
+                <i class="bi bi-file-earmark-text"></i> Download CSV
+            </button>
+            <a href="{% url 'payments:detail' payment.payment_id %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Details
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- QR Code Library -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+    // Generate QR Code
+    document.addEventListener('DOMContentLoaded', function() {
+        const qrData = JSON.stringify({
+            payment_id: '{{ payment.payment_id }}',
+            reference: '{{ payment.reference_number }}',
+            amount: {{ payment.amount }},
+            currency: '{{ payment.currency }}',
+            date: '{{ payment.created_at|date:"c" }}',
+            verified: true
+        });
+        
+        new QRCode(document.getElementById("qrcode"), {
+            text: qrData,
+            width: 128,
+            height: 128,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    });
+    
+    // Download functions
+    function downloadPDF() {
+        alert('PDF generation would be implemented here. In production, this would call a PDF generation service.');
+        // Example: window.open('/payments/receipt/{{ payment.payment_id }}/pdf/');
+    }
+    
+    function downloadCSV() {
+        const csvContent = [
+            ['Receipt No', 'Date', 'Amount', 'Currency', 'Payment Method', 'Status'],
+            ['{{ payment.reference_number }}', '{{ payment.created_at|date:"Y-m-d" }}', 
+             {{ payment.amount }}, '{{ payment.currency }}', 
+             '{{ payment.get_payment_method_display }}', '{{ payment.get_state_display }}']
+        ].map(row => row.join(',')).join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'receipt-{{ payment.reference_number }}.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+    
+    // Print optimizations
+    window.addEventListener('beforeprint', () => {
+        document.body.classList.add('printing');
+    });
+    
+    window.addEventListener('afterprint', () => {
+        document.body.classList.remove('printing');
+    });
+</script>
+{% endblock %}

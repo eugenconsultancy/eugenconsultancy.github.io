@@ -1,0 +1,490 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %} - EWBWriting Blog{% endblock %}
+
+{% block extra_head %}
+{{ form.media }}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Form Header -->
+            <div class="mb-5">
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'blog:home' %}">Blog</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'blog:author_dashboard' %}">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            {% if form.instance.pk %}Edit Post{% else %}New Post{% endif %}
+                        </li>
+                    </ol>
+                </nav>
+                
+                <h1 class="display-5 fw-bold text-dark mb-3">
+                    {% if form.instance.pk %}
+                    Edit "{{ form.instance.title }}"
+                    {% else %}
+                    Create New Blog Post
+                    {% endif %}
+                </h1>
+                
+                <p class="lead text-muted">
+                    {% if form.instance.pk %}
+                    Update your blog post content, SEO settings, and publishing options.
+                    {% else %}
+                    Write a new blog post for the EWBWriting blog.
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- SEO Scorecard -->
+            {% if form.instance.pk %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">
+                        <i class="bi bi-graph-up me-2"></i> SEO Scorecard
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="display-6 fw-bold text-primary">{{ seo_score.readability|default:"0" }}/100</div>
+                            <small class="text-muted">Readability</small>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="display-6 fw-bold text-primary">{{ seo_score.meta|default:"0" }}/100</div>
+                            <small class="text-muted">Meta Tags</small>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="display-6 fw-bold text-primary">{{ seo_score.headings|default:"0" }}/100</div>
+                            <small class="text-muted">Heading Structure</small>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="display-6 fw-bold text-primary">{{ seo_score.keywords|default:"0" }}/100</div>
+                            <small class="text-muted">Keywords</small>
+                        </div>
+                    </div>
+                    {% if seo_recommendations %}
+                    <div class="alert alert-warning mt-3">
+                        <h6 class="fw-bold"><i class="bi bi-lightbulb me-2"></i> SEO Recommendations:</h6>
+                        <ul class="mb-0">
+                            {% for rec in seo_recommendations|slice:":3" %}
+                            <li>{{ rec }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Main Form -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-lg-5">
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Tab Navigation -->
+                        <ul class="nav nav-tabs mb-4" id="postFormTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="content-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#content" type="button" role="tab">
+                                    <i class="bi bi-journal-text me-1"></i> Content
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="seo-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#seo" type="button" role="tab">
+                                    <i class="bi bi-search me-1"></i> SEO
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#settings" type="button" role="tab">
+                                    <i class="bi bi-gear me-1"></i> Settings
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="preview-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#preview" type="button" role="tab">
+                                    <i class="bi bi-eye me-1"></i> Preview
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="postFormTabsContent">
+                            <!-- Content Tab -->
+                            <div class="tab-pane fade show active" id="content" role="tabpanel">
+                                <!-- Title -->
+                                <div class="mb-4">
+                                    {{ form.title|as_crispy_field }}
+                                </div>
+
+                                <!-- Featured Image -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Featured Image</label>
+                                    {% if form.instance.featured_image %}
+                                    <div class="mb-3">
+                                        <img src="{{ form.instance.featured_image.url }}" class="img-thumbnail" style="max-height: 200px;" alt="Current featured image">
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" name="clear_featured_image" id="clear_featured_image">
+                                            <label class="form-check-label" for="clear_featured_image">
+                                                Clear current image
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {{ form.featured_image }}
+                                    <div class="form-text">
+                                        Recommended size: 1200×630 pixels. Max file size: 5MB.
+                                    </div>
+                                </div>
+
+                                <!-- Excerpt -->
+                                <div class="mb-4">
+                                    {{ form.excerpt|as_crispy_field }}
+                                    <div class="form-text">
+                                        Brief summary for preview (150-160 characters recommended)
+                                        <span id="excerpt-counter" class="text-muted">0/300</span>
+                                    </div>
+                                </div>
+
+                                <!-- Content -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Content *</label>
+                                    {{ form.content }}
+                                    {% if form.content.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.content.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text mt-2">
+                                        Minimum 300 words. Use headings, images, and formatting for better readability.
+                                        <span id="word-count" class="text-muted">0 words</span>
+                                    </div>
+                                </div>
+
+                                <!-- Category & Tags -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        {{ form.category|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form.tags|as_crispy_field }}
+                                        <div class="form-text">
+                                            Add relevant tags separated by commas
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SEO Tab -->
+                            <div class="tab-pane fade" id="seo" role="tabpanel">
+                                <div class="alert alert-info mb-4">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    SEO settings help your post rank better in search engines.
+                                </div>
+
+                                <!-- Meta Title -->
+                                <div class="mb-4">
+                                    {{ form.meta_title|as_crispy_field }}
+                                    <div class="form-text">
+                                        Recommended: 50-60 characters
+                                        <span id="meta-title-counter" class="text-muted">0/200</span>
+                                    </div>
+                                </div>
+
+                                <!-- Meta Description -->
+                                <div class="mb-4">
+                                    {{ form.meta_description|as_crispy_field }}
+                                    <div class="form-text">
+                                        Recommended: 150-160 characters
+                                        <span id="meta-desc-counter" class="text-muted">0/300</span>
+                                    </div>
+                                </div>
+
+                                <!-- Meta Keywords -->
+                                <div class="mb-4">
+                                    {{ form.meta_keywords|as_crispy_field }}
+                                    <div class="form-text">
+                                        Comma-separated keywords for SEO
+                                    </div>
+                                </div>
+
+                                <!-- Canonical URL -->
+                                <div class="mb-4">
+                                    {{ form.canonical_url|as_crispy_field }}
+                                </div>
+
+                                <!-- Slug -->
+                                <div class="mb-4">
+                                    {{ form.slug|as_crispy_field }}
+                                    <div class="form-text">
+                                        URL-friendly version of the title. Auto-generated if left empty.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Settings Tab -->
+                            <div class="tab-pane fade" id="settings" role="tabpanel">
+                                <!-- Status -->
+                                <div class="mb-4">
+                                    {{ form.status|as_crispy_field }}
+                                    <div class="form-text">
+                                        {% if user.has_perm('blog.can_publish_post') %}
+                                        You can publish directly or set to draft for review.
+                                        {% else %}
+                                        Your posts will be submitted for review before publishing.
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Reading Time -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Estimated Reading Time</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" value="{{ form.instance.reading_time_minutes|default:5 }}" 
+                                               min="1" max="60" name="reading_time_minutes">
+                                        <span class="input-group-text">minutes</span>
+                                    </div>
+                                    <div class="form-text">
+                                        Auto-calculated based on content length (200 words/minute)
+                                    </div>
+                                </div>
+
+                                <!-- Scheduled Publishing -->
+                                {% if user.has_perm('blog.can_publish_post') %}
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Schedule Publishing</label>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="schedule_publish">
+                                        <label class="form-check-label" for="schedule_publish">
+                                            Schedule for later publication
+                                        </label>
+                                    </div>
+                                    <div id="schedule_fields" class="d-none">
+                                        <input type="datetime-local" class="form-control" name="publish_at">
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Advanced Settings -->
+                                <div class="accordion mb-4" id="advancedSettings">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" 
+                                                    data-bs-toggle="collapse" data-bs-target="#advancedCollapse">
+                                                <i class="bi bi-gear-wide me-2"></i> Advanced Settings
+                                            </button>
+                                        </h2>
+                                        <div id="advancedCollapse" class="accordion-collapse collapse">
+                                            <div class="accordion-body">
+                                                <!-- Allow Comments -->
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" name="allow_comments" 
+                                                           id="allow_comments" {% if not form.instance.pk or form.instance.allow_comments %}checked{% endif %}>
+                                                    <label class="form-check-label" for="allow_comments">
+                                                        Allow comments on this post
+                                                    </label>
+                                                </div>
+
+                                                <!-- Featured Post -->
+                                                {% if user.has_perm('blog.can_publish_post') %}
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" name="is_featured" 
+                                                           id="is_featured" {% if form.instance.is_featured %}checked{% endif %}>
+                                                    <label class="form-check-label" for="is_featured">
+                                                        Mark as featured post
+                                                    </label>
+                                                </div>
+                                                {% endif %}
+
+                                                <!-- Social Sharing -->
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" name="enable_social_sharing" 
+                                                           id="enable_social_sharing" checked>
+                                                    <label class="form-check-label" for="enable_social_sharing">
+                                                        Enable social sharing buttons
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview Tab -->
+                            <div class="tab-pane fade" id="preview" role="tabpanel">
+                                <div class="alert alert-warning mb-4">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    This is a basic preview. Actual appearance may vary.
+                                </div>
+                                
+                                <div class="preview-container border rounded p-4 bg-light">
+                                    <h3 id="preview-title" class="fw-bold mb-3">{{ form.title.value|default:"Post Title" }}</h3>
+                                    {% if form.instance.featured_image %}
+                                    <img id="preview-image" src="{{ form.instance.featured_image.url }}" class="img-fluid mb-3 rounded" alt="Preview">
+                                    {% endif %}
+                                    <p id="preview-excerpt" class="text-muted">{{ form.excerpt.value|default:"Post excerpt will appear here..." }}</p>
+                                    <div class="d-flex justify-content-between text-muted small">
+                                        <span>Category: <span id="preview-category">{{ form.category.value|default:"Uncategorized" }}</span></span>
+                                        <span id="preview-reading-time">5 min read</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="border-top pt-4 mt-4">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <a href="{% url 'blog:author_dashboard' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle me-1"></i> Cancel
+                                    </a>
+                                    <button type="submit" name="save_draft" value="1" class="btn btn-outline-primary">
+                                        <i class="bi bi-save me-1"></i> Save Draft
+                                    </button>
+                                </div>
+                                <div>
+                                    {% if user.has_perm('blog.can_publish_post') %}
+                                    <button type="submit" name="publish" value="1" class="btn btn-success">
+                                        <i class="bi bi-check-circle me-1"></i> Publish Now
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" name="submit_review" value="1" class="btn btn-primary">
+                                        <i class="bi bi-send me-1"></i> Submit for Review
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SEO Tips -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">
+                        <i class="bi bi-lightbulb me-2"></i> SEO Best Practices
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Include target keywords in title and first paragraph</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Use H2 and H3 headings to structure content</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Add alt text to all images</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Keep paragraphs short (3-4 sentences)</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Include internal links to related content</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counters
+    function updateCounter(textareaId, counterId, maxLength) {
+        const textarea = document.getElementById(textareaId);
+        const counter = document.getElementById(counterId);
+        
+        if (textarea && counter) {
+            textarea.addEventListener('input', function() {
+                const length = this.value.length;
+                counter.textContent = `${length}/${maxLength}`;
+                
+                if (length > maxLength * 0.9) {
+                    counter.classList.add('text-warning');
+                } else {
+                    counter.classList.remove('text-warning');
+                }
+            });
+            
+            // Initial count
+            counter.textContent = `${textarea.value.length}/${maxLength}`;
+        }
+    }
+    
+    // Word count for content
+    const contentField = document.querySelector('[name="content"]');
+    const wordCount = document.getElementById('word-count');
+    
+    if (contentField && wordCount) {
+        contentField.addEventListener('input', function() {
+            const text = this.value.replace(/<[^>]*>/g, ' '); // Remove HTML tags
+            const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+            wordCount.textContent = `${words.length} words`;
+            
+            if (words.length < 300) {
+                wordCount.classList.add('text-danger');
+            } else {
+                wordCount.classList.remove('text-danger');
+            }
+        });
+    }
+    
+    // Initialize counters
+    updateCounter('id_excerpt', 'excerpt-counter', 300);
+    updateCounter('id_meta_title', 'meta-title-counter', 200);
+    updateCounter('id_meta_description', 'meta-desc-counter', 300);
+    
+    // Preview updates
+    const titleField = document.getElementById('id_title');
+    const excerptField = document.getElementById('id_excerpt');
+    const previewTitle = document.getElementById('preview-title');
+    const previewExcerpt = document.getElementById('preview-excerpt');
+    
+    if (titleField && previewTitle) {
+        titleField.addEventListener('input', function() {
+            previewTitle.textContent = this.value || 'Post Title';
+        });
+    }
+    
+    if (excerptField && previewExcerpt) {
+        excerptField.addEventListener('input', function() {
+            previewExcerpt.textContent = this.value || 'Post excerpt will appear here...';
+        });
+    }
+    
+    // Schedule publishing toggle
+    const scheduleCheckbox = document.getElementById('schedule_publish');
+    const scheduleFields = document.getElementById('schedule_fields');
+    
+    if (scheduleCheckbox && scheduleFields) {
+        scheduleCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                scheduleFields.classList.remove('d-none');
+            } else {
+                scheduleFields.classList.add('d-none');
+            }
+        });
+    }
+    
+    // Auto-generate slug from title
+    const titleInput = document.getElementById('id_title');
+    const slugInput = document.getElementById('id_slug');
+    
+    if (titleInput && slugInput) {
+        titleInput.addEventListener('blur', function() {
+            if (!slugInput.value) {
+                const title = this.value;
+                const slug = title.toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/--+/g, '-')
+                    .trim();
+                slugInput.value = slug.substring(0, 220);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

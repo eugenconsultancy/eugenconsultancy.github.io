@@ -1,0 +1,482 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}My Orders - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">My Assigned Orders</h1>
+                    <p class="text-muted mb-0">Manage and deliver your assigned orders</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="{% url 'orders:available' %}" class="btn btn-primary">
+                        <i class="bi bi-search me-2"></i>Find More Orders
+                    </a>
+                    <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#statsModal">
+                        <i class="bi bi-graph-up"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Assigned</h6>
+                            <h3 class="mb-0">{{ stats.total_assigned }}</h3>
+                        </div>
+                        <div class="avatar avatar-sm">
+                            <i class="bi bi-journal-text fs-4 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-start border-warning border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">In Progress</h6>
+                            <h3 class="mb-0">{{ stats.in_progress }}</h3>
+                        </div>
+                        <div class="avatar avatar-sm">
+                            <i class="bi bi-clock-history fs-4 text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-start border-danger border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Overdue</h6>
+                            <h3 class="mb-0">{{ stats.overdue }}</h3>
+                        </div>
+                        <div class="avatar avatar-sm">
+                            <i class="bi bi-exclamation-triangle fs-4 text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-start border-success border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Completion Rate</h6>
+                            <h3 class="mb-0">{{ stats.completion_rate|floatformat:0 }}%</h3>
+                        </div>
+                        <div class="avatar avatar-sm">
+                            <i class="bi bi-check-circle fs-4 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Urgent Sections -->
+    {% if overdue_orders or upcoming_orders %}
+    <div class="row mb-4">
+        {% if overdue_orders %}
+        <div class="col-md-6 mb-3">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Overdue Orders</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for order in overdue_orders %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="{% url 'orders:detail' order.pk %}" class="text-decoration-none">
+                                        <strong>{{ order.order_number }}</strong>
+                                    </a>
+                                    <div class="small text-muted">{{ order.title|truncatechars:30 }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-danger">OVERDUE</span>
+                                    <div class="small text-danger">
+                                        {{ order.deadline|timesince }} overdue
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if upcoming_orders %}
+        <div class="col-md-6 mb-3">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock me-2"></i>Upcoming Deadlines (24h)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for order in upcoming_orders %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="{% url 'orders:detail' order.pk %}" class="text-decoration-none">
+                                        <strong>{{ order.order_number }}</strong>
+                                    </a>
+                                    <div class="small text-muted">{{ order.title|truncatechars:30 }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-warning">URGENT</span>
+                                    <div class="small text-warning">
+                                        {{ order.time_remaining.days }}d {{ order.time_remaining.seconds|divisibleby:3600 }}h left
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Orders Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if orders %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Title</th>
+                            <th>Client</th>
+                            <th>Status</th>
+                            <th>Deadline</th>
+                            <th>Payment</th>
+                            <th>Progress</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr class="{% if order.is_overdue %}table-danger{% elif order.state == 'delivered' %}table-success{% endif %}">
+                            <td>
+                                <strong>{{ order.order_number }}</strong>
+                                <div class="small text-muted">{{ order.created_at|date:"M d" }}</div>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 200px;" title="{{ order.title }}">
+                                    {{ order.title }}
+                                </div>
+                                <div class="small text-muted">
+                                    {{ order.get_academic_level_display }} • {{ order.subject }}
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ order.client.email }}</div>
+                                <div class="small text-muted">{{ order.client.get_full_name|default:"-" }}</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ order.state|state_bg_color }} rounded-pill">
+                                    {{ order.get_state_display }}
+                                </span>
+                                {% if order.revision_count > 0 %}
+                                <div class="small text-warning mt-1">
+                                    <i class="bi bi-arrow-clockwise"></i> Rev {{ order.revision_count }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ order.deadline|date:"M d, Y" }}</div>
+                                <div class="small {% if order.is_overdue %}text-danger{% else %}text-muted{% endif %}">
+                                    {{ order.deadline|time:"g:i A" }}
+                                </div>
+                                {% if not order.is_overdue %}
+                                <div class="small text-muted">
+                                    {{ order.time_remaining.days }}d {{ order.time_remaining.seconds|divisibleby:3600 }}h left
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>${{ order.writer_payment }}</strong>
+                                <div class="small text-muted">
+                                    Total: ${{ order.price }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" role="progressbar" 
+                                             style="width: {{ order.progress_percentage }}%" 
+                                             aria-valuenow="{{ order.progress_percentage }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                    <small class="text-muted">{{ order.progress_percentage }}%</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'orders:detail' order.pk %}" class="btn btn-outline-primary" title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    
+                                    {% if order.state == 'assigned' %}
+                                    <form method="post" action="{% url 'orders:start_work' order.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-success" title="Start Work">
+                                            <i class="bi bi-play-circle"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    
+                                    {% if order.state in 'in_progress,in_revision' %}
+                                    <a href="{% url 'orders:delivery' order.pk %}" class="btn btn-outline-success" title="Deliver">
+                                        <i class="bi bi-check-circle"></i>
+                                    </a>
+                                    {% endif %}
+                                    
+                                    {% if order.state == 'revision_requested' %}
+                                    <button class="btn btn-outline-warning" title="Accept Revision" 
+                                            data-bs-toggle="modal" data-bs-target="#acceptRevisionModal{{ order.pk }}">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Accept Revision Modal (for each order) -->
+                        {% if order.state == 'revision_requested' %}
+                        <div class="modal fade" id="acceptRevisionModal{{ order.pk }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Accept Revision Request</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form method="post" action="{% url 'orders:accept_revision' order.pk %}">
+                                        {% csrf_token %}
+                                        <div class="modal-body">
+                                            <p>You are about to accept revision request #{{ order.revision_count }} for order {{ order.order_number }}.</p>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label">Estimated Completion Time</label>
+                                                <input type="datetime-local" class="form-control" name="estimated_completion" required>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label">Notes (Optional)</label>
+                                                <textarea class="form-control" name="notes" rows="3" 
+                                                          placeholder="Add any notes about how you plan to address the revision..."></textarea>
+                                            </div>
+                                            
+                                            <div class="alert alert-info">
+                                                <small>
+                                                    <i class="bi bi-info-circle"></i>
+                                                    By accepting, you commit to completing the revisions by your estimated time.
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary">Accept Revision</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="bi bi-journal-text fs-1 text-muted"></i>
+                </div>
+                <h4 class="text-muted">No assigned orders</h4>
+                <p class="text-muted">You don't have any orders assigned to you yet.</p>
+                <a href="{% url 'orders:available' %}" class="btn btn-primary">
+                    <i class="bi bi-search me-2"></i>Browse Available Orders
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stats Modal -->
+<div class="modal fade" id="statsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Writer Performance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Order Statistics</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td>Total Assigned</td>
+                                <td class="text-end">{{ stats.total_assigned }}</td>
+                            </tr>
+                            <tr>
+                                <td>Currently Working</td>
+                                <td class="text-end">{{ stats.in_progress }}</td>
+                            </tr>
+                            <tr>
+                                <td>Completed</td>
+                                <td class="text-end">{{ stats.completed }}</td>
+                            </tr>
+                            <tr>
+                                <td>Overdue</td>
+                                <td class="text-end">{{ stats.overdue }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Completion Rate</strong></td>
+                                <td class="text-end"><strong>{{ stats.completion_rate|floatformat:0 }}%</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6>Profile Information</h6>
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between">
+                                <span>Current Load</span>
+                                <span class="badge bg-info">{{ current_orders }}/{{ max_orders }}</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between">
+                                <span>Availability</span>
+                                <span class="badge {% if can_accept_orders %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if can_accept_orders %}Available{% else %}Not Available{% endif %}
+                                </span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between">
+                                <span>Rating</span>
+                                <span class="badge bg-warning">{{ writer_profile.average_rating|default:"0.0" }}/5.0</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between">
+                                <span>Specialization</span>
+                                <span>{{ writer_profile.specialization|default:"Not set"|truncatechars:30 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h6>Recent Activity</h6>
+                    <div class="list-group list-group-flush">
+                        {% for order in orders|slice:":5" %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ order.order_number }}</span>
+                                <span class="badge bg-{{ order.state|state_bg_color }}">
+                                    {{ order.get_state_display }}
+                                </span>
+                            </div>
+                            <small class="text-muted">{{ order.title|truncatechars:40 }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Update time remaining every minute
+    function updateTimeRemaining() {
+        $('tbody tr').each(function() {
+            const timeEl = $(this).find('.text-muted.small').last();
+            const text = timeEl.text().trim();
+            
+            if (text.includes('left')) {
+                const parts = text.split(' ');
+                if (parts.length >= 2) {
+                    const days = parseInt(parts[0]);
+                    const hours = parseInt(parts[1]);
+                    
+                    if (days === 0 && hours <= 24) {
+                        timeEl.removeClass('text-muted').addClass('text-warning');
+                    }
+                    
+                    if (days === 0 && hours <= 6) {
+                        timeEl.removeClass('text-warning').addClass('text-danger');
+                        $(this).addClass('table-warning');
+                    }
+                }
+            }
+        });
+    }
+    
+    updateTimeRemaining();
+    setInterval(updateTimeRemaining, 60000);
+});
+</script>
+{% endblock %}

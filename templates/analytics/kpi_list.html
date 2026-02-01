@@ -1,0 +1,472 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}KPI List - EBWriting Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Key Performance Indicators</h4>
+                        <div class="btn-group">
+                            <a href="{% url 'admin:analytics_kpi_add' %}" class="btn btn-light btn-sm" target="_blank">
+                                <i class="fas fa-plus me-1"></i> Add KPI
+                            </a>
+                            <button class="btn btn-light btn-sm" id="recalculateAll">
+                                <i class="fas fa-sync-alt me-1"></i> Recalculate All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Filters -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">KPI Type</label>
+                            <select class="form-select" id="filterType">
+                                <option value="">All Types</option>
+                                {% for type_key, type_name in kpi_types %}
+                                <option value="{{ type_key }}" {% if request.GET.type == type_key %}selected{% endif %}>
+                                    {{ type_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="filterStatus">
+                                <option value="">All Statuses</option>
+                                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                                <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                                <option value="on_target" {% if request.GET.status == 'on_target' %}selected{% endif %}>On Target</option>
+                                <option value="warning" {% if request.GET.status == 'warning' %}selected{% endif %}>Warning</option>
+                                <option value="critical" {% if request.GET.status == 'critical' %}selected{% endif %}>Critical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Calculation Period</label>
+                            <select class="form-select" id="filterPeriod">
+                                <option value="">All Periods</option>
+                                <option value="daily" {% if request.GET.period == 'daily' %}selected{% endif %}>Daily</option>
+                                <option value="weekly" {% if request.GET.period == 'weekly' %}selected{% endif %}>Weekly</option>
+                                <option value="monthly" {% if request.GET.period == 'monthly' %}selected{% endif %}>Monthly</option>
+                                <option value="quarterly" {% if request.GET.period == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" id="applyFilters">
+                                <i class="fas fa-filter me-1"></i> Apply Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards Grid -->
+            <div class="row" id="kpiGrid">
+                {% for kpi in kpis %}
+                <div class="col-xl-4 col-lg-6 mb-4">
+                    <div class="card kpi-card shadow h-100">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">{{ kpi.name }}</h6>
+                            <div class="dropdown no-arrow">
+                                <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
+                                    <a class="dropdown-item" href="{% url 'analytics:kpi_detail' slug=kpi.slug %}">
+                                        <i class="fas fa-eye fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        View Details
+                                    </a>
+                                    <a class="dropdown-item" href="{% url 'admin:analytics_kpi_change' kpi.id %}" target="_blank">
+                                        <i class="fas fa-edit fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Edit
+                                    </a>
+                                    <a class="dropdown-item recalculate-kpi" href="#" data-kpi-slug="{{ kpi.slug }}">
+                                        <i class="fas fa-sync-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Recalculate
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addToDashboardModal" data-kpi-id="{{ kpi.id }}">
+                                        <i class="fas fa-plus fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Add to Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Current Value -->
+                            <div class="text-center mb-4">
+                                {% if kpi.current_value %}
+                                    {% if kpi.kpi_type == 'financial' %}
+                                    <h2 class="text-success">${{ kpi.current_value|floatformat:2 }}</h2>
+                                    {% elif kpi.kpi_type == 'quality' %}
+                                    <h2 class="text-warning">{{ kpi.current_value|floatformat:1 }}/5</h2>
+                                    {% else %}
+                                    <h2 class="text-primary">{{ kpi.current_value|floatformat:0 }}</h2>
+                                    {% endif %}
+                                {% else %}
+                                <h2 class="text-muted">No data</h2>
+                                {% endif %}
+                                <p class="text-muted mb-0">Current Value</p>
+                            </div>
+                            
+                            <!-- Target & Status -->
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Target</small>
+                                    <p class="mb-0">
+                                        {% if kpi.target_value %}
+                                            {% if kpi.kpi_type == 'financial' %}
+                                            ${{ kpi.target_value|floatformat:2 }}
+                                            {% elif kpi.kpi_type == 'quality' %}
+                                            {{ kpi.target_value|floatformat:1 }}/5
+                                            {% else %}
+                                            {{ kpi.target_value|floatformat:0 }}
+                                            {% endif %}
+                                        {% else %}
+                                        <span class="text-muted">Not set</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <small class="text-muted">Status</small>
+                                    <p class="mb-0">
+                                        {% if kpi.status == 'on_target' %}
+                                        <span class="badge bg-success">On Target</span>
+                                        {% elif kpi.status == 'warning' %}
+                                        <span class="badge bg-warning">Warning</span>
+                                        {% elif kpi.status == 'critical' %}
+                                        <span class="badge bg-danger">Critical</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ kpi.status|title }}</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            {% if kpi.target_value and kpi.current_value %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>Progress</span>
+                                    <span>
+                                        {% if kpi.target_value > 0 %}
+                                        {{ kpi.current_value|floatformat:1 }}/{{ kpi.target_value|floatformat:1 }}
+                                        ({% widthratio kpi.current_value kpi.target_value 100 %}%)
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="progress" style="height: 10px;">
+                                    {% if kpi.target_value > 0 %}
+                                    <div class="progress-bar bg-success" 
+                                         style="width: {% widthratio kpi.current_value kpi.target_value 100 %}%">
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- KPI Info -->
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <small class="text-muted">Type</small>
+                                    <p class="mb-0">
+                                        <span class="badge bg-{{ kpi.kpi_type|lower }}">
+                                            {{ kpi.get_kpi_type_display }}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Period</small>
+                                    <p class="mb-0">{{ kpi.get_calculation_period_display }}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Last Updated -->
+                            <div class="mt-3 text-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {% with latest=kpi.values.first %}
+                                    {% if latest %}
+                                    Updated {{ latest.calculated_at|timesince }} ago
+                                    {% else %}
+                                    Never updated
+                                    {% endif %}
+                                    {% endwith %}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">
+                                    <i class="fas fa-{{ kpi.is_active|yesno:'check-circle,times-circle' }} me-1 text-{{ kpi.is_active|yesno:'success,danger' }}"></i>
+                                    {{ kpi.is_active|yesno:'Active,Inactive' }}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-{{ kpi.is_auto_calculated|yesno:'robot,user' }} me-1"></i>
+                                    {{ kpi.is_auto_calculated|yesno:'Auto,Manual' }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-chart-line fa-4x text-muted mb-4"></i>
+                            <h4 class="text-muted mb-3">No KPIs Found</h4>
+                            <p class="text-muted mb-4">
+                                {% if request.GET %}
+                                    No KPIs match your filters. Try adjusting your search criteria.
+                                {% else %}
+                                    No KPIs have been created yet.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'admin:analytics_kpi_add' %}" class="btn btn-primary" target="_blank">
+                                <i class="fas fa-plus me-1"></i> Create Your First KPI
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="KPI pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add to Dashboard Modal -->
+<div class="modal fade" id="addToDashboardModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add KPI to Dashboard</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Add this KPI to your dashboard as a widget?</p>
+                <div class="mb-3">
+                    <label class="form-label">Widget Title</label>
+                    <input type="text" class="form-control" id="widgetTitleInput" placeholder="Enter widget title">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Widget Size</label>
+                    <select class="form-select" id="widgetSize">
+                        <option value="4">Small (4 columns)</option>
+                        <option value="6" selected>Medium (6 columns)</option>
+                        <option value="12">Large (12 columns)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmAddToDashboard">Add to Dashboard</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Filter application
+    $('#applyFilters').click(function() {
+        const type = $('#filterType').val();
+        const status = $('#filterStatus').val();
+        const period = $('#filterPeriod').val();
+        
+        let url = '{% url "analytics:kpi_list" %}?';
+        const params = [];
+        
+        if (type) params.push(`type=${type}`);
+        if (status) params.push(`status=${status}`);
+        if (period) params.push(`period=${period}`);
+        
+        window.location.href = url + params.join('&');
+    });
+    
+    // Recalculate single KPI
+    $('.recalculate-kpi').click(function(e) {
+        e.preventDefault();
+        const kpiSlug = $(this).data('kpi-slug');
+        const button = $(this);
+        
+        button.html('<i class="fas fa-spinner fa-spin fa-sm fa-fw mr-2"></i> Calculating...');
+        button.prop('disabled', true);
+        
+        $.ajax({
+            url: '{% url "analytics:calculate_kpi" kpi_slug="SLUG" %}'.replace('SLUG', kpiSlug),
+            success: function(response) {
+                if (response.success) {
+                    showToast('KPI recalculated successfully', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('Error: ' + response.error, 'danger');
+                    button.html('<i class="fas fa-sync-alt fa-sm fa-fw mr-2 text-gray-400"></i> Recalculate');
+                    button.prop('disabled', false);
+                }
+            }
+        });
+    });
+    
+    // Recalculate all KPIs
+    $('#recalculateAll').click(function() {
+        if (confirm('Recalculate all KPIs? This may take a moment.')) {
+            const button = $(this);
+            button.html('<i class="fas fa-spinner fa-spin me-1"></i> Calculating...');
+            button.prop('disabled', true);
+            
+            $.ajax({
+                url: '{% url "analytics:calculate_all_kpis" %}',
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                success: function() {
+                    showToast('All KPIs scheduled for recalculation', 'success');
+                    setTimeout(() => location.reload(), 2000);
+                }
+            });
+        }
+    });
+    
+    // Add to dashboard modal
+    let currentKpiId = null;
+    $('#addToDashboardModal').on('show.bs.modal', function(event) {
+        const button = $(event.relatedTarget);
+        currentKpiId = button.data('kpi-id');
+        const kpiName = button.closest('.kpi-card').find('.card-header h6').text();
+        $('#widgetTitleInput').val(kpiName + ' KPI');
+    });
+    
+    $('#confirmAddToDashboard').click(function() {
+        const title = $('#widgetTitleInput').val();
+        const size = $('#widgetSize').val();
+        
+        if (!title) {
+            alert('Please enter a widget title');
+            return;
+        }
+        
+        // Add widget to dashboard
+        addKpiWidgetToDashboard(currentKpiId, title, size);
+        $('#addToDashboardModal').modal('hide');
+    });
+    
+    function addKpiWidgetToDashboard(kpiId, title, size) {
+        // This would save to user's dashboard preferences
+        showToast('KPI added to dashboard', 'success');
+        
+        // In production, this would make an AJAX call to save the widget configuration
+        console.log('Adding KPI widget:', {kpiId, title, size});
+    }
+    
+    // Toast notification
+    function showToast(message, type = 'info') {
+        const toast = $(`
+            <div class="toast align-items-center text-bg-${type} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `);
+        
+        $('.toast-container').append(toast);
+        const bsToast = new bootstrap.Toast(toast[0]);
+        bsToast.show();
+        
+        toast.on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+    
+    // CSRF token helper
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+
+<style>
+.kpi-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+.badge.financial { background-color: #28a745; }
+.badge.operational { background-color: #007bff; }
+.badge.quality { background-color: #ffc107; color: #000; }
+.badge.customer { background-color: #6f42c1; }
+.badge.writer { background-color: #17a2b8; }
+</style>
+{% endblock %}

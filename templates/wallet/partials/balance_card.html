@@ -1,0 +1,57 @@
+<div class="card balance-card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h6 class="card-title text-muted mb-1">{{ title }}</h6>
+                <h3 class="card-text fw-bold {% if type == 'available' %}text-success{% elif type == 'pending' %}text-warning{% else %}text-primary{% endif %}">
+                    ${{ amount|floatformat:2 }}
+                </h3>
+            </div>
+            <div class="icon-circle">
+                <i class="fas fa-{{ icon }}"></i>
+            </div>
+        </div>
+        
+        {% if subtitle %}
+        <p class="card-text small text-muted mb-2">{{ subtitle }}</p>
+        {% endif %}
+        
+        {% if badge %}
+        <span class="badge bg-{{ badge_color }}">{{ badge }}</span>
+        {% endif %}
+        
+        {% if progress %}
+        <div class="progress mt-3" style="height: 6px;">
+            <div class="progress-bar bg-{{ type|default:'info' }}" style="width: {{ progress }}%"></div>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if footer %}
+    <div class="card-footer bg-transparent border-top-0 pt-0">
+        {{ footer }}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.balance-card {
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s;
+}
+.balance-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+</style>

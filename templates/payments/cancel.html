@@ -1,0 +1,153 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Payment Cancelled{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cancel-icon {
+        font-size: 5rem;
+        color: #dc3545;
+    }
+    
+    .actions-card {
+        border: 2px dashed #dc3545;
+        background-color: rgba(220, 53, 69, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Cancelled Header -->
+            <div class="text-center mb-5">
+                <div class="cancel-icon mb-3">
+                    <i class="bi bi-x-circle-fill"></i>
+                </div>
+                <h1 class="h2 text-danger mb-3">Payment Cancelled</h1>
+                <p class="lead mb-4">
+                    Your payment for Order #{{ payment.order.order_number }} has been cancelled.
+                </p>
+            </div>
+
+            <!-- Cancellation Details -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-danger text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="bi bi-info-circle"></i> Payment Details
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">Order Number</small>
+                            <p class="mb-0">#{{ payment.order.order_number }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Amount</small>
+                            <p class="mb-0">${{ payment.amount|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">Payment Method</small>
+                            <p class="mb-0">{{ payment.get_payment_method_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Status</small>
+                            <p class="mb-0">
+                                <span class="badge bg-danger">{{ payment.get_state_display }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Cancelled On</small>
+                            <p class="mb-0">{{ payment.updated_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="card shadow actions-card mb-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-danger mb-3">
+                        <i class="bi bi-exclamation-triangle"></i> What would you like to do next?
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <i class="bi bi-arrow-clockwise text-primary mb-3" style="font-size: 2rem;"></i>
+                                    <h6>Retry Payment</h6>
+                                    <p class="small text-muted">Complete payment for this order</p>
+                                    <a href="{% url 'payments:process' payment.order.id %}" class="btn btn-primary btn-sm">
+                                        Retry Payment
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <i class="bi bi-pencil text-warning mb-3" style="font-size: 2rem;"></i>
+                                    <h6>Edit Order</h6>
+                                    <p class="small text-muted">Make changes to your order</p>
+                                    <a href="{% url 'orders:update' payment.order.id %}" class="btn btn-warning btn-sm">
+                                        Edit Order
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <i class="bi bi-trash text-danger mb-3" style="font-size: 2rem;"></i>
+                                    <h6>Cancel Order</h6>
+                                    <p class="small text-muted">Permanently cancel this order</p>
+                                    <a href="{% url 'orders:detail' payment.order.id %}" class="btn btn-danger btn-sm">
+                                        Cancel Order
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <i class="bi bi-house text-success mb-3" style="font-size: 2rem;"></i>
+                                    <h6>Go to Dashboard</h6>
+                                    <p class="small text-muted">Return to your dashboard</p>
+                                    <a href="{% url 'dashboard' %}" class="btn btn-success btn-sm">
+                                        Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support Information -->
+            <div class="alert alert-warning">
+                <h5 class="alert-heading">
+                    <i class="bi bi-question-circle"></i> Need Help?
+                </h5>
+                <p class="mb-0">
+                    If you encountered issues during payment or have questions about the cancellation, 
+                    please contact our support team at 
+                    <a href="mailto:support@ebwriting.com">support@ebwriting.com</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

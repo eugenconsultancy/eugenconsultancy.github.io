@@ -1,0 +1,413 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Escrow Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
+<style>
+    .escrow-stat-card {
+        border-radius: 10px;
+        transition: all 0.3s;
+        overflow: hidden;
+    }
+    
+    .escrow-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    }
+    
+    .stat-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .ready-release {
+        border-left: 4px solid #28a745;
+        background-color: rgba(40, 167, 69, 0.05);
+    }
+    
+    .future-release {
+        border-left: 4px solid #ffc107;
+        background-color: rgba(255, 193, 7, 0.05);
+    }
+    
+    .release-badge {
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .release-ready { background-color: #d4edda; color: #155724; }
+    .release-future { background-color: #fff3cd; color: #856404; }
+    .release-overdue { background-color: #f8d7da; color: #721c24; }
+    
+    .writer-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .progress-thin {
+        height: 5px;
+        border-radius: 2.5px;
+    }
+    
+    .filter-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .filter-tag {
+        padding: 3px 10px;
+        background: #e9ecef;
+        border-radius: 15px;
+        font-size: 0.85rem;
+    }
+    
+    .filter-tag.active {
+        background: #4e73df;
+        color: white;
+    }
+    
+    .bulk-actions {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Escrow Management</h1>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-gear"></i> Actions
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="autoReleaseEligible()">
+                    <i class="bi bi-play-circle"></i> Auto Release Eligible
+                </a></li>
+                <li><a class="dropdown-item" href="#" onclick="exportEscrowReport()">
+                    <i class="bi bi-download"></i> Export Report
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                    <i class="bi bi-sliders"></i> Escrow Settings
+                </a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card escrow-stat-card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Escrow Balance
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                ${{ total_escrow_amount|floatformat:2 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat-icon-wrapper bg-primary text-white">
+                                <i class="bi bi-safe"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card escrow-stat-card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Writer Amount
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                ${{ total_writer_amount|floatformat:2 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat-icon-wrapper bg-success text-white">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card escrow-stat-card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Ready for Release
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ ready_for_release }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat-icon-wrapper bg-info text-white">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card escrow-stat-card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Total Payments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ payments|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat-icon-wrapper bg-warning text-white">
+                                <i class="bi bi-credit-card-2-front"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-funnel"></i> Filter Escrow Payments
+            </h6>
+        </div>
+        <div class="card-body">
+            <!-- Quick Filter Tags -->
+            <div class="filter-tags">
+                <a href="?" class="filter-tag {% if not request.GET.release_filter %}active{% endif %}">
+                    All Payments
+                </a>
+                <a href="?release_filter=ready" class="filter-tag {% if request.GET.release_filter == 'ready' %}active{% endif %}">
+                    Ready for Release
+                </a>
+                <a href="?release_filter=future" class="filter-tag {% if request.GET.release_filter == 'future' %}active{% endif %}">
+                    Future Release
+                </a>
+                <a href="?search=overdue" class="filter-tag">
+                    Overdue
+                </a>
+            </div>
+            
+            <form method="get" id="filterForm">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Search</label>
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control" 
+                                   value="{{ search }}" placeholder="Search payments...">
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Release Date</label>
+                        <select name="release_filter" class="form-select" onchange="this.form.submit()">
+                            <option value="">All Payments</option>
+                            <option value="ready" {% if release_filter == 'ready' %}selected{% endif %}>
+                                Ready for Release
+                            </option>
+                            <option value="future" {% if release_filter == 'future' %}selected{% endif %}>
+                                Future Release
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Sort By</label>
+                        <select name="sort" class="form-select" onchange="this.form.submit()">
+                            <option value="">Release Date (Asc)</option>
+                            <option value="amount">Amount (High to Low)</option>
+                            <option value="held_since">Held Since (Oldest)</option>
+                            <option value="writer">Writer Name</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="bulk-actions">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="selectAll">
+                    <label class="form-check-label" for="selectAll">
+                        Select all {{ payments|length }} payments
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-success" onclick="releaseSelected()">
+                        <i class="bi bi-check-circle"></i> Release Selected
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="extendSelected()">
+                        <i class="bi bi-clock"></i> Extend Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payments Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-list-ul"></i> Escrow Payments
+            </h6>
+            <span class="badge bg-primary">{{ payments|length }} payments</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="escrowTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th width="30">
+                                <input type="checkbox" class="form-check-input select-all">
+                            </th>
+                            <th>Payment Details</th>
+                            <th>Order & Writer</th>
+                            <th>Amount Breakdown</th>
+                            <th>Escrow Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr class="{% if payment.escrow_held_until <= now %}ready-release{% else %}future-release{% endif %}">
+                            <td>
+                                <input type="checkbox" class="form-check-input payment-checkbox" 
+                                       value="{{ payment.id }}">
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ payment.reference_number }}</strong>
+                                    <br>
+                                    <small class="text-muted">Payment ID: {{ payment.payment_id|truncatechars:8 }}</small>
+                                    <br>
+                                    <small class="text-muted">
+                                        Client: {{ payment.user.email|truncatechars:20 }}
+                                    </small>
+                                </div>
+                            </td>
+                            <td>
+                                {% if payment.order %}
+                                <div class="d-flex align-items-center">
+                                    {% if payment.order.writer and payment.order.writer.profile_picture %}
+                                    <img src="{{ payment.order.writer.profile_picture.url }}" 
+                                         class="writer-avatar me-2" alt="Writer">
+                                    {% else %}
+                                    <div class="writer-avatar bg-secondary text-white me-2 d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <a href="{% url 'orders:detail' payment.order.id %}" class="text-decoration-none">
+                                            Order #{{ payment.order.order_number }}
+                                        </a>
+                                        <br>
+                                        {% if payment.order.writer %}
+                                        <small class="text-muted">
+                                            {{ payment.order.writer.get_full_name|default:payment.order.writer.email }}
+                                        </small>
+                                        {% else %}
+                                        <small class="text-warning">No writer assigned</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% else %}
+                                <span class="text-muted">No order</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="mb-1">
+                                    <small class="text-muted">Total: </small>
+                                    <strong>${{ payment.amount|floatformat:2 }}</strong>
+                                </div>
+                                <div class="progress progress-thin mb-1">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ payment.writer_percentage }}%">
+                                    </div>
+                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                         style="width: {{ payment.platform_percentage }}%">
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between small">
+                                    <span>Writer: ${{ payment.writer_amount|floatformat:2 }}</span>
+                                    <span>Fee: ${{ payment.platform_fee|floatformat:2 }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span class="release-badge 
+                                        {% if payment.escrow_held_until <= now %}release-ready
+                                        {% else %}release-future{% endif %}">
+                                        {% if payment.escrow_held_until <= now %}
+                                        Ready
+                                        {% else %}
+                                        Future
+                                        {% endif %}
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">Held since:</small>
+                                    <br>
+                                    <small>{{ payment.held_in_escrow_at|date:"M d, Y"|default:"N/A" }}</small>
+                                    <br>
+                                    <small class="text-muted">Release:</small>
+                                    <br>
+                                    <strong>{{ payment.escrow_held_until|date:"M d, Y"|default:"N/A" }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {% if payment.escrow_held_until > now %}
+                                        in {{ payment.escrow_held_until|timeuntil }}
+                                        {% else %}
+                                        Ready now
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'payments:release_escrow' payment.payment_id %}" 
+                                       class="btn btn-outline-success" title="Release">
+                                        <i class="bi bi-cash"></i>
+                                   

@@ -1,0 +1,247 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Payment Successful - Order #{{ order.order_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-icon {
+        font-size: 5rem;
+        color: #28a745;
+        animation: bounce 1s ease-in-out;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 60%, 100% {transform: translateY(0);}
+        40% {transform: translateY(-30px);}
+        80% {transform: translateY(-15px);}
+    }
+    
+    .receipt-card {
+        border-left: 5px solid #28a745;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: #4e73df;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: -36px;
+        top: 5px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #4e73df;
+        border: 3px solid white;
+    }
+    
+    .timeline-item.current:before {
+        background: #28a745;
+        box-shadow: 0 0 0 5px rgba(40, 167, 69, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Success Header -->
+            <div class="text-center mb-5">
+                <div class="success-icon mb-3">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <h1 class="h2 text-success mb-3">Payment Successful!</h1>
+                <p class="lead mb-4">
+                    Your payment of <strong>${{ payment.amount|floatformat:2 }}</strong> has been processed 
+                    and is now held securely in escrow.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'payments:receipt' payment.payment_id %}" class="btn btn-primary">
+                        <i class="bi bi-receipt"></i> View Receipt
+                    </a>
+                    <a href="{% url 'orders:detail' order.id %}" class="btn btn-success">
+                        <i class="bi bi-eye"></i> View Order
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-house"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Payment Details -->
+            <div class="row mb-5">
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="bi bi-credit-card"></i> Payment Details
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Payment ID</small>
+                                    <p class="mb-0">{{ payment.reference_number }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Date</small>
+                                    <p class="mb-0">{{ payment.created_at|date:"M d, Y H:i" }}</p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Method</small>
+                                    <p class="mb-0">{{ payment.get_payment_method_display }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Status</small>
+                                    <p class="mb-0">
+                                        <span class="badge bg-success">{{ payment.get_state_display }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-12">
+                                    <small class="text-muted">Amount</small>
+                                    <h4 class="text-primary">${{ payment.amount|floatformat:2 }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="bi bi-file-text"></i> Order Summary
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <small class="text-muted">Order Number</small>
+                                    <p class="mb-0">#{{ order.order_number }}</p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Service</small>
+                                    <p class="mb-0">{{ order.service_type|title }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Deadline</small>
+                                    <p class="mb-0">{{ order.deadline|date:"M d, Y H:i" }}</p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted">Pages</small>
+                                    <p class="mb-0">{{ order.pages }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Writer Level</small>
+                                    <p class="mb-0">{{ order.writer_level|title }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Timeline -->
+            <div class="card shadow mb-5">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-clock-history"></i> What Happens Next?
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item current">
+                            <h6 class="mb-1">Payment Received</h6>
+                            <p class="text-muted mb-2">Your payment is secured in escrow</p>
+                            <small class="text-success">Completed</small>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <h6 class="mb-1">Writer Assignment</h6>
+                            <p class="text-muted mb-2">A qualified writer will be assigned to your order</p>
+                            <small>Pending</small>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <h6 class="mb-1">Work in Progress</h6>
+                            <p class="text-muted mb-2">Writer is working on your assignment</p>
+                            <small>Pending</small>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <h6 class="mb-1">Review & Approval</h6>
+                            <p class="text-muted mb-2">You'll review and approve the completed work</p>
+                            <small>Pending</small>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <h6 class="mb-1">Funds Released</h6>
+                            <p class="text-muted mb-2">Writer receives payment after your approval</p>
+                            <small>Pending</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Important Information -->
+            <div class="alert alert-info">
+                <h5 class="alert-heading">
+                    <i class="bi bi-info-circle"></i> Important Information
+                </h5>
+                <ul class="mb-0">
+                    <li>Your funds are held securely in escrow until you approve the completed work</li>
+                    <li>You can request revisions if the work doesn't meet your requirements</li>
+                    <li>If unsatisfied, you can request a refund through the dispute resolution process</li>
+                    <li>You'll receive email notifications at each stage of the process</li>
+                </ul>
+            </div>
+
+            <!-- Actions -->
+            <div class="text-center mt-4">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'payments:detail' payment.payment_id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-info-circle"></i> Payment Details
+                    </a>
+                    <a href="{% url 'orders:detail' order.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-journal-text"></i> Order Status
+                    </a>
+                    <a href="{% url 'payments:history' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-clock-history"></i> Payment History
+                    </a>
+                    <button onclick="window.print()" class="btn btn-outline-primary">
+                        <i class="bi bi-printer"></i> Print Receipt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

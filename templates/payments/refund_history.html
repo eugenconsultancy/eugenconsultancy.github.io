@@ -1,0 +1,560 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Refund History{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<style>
+    .refund-status-badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .status-requested { background-color: #fff3cd; color: #856404; }
+    .status-under_review { background-color: #cce5ff; color: #004085; }
+    .status-approved { background-color: #d4edda; color: #155724; }
+    .status-processing { background-color: #d1ecf1; color: #0c5460; }
+    .status-completed { background-color: #28a745; color: white; }
+    .status-rejected { background-color: #f8d7da; color: #721c24; }
+    .status-failed { background-color: #f5c6cb; color: #721c24; }
+    
+    .refund-type-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .full-refund-icon { background-color: #dc3545; color: white; }
+    .partial-refund-icon { background-color: #ffc107; color: #212529; }
+    .compensation-icon { background-color: #17a2b8; color: white; }
+    
+    .refund-card {
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+    
+    .refund-card.requested { border-color: #ffc107; }
+    .refund-card.approved { border-color: #28a745; }
+    .refund-card.rejected { border-color: #dc3545; }
+    .refund-card.completed { border-color: #007bff; }
+    
+    .refund-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    }
+    
+    .stat-card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin: 0 auto 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Refund History</h1>
+        <a href="{% url 'payments:history' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Payments
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Refunds
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ refunds|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat-icon bg-primary text-white">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Refunded
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                ${{ total_refunded|floatformat:2 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat-icon bg-success text-white">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Average Processing Time
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ avg_processing_time.days }} days
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat-icon bg-warning text-white">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Success Rate
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ success_rate }}%
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat-icon bg-info text-white">
+                                <i class="bi bi-percent"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Refunds Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="bi bi-list-ul"></i> Refund Requests
+            </h6>
+            <span class="badge bg-primary">{{ refunds|length }} refunds</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="refundsTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Refund ID</th>
+                            <th>Order</th>
+                            <th>Amount</th>
+                            <th>Type & Reason</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                            <th>Processed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for refund in refunds %}
+                        <tr class="refund-card {{ refund.state }}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="refund-type-icon 
+                                        {% if refund.refund_type == 'full' %}full-refund-icon
+                                        {% elif refund.refund_type == 'partial' %}partial-refund-icon
+                                        {% else %}compensation-icon{% endif %} me-2">
+                                        {% if refund.refund_type == 'full' %}
+                                        <i class="bi bi-arrow-left-right"></i>
+                                        {% elif refund.refund_type == 'partial' %}
+                                        <i class="bi bi-percent"></i>
+                                        {% else %}
+                                        <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <strong>{{ refund.reference_number }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ refund.refund_id|truncatechars:8 }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="{% url 'orders:detail' refund.order.id %}" class="text-decoration-none">
+                                    #{{ refund.order.order_number }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ refund.order.service_type|title }}</small>
+                            </td>
+                            <td>
+                                <strong class="{% if refund.is_full_refund %}text-danger{% else %}text-warning{% endif %}">
+                                    ${{ refund.amount|floatformat:2 }}
+                                </strong>
+                                <br>
+                                <small class="text-muted">
+                                    ({{ refund.refund_percentage|floatformat:1 }}% of ${{ refund.original_amount|floatformat:2 }})
+                                </small>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ refund.get_refund_type_display }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ refund.get_refund_reason_display }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="refund-status-badge status-{{ refund.state }}">
+                                    {{ refund.get_state_display }}
+                                </span>
+                                {% if refund.state == 'under_review' %}
+                                <br>
+                                <small class="text-muted">Under review by admin</small>
+                                {% elif refund.state == 'processing' %}
+                                <br>
+                                <small class="text-muted">Processing refund...</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ refund.requested_at|date:"M d, Y" }}
+                                <br>
+                                <small class="text-muted">{{ refund.requested_at|time:"H:i" }}</small>
+                            </td>
+                            <td>
+                                {% if refund.completed_at %}
+                                {{ refund.completed_at|date:"M d, Y" }}
+                                <br>
+                                <small class="text-muted">{{ refund.completed_at|time:"H:i" }}</small>
+                                {% else %}
+                                <span class="text-muted">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button class="btn btn-outline-info" data-bs-toggle="modal" 
+                                            data-bs-target="#detailModal{{ refund.id }}" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    {% if refund.state == 'requested' or refund.state == 'under_review' %}
+                                    <button class="btn btn-outline-warning" 
+                                            onclick="cancelRefund('{{ refund.id }}')" title="Cancel Request">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                    {% endif %}
+                                    {% if refund.state == 'completed' %}
+                                    <a href="#" class="btn btn-outline-success" title="Download Receipt">
+                                        <i class="bi bi-receipt"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Detail Modal -->
+                        <div class="modal fade" id="detailModal{{ refund.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Refund Details - {{ refund.reference_number }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong>Refund Type:</strong> {{ refund.get_refund_type_display }}</p>
+                                                <p><strong>Reason:</strong> {{ refund.get_refund_reason_display }}</p>
+                                                {% if refund.custom_reason %}
+                                                <p><strong>Custom Reason:</strong></p>
+                                                <p>{{ refund.custom_reason }}</p>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p><strong>Original Amount:</strong> ${{ refund.original_amount|floatformat:2 }}</p>
+                                                <p><strong>Refund Amount:</strong> ${{ refund.amount|floatformat:2 }}</p>
+                                                <p><strong>Percentage:</strong> {{ refund.refund_percentage|floatformat:1 }}%</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <p><strong>Payment Method:</strong> {{ refund.payment.get_payment_method_display }}</p>
+                                                <p><strong>Refund Method:</strong> Back to original payment method</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p><strong>Requested By:</strong> {{ refund.requested_by.email }}</p>
+                                                <p><strong>Requested At:</strong> {{ refund.requested_at|date:"F d, Y H:i:s" }}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        {% if refund.review_notes %}
+                                        <div class="alert alert-info mt-3">
+                                            <strong>Admin Notes:</strong>
+                                            <p class="mb-0 mt-2">{{ refund.review_notes }}</p>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if refund.rejection_reason %}
+                                        <div class="alert alert-danger mt-3">
+                                            <strong>Rejection Reason:</strong>
+                                            <p class="mb-0 mt-2">{{ refund.rejection_reason }}</p>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- Timeline -->
+                                        <div class="mt-4">
+                                            <h6>Refund Timeline</h6>
+                                            <div class="timeline mt-3">
+                                                <div class="timeline-item">
+                                                    <small class="text-muted">Requested</small>
+                                                    <p class="mb-0">{{ refund.requested_at|date:"M d, H:i" }}</p>
+                                                </div>
+                                                
+                                                {% if refund.reviewed_at %}
+                                                <div class="timeline-item">
+                                                    <small class="text-muted">Under Review</small>
+                                                    <p class="mb-0">{{ refund.reviewed_at|date:"M d, H:i" }}</p>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if refund.approved_at %}
+                                                <div class="timeline-item">
+                                                    <small class="text-muted">Approved</small>
+                                                    <p class="mb-0">{{ refund.approved_at|date:"M d, H:i" }}</p>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if refund.processing_started_at %}
+                                                <div class="timeline-item">
+                                                    <small class="text-muted">Processing Started</small>
+                                                    <p class="mb-0">{{ refund.processing_started_at|date:"M d, H:i" }}</p>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if refund.completed_at %}
+                                                <div class="timeline-item">
+                                                    <small class="text-muted">Completed</small>
+                                                    <p class="mb-0">{{ refund.completed_at|date:"M d, H:i" }}</p>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="bi bi-arrow-counterclockwise fa-3x mb-3"></i>
+                                    <p class="h5">No refund requests found</p>
+                                    <p>You haven't requested any refunds yet.</p>
+                                    <a href="{% url 'payments:history' %}" class="btn btn-primary">
+                                        <i class="bi bi-credit-card"></i> View Payments
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if refunds.has_other_pages %}
+            <nav aria-label="Refund pagination">
+                <ul class="pagination justify-content-center">
+                    {% if refunds.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&laquo; First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ refunds.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in refunds.paginator.page_range %}
+                    {% if refunds.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > refunds.number|add:'-3' and num < refunds.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if refunds.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ refunds.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ refunds.paginator.num_pages }}">Last &raquo;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistics Summary -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-pie-chart"></i> Refund Status Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-bar-chart"></i> Refund Amounts by Month
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="amountChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Initialize DataTable
+    $(document).ready(function() {
+        $('#refundsTable').DataTable({
+            "order": [[5, "desc"]],
+            "pageLength": 25,
+            "language": {
+                "search": "Search refunds:",
+                "lengthMenu": "Show _MENU_ refunds per page",
+                "info": "Showing _START_ to _END_ of _TOTAL_ refunds",
+                "infoEmpty": "No refunds to show",
+                "paginate": {
+                    "previous": "Previous",
+                    "next": "Next"
+                }
+            }
+        });
+    });
+    
+    // Cancel refund function
+    function cancelRefund(refundId) {
+        if (confirm('Are you sure you want to cancel this refund request?')) {
+            // In production, this would make an API call
+            alert('Refund cancellation would be processed here. In production, this would make an API call to /api/refunds/' + refundId + '/cancel/');
+        }
+    }
+    
+    // Initialize charts
+    document.addEventListener('DOMContentLoaded', function() {
+        // Status Distribution Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Requested', 'Under Review', 'Approved', 'Processing', 'Completed', 'Rejected', 'Failed'],
+                datasets: [{
+                    data: [12, 8, 15, 5, 25, 10, 2], // Example data
+                    backgroundColor: [
+                        '#fff3cd',
+                        '#cce5ff',
+                        '#d4edda',
+                        '#d1ecf1',
+                        '#28a745',
+                        '#f8d7da',
+                        '#f5c6cb'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Amount by Month Chart
+        const amountCtx = document.getElementById('amountChart').getContext('2d');
+        new Chart(amountCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Refund Amount ($)',
+                    data: [120, 190, 300, 150, 240, 320],
+                    backgroundColor: '#4e73df',
+                    borderColor: '#2e59d9',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

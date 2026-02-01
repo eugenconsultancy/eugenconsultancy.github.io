@@ -1,0 +1,535 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}{{ kpi.name }} - EBWriting Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- KPI Header -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">{{ kpi.name }}</h4>
+                            <p class="mb-0 opacity-75">{{ kpi.description }}</p>
+                        </div>
+                        <div class="btn-group">
+                            <a href="{% url 'admin:analytics_kpi_change' kpi.id %}" class="btn btn-light btn-sm" target="_blank">
+                                <i class="fas fa-edit me-1"></i> Edit
+                            </a>
+                            <button class="btn btn-light btn-sm" id="recalculateKpi">
+                                <i class="fas fa-sync-alt me-1"></i> Recalculate
+                            </button>
+                            <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+                                <i class="fas fa-download me-1"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- KPI Stats -->
+                    <div class="row mb-4">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Current Value</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {% if kpi.current_value %}
+                                                    {% if kpi.kpi_type == 'financial' %}
+                                                    ${{ kpi.current_value|floatformat:2 }}
+                                                    {% elif kpi.kpi_type == 'quality' %}
+                                                    {{ kpi.current_value|floatformat:1 }}/5
+                                                    {% else %}
+                                                    {{ kpi.current_value|floatformat:0 }}
+                                                    {% endif %}
+                                                {% else %}
+                                                <span class="text-muted">No data</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Target Value</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {% if kpi.target_value %}
+                                                    {% if kpi.kpi_type == 'financial' %}
+                                                    ${{ kpi.target_value|floatformat:2 }}
+                                                    {% elif kpi.kpi_type == 'quality' %}
+                                                    {{ kpi.target_value|floatformat:1 }}/5
+                                                    {% else %}
+                                                    {{ kpi.target_value|floatformat:0 }}
+                                                    {% endif %}
+                                                {% else %}
+                                                <span class="text-muted">Not set</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-bullseye fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Status</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {% if kpi.status == 'on_target' %}
+                                                <span class="text-success">On Target</span>
+                                                {% elif kpi.status == 'warning' %}
+                                                <span class="text-warning">Warning</span>
+                                                {% elif kpi.status == 'critical' %}
+                                                <span class="text-danger">Critical</span>
+                                                {% else %}
+                                                <span class="text-secondary">{{ kpi.status|title }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-flag fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Trend</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {% if kpi.trend == 'improving' %}
+                                                <span class="text-success">
+                                                    <i class="fas fa-arrow-up"></i> Improving
+                                                </span>
+                                                {% elif kpi.trend == 'declining' %}
+                                                <span class="text-danger">
+                                                    <i class="fas fa-arrow-down"></i> Declining
+                                                </span>
+                                                {% else %}
+                                                <span class="text-muted">
+                                                    <i class="fas fa-minus"></i> Stable
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">KPI Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th width="40%">Type:</th>
+                                            <td>
+                                                <span class="badge bg-{{ kpi.kpi_type|lower }}">
+                                                    {{ kpi.get_kpi_type_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Calculation Period:</th>
+                                            <td>{{ kpi.get_calculation_period_display }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Auto Calculated:</th>
+                                            <td>
+                                                <i class="fas fa-{{ kpi.is_auto_calculated|yesno:'check,times' }} text-{{ kpi.is_auto_calculated|yesno:'success,danger' }}"></i>
+                                                {{ kpi.is_auto_calculated|yesno:'Yes,No' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Active:</th>
+                                            <td>
+                                                <i class="fas fa-{{ kpi.is_active|yesno:'check,times' }} text-{{ kpi.is_active|yesno:'success,danger' }}"></i>
+                                                {{ kpi.is_active|yesno:'Yes,No' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Created:</th>
+                                            <td>{{ kpi.created_at|date:"F d, Y" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Last Updated:</th>
+                                            <td>{{ kpi.updated_at|date:"F d, Y H:i" }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Thresholds & Targets</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Target Range</label>
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1 me-2">
+                                                <div class="progress" style="height: 20px;">
+                                                    {% if kpi.min_threshold and kpi.max_threshold %}
+                                                    {% widthratio kpi.current_value|default:0 kpi.max_threshold 100 as progress %}
+                                                    <div class="progress-bar bg-success" style="width: {{ progress }}%"></div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <small class="text-muted">
+                                                    {% if kpi.current_value %}
+                                                    {{ kpi.current_value|floatformat:1 }}
+                                                    {% else %}
+                                                    N/A
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-1">
+                                            <small class="text-muted">
+                                                Min: {{ kpi.min_threshold|default:"Not set" }}
+                                            </small>
+                                            <small class="text-muted">
+                                                Max: {{ kpi.max_threshold|default:"Not set" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="alert alert-{{ kpi.status|yesno:'success,warning,danger,secondary' }}">
+                                        <div class="d-flex">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-{{ kpi.status|yesno:'check-circle,exclamation-triangle,exclamation-circle,info-circle' }} fa-2x"></i>
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="alert-heading">Status: {{ kpi.status|title }}</h6>
+                                                {% if kpi.status == 'on_target' %}
+                                                <p class="mb-0">The KPI is within target range and performing well.</p>
+                                                {% elif kpi.status == 'warning' %}
+                                                <p class="mb-0">The KPI is approaching threshold limits. Monitor closely.</p>
+                                                {% elif kpi.status == 'critical' %}
+                                                <p class="mb-0">The KPI is outside acceptable range. Immediate action required.</p>
+                                                {% else %}
+                                                <p class="mb-0">Status cannot be determined with current data.</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Chart -->
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Trend Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart" height="100"></canvas>
+                </div>
+            </div>
+
+            <!-- Historical Values -->
+            <div class="card shadow">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Historical Values</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-calendar me-1"></i> Period
+                            </button>
+                            <ul class="dropdown-menu">
+                                {% for period in recent_periods %}
+                                <li>
+                                    <a class="dropdown-item" href="#" data-period-start="{{ period.start|date:'Y-m-d' }}" 
+                                       data-period-end="{{ period.end|date:'Y-m-d' }}">
+                                        {{ period.name }}
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if values %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Period Start</th>
+                                    <th>Period End</th>
+                                    <th>Value</th>
+                                    <th>Data Points</th>
+                                    <th>Min Value</th>
+                                    <th>Max Value</th>
+                                    <th>Avg Value</th>
+                                    <th>Calculated</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for value in values %}
+                                <tr>
+                                    <td>{{ value.period_start|date:"M d, Y" }}</td>
+                                    <td>{{ value.period_end|date:"M d, Y" }}</td>
+                                    <td>
+                                        <strong class="{% if kpi.kpi_type == 'financial' %}text-success{% elif kpi.kpi_type == 'quality' %}text-warning{% else %}text-primary{% endif %}">
+                                            {% if kpi.kpi_type == 'financial' %}
+                                            ${{ value.value|floatformat:2 }}
+                                            {% elif kpi.kpi_type == 'quality' %}
+                                            {{ value.value|floatformat:1 }}
+                                            {% else %}
+                                            {{ value.value|floatformat:0 }}
+                                            {% endif %}
+                                        </strong>
+                                    </td>
+                                    <td>{{ value.data_points }}</td>
+                                    <td>
+                                        {% if value.min_value %}
+                                        {{ value.min_value|floatformat:2 }}
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if value.max_value %}
+                                        {{ value.max_value|floatformat:2 }}
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if value.avg_value %}
+                                        {{ value.avg_value|floatformat:2 }}
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ value.calculated_at|date:"M d, Y" }}<br>
+                                        <small class="text-muted">{{ value.calculated_at|time:"H:i" }}</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-database fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted mb-3">No Historical Data</h4>
+                        <p class="text-muted">This KPI hasn't been calculated yet or has no historical values.</p>
+                        <button class="btn btn-primary" id="calculateNow">
+                            <i class="fas fa-calculator me-1"></i> Calculate Now
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export KPI Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Export Format</label>
+                    <select class="form-select" id="exportFormat">
+                        <option value="csv">CSV (Comma Separated Values)</option>
+                        <option value="excel">Excel (.xlsx)</option>
+                        <option value="json">JSON</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Date Range</label>
+                    <div class="row g-2">
+                        <div class="col">
+                            <input type="date" class="form-control" id="exportStartDate" placeholder="Start date">
+                        </div>
+                        <div class="col">
+                            <input type="date" class="form-control" id="exportEndDate" placeholder="End date">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="includeMetadata" checked>
+                    <label class="form-check-label" for="includeMetadata">
+                        Include KPI metadata
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmExport">Export Data</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(document).ready(function() {
+    // Trend Chart
+    const trendData = {{ trend_data|safe }};
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: trendData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            {% if kpi.kpi_type == 'financial' %}
+                            return '$' + value.toFixed(2);
+                            {% elif kpi.kpi_type == 'quality' %}
+                            return value.toFixed(1);
+                            {% else %}
+                            return value.toFixed(0);
+                            {% endif %}
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Recalculate KPI
+    $('#recalculateKpi').click(function() {
+        const button = $(this);
+        button.html('<i class="fas fa-spinner fa-spin me-1"></i> Calculating...');
+        button.prop('disabled', true);
+        
+        $.ajax({
+            url: '{% url "analytics:calculate_kpi" kpi_slug=kpi.slug %}',
+            success: function(response) {
+                if (response.success) {
+                    showToast('KPI recalculated successfully', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('Error: ' + response.error, 'danger');
+                    button.html('<i class="fas fa-sync-alt me-1"></i> Recalculate');
+                    button.prop('disabled', false);
+                }
+            }
+        });
+    });
+    
+    // Calculate now (for KPIs with no data)
+    $('#calculateNow').click(function() {
+        $('#recalculateKpi').click();
+    });
+    
+    // Period filtering for historical data
+    $('.dropdown-item[data-period-start]').click(function(e) {
+        e.preventDefault();
+        const start = $(this).data('period-start');
+        const end = $(this).data('period-end');
+        
+        // This would filter the historical data table
+        // In production, this would make an AJAX call
+        showToast(`Showing data from ${start} to ${end}`, 'info');
+    });
+    
+    // Export data
+    $('#confirmExport').click(function() {
+        const format = $('#exportFormat').val();
+        const startDate = $('#exportStartDate').val();
+        const endDate = $('#exportEndDate').val();
+        const includeMetadata = $('#includeMetadata').is(':checked');
+        
+        let url = `/analytics/kpi/{{ kpi.slug }}/export/?format=${format}`;
+        if (startDate) url += `&start_date=${startDate}`;
+        if (endDate) url += `&end_date=${endDate}`;
+        if (!includeMetadata) url += `&no_metadata=1`;
+        
+        window.open(url, '_blank');
+        $('#exportModal').modal('hide');
+    });
+    
+    // Set default export dates
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    
+    $('#exportStartDate').val(thirtyDaysAgo.toISOString().split('T')[0]);
+    $('#exportEndDate').val(today.toISOString().split('T')[0]);
+    
+    // Toast notification
+    function showToast(message, type = 'info') {
+        const toast = $(`
+            <div class="toast align-items-center text-bg-${type} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `);
+        
+        $('.toast-container').append(toast);
+        const bsToast = new bootstrap.Toast(toast[0]);
+        bsToast.show();
+        
+        toast.on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+});
+</script>
+{% endblock %}

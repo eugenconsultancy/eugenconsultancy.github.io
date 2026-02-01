@@ -1,0 +1,55 @@
+<div class="modal fade" id="cancelOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'orders:admin_cancel' order.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This will cancel the order and process a refund to the client.
+                    </div>
+                    
+                    <p>You are about to cancel order <strong>{{ order.order_number }}</strong>.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Refund Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" name="refund_amount" 
+                                   value="{{ order.price }}" min="0" max="{{ order.price }}" step="0.01">
+                        </div>
+                        <small class="text-muted">Full refund amount: ${{ order.price }}</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Reason for cancellation</label>
+                        <textarea class="form-control" name="reason" rows="3" required
+                                  placeholder="Why are you cancelling this order?"></textarea>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="notify_parties" id="notifyCancel" checked>
+                        <label class="form-check-label" for="notifyCancel">
+                            Notify client and writer
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="penalize_writer" id="penalizeWriter">
+                        <label class="form-check-label" for="penalizeWriter">
+                            Apply penalty to writer rating
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Cancel Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

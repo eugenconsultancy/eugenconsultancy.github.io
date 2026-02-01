@@ -1,0 +1,563 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load order_filters %}
+
+{% block title %}Admin - Order #{{ order.order_number }} - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'orders:admin_list' %}">Admin Orders</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Order #{{ order.order_number }}</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">Order #{{ order.order_number }}</h1>
+                    <p class="text-muted mb-0">Admin View</p>
+                </div>
+                
+                <div class="btn-group" role="group">
+                    <a href="{% url 'orders:detail' order.pk %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-eye me-2"></i>Client View
+                    </a>
+                    <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#adminActionsModal">
+                        <i class="bi bi-gear me-2"></i>Admin Actions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Actions Alert -->
+    {% if order.state == 'paid' and not order.writer %}
+    <div class="alert alert-warning">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Unassigned Order:</strong> This order needs a writer assignment.
+            </div>
+            <a href="{% url 'orders:admin_assign' order.pk %}" class="btn btn-warning btn-sm">
+                <i class="bi bi-person-plus me-2"></i>Assign Writer
+            </a>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if order.state == 'disputed' %}
+    <div class="alert alert-danger">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Disputed Order:</strong> This order needs resolution.
+            </div>
+            <a href="{% url 'orders:admin_dispute' order.pk %}" class="btn btn-danger btn-sm">
+                <i class="bi bi-hammer me-2"></i>Resolve Dispute
+            </a>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if order.is_overdue %}
+    <div class="alert alert-danger">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-clock-history me-2"></i>
+                <strong>Overdue Order:</strong> Deadline was {{ order.deadline|timesince }} ago.
+            </div>
+            <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#overdueActionsModal">
+                <i class="bi bi-lightning me-2"></i>Take Action
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Left Column - Order Details -->
+        <div class="col-lg-8">
+            <!-- Order Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Order Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th class="text-muted">Order Number:</th>
+                                    <td>{{ order.order_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Created:</th>
+                                    <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Status:</th>
+                                    <td>
+                                        <span class="badge bg-{{ order.state|state_bg_color }}">
+                                            {{ order.get_state_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Urgency:</th>
+                                    <td>
+                                        <span class="badge bg-{{ order.urgency|urgency_bg_color }}">
+                                            {{ order.get_urgency_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Deadline:</th>
+                                    <td class="{% if order.is_overdue %}text-danger{% endif %}">
+                                        {{ order.deadline|date:"M d, Y H:i" }}
+                                        {% if order.is_overdue %}
+                                        <span class="badge bg-danger ms-2">OVERDUE</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th class="text-muted">Title:</th>
+                                    <td>{{ order.title }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Subject:</th>
+                                    <td>{{ order.subject }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Academic Level:</th>
+                                    <td>{{ order.get_academic_level_display }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Pages/Words:</th>
+                                    <td>{{ order.pages }}p / {{ order.words }}w</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Formatting:</th>
+                                    <td>{{ order.formatting_style }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Order Description -->
+                    <div class="mt-3">
+                        <h6>Order Description:</h6>
+                        <div class="bg-light p-3 rounded">
+                            {{ order.description|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-cash-coin me-2"></i>Financial Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th class="text-muted">Order Price:</th>
+                                    <td>${{ order.price }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Platform Fee (20%):</th>
+                                    <td>${{ order.platform_fee }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Writer Payment:</th>
+                                    <td>${{ order.writer_payment }}</td>
+                                </tr>
+                                {% if order.refund_amount %}
+                                <tr>
+                                    <th class="text-muted">Refund Amount:</th>
+                                    <td class="text-danger">-${{ order.refund_amount }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th class="text-muted">Payment Status:</th>
+                                    <td>
+                                        {% if hasattr order 'payment' %}
+                                            {% if order.payment.is_paid %}
+                                            <span class="badge bg-success">Paid</span>
+                                            {% else %}
+                                            <span class="badge bg-warning">Pending</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Escrow Status:</th>
+                                    <td>
+                                        {% if order.state == 'completed' %}
+                                        <span class="badge bg-success">Released</span>
+                                        {% elif order.state == 'refunded' %}
+                                        <span class="badge bg-info">Refunded</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Held</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if order.refunded_at %}
+                                <tr>
+                                    <th class="text-muted">Refunded At:</th>
+                                    <td>{{ order.refunded_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parties Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-people me-2"></i>Parties Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Client Information -->
+                        <div class="col-md-6">
+                            <h6>Client</h6>
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="avatar avatar-sm bg-primary text-white rounded-circle me-2">
+                                            {{ order.client.get_full_name|default:order.client.email|first|upper }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ order.client.get_full_name|default:order.client.email }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="small">
+                                        <div class="mb-1">
+                                            <i class="bi bi-envelope me-1"></i>
+                                            {{ order.client.email }}
+                                        </div>
+                                        <div>
+                                            <i class="bi bi-telephone me-1"></i>
+                                            {{ order.client.phone_number|default:"Not provided" }}
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="mailto:{{ order.client.email }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-envelope"></i> Email
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-chat"></i> Message
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Writer Information -->
+                        <div class="col-md-6">
+                            <h6>Writer</h6>
+                            {% if order.writer %}
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="avatar avatar-sm bg-success text-white rounded-circle me-2">
+                                            {{ order.writer.get_full_name|default:order.writer.email|first|upper }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ order.writer.get_full_name|default:order.writer.email }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="small">
+                                        <div class="mb-1">
+                                            <i class="bi bi-envelope me-1"></i>
+                                            {{ order.writer.email }}
+                                        </div>
+                                        <div>
+                                            <i class="bi bi-star me-1"></i>
+                                            Rating: {{ order.writer.writer_profile.average_rating|default:"N/A" }}/5.0
+                                        </div>
+                                        <div>
+                                            <i class="bi bi-journal-text me-1"></i>
+                                            Load: {{ order.writer.writer_profile.current_orders }}/{{ order.writer.writer_profile.max_orders }}
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="mailto:{{ order.writer.email }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-envelope"></i> Email
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-chat"></i> Message
+                                        </a>
+                                        {% if order.state in 'assigned,in_progress,in_revision' %}
+                                        <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#reassignModal">
+                                            <i class="bi bi-arrow-left-right"></i> Reassign
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="bi bi-person-x me-2"></i>
+                                No writer assigned yet.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Assignment History -->
+                    {% if order.assigned_by %}
+                    <div class="mt-3">
+                        <h6>Assignment History</h6>
+                        <div class="small text-muted">
+                            Assigned by: {{ order.assigned_by.get_full_name|default:order.assigned_by.email }}
+                            on {{ order.assigned_at|date:"M d, Y H:i" }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Order Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% include 'orders/partials/timeline.html' with order=order admin_view=True %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Admin Actions & Details -->
+        <div class="col-lg-4">
+            <!-- Admin Actions -->
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>Admin Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if order.state == 'paid' and not order.writer %}
+                        <a href="{% url 'orders:admin_assign' order.pk %}" class="btn btn-primary">
+                            <i class="bi bi-person-plus me-2"></i>Assign Writer
+                        </a>
+                        {% endif %}
+                        
+                        {% if order.state == 'disputed' %}
+                        <a href="{% url 'orders:admin_dispute' order.pk %}" class="btn btn-danger">
+                            <i class="bi bi-hammer me-2"></i>Resolve Dispute
+                        </a>
+                        {% endif %}
+                        
+                        {% if order.state in 'delivered,revision_requested,in_revision' %}
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#forceCompleteModal">
+                            <i class="bi bi-check-circle me-2"></i>Force Complete
+                        </button>
+                        {% endif %}
+                        
+                        {% if order.state in 'paid,assigned,in_progress' %}
+                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#cancelOrderModal">
+                            <i class="bi bi-x-circle me-2"></i>Cancel Order
+                        </button>
+                        {% endif %}
+                        
+                        {% if order.state in 'paid,assigned,in_progress,delivered,revision_requested,in_revision' %}
+                        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#refundModal">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i>Process Refund
+                        </button>
+                        {% endif %}
+                        
+                        {% if order.writer and order.state in 'assigned,in_progress,in_revision' %}
+                        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#reassignModal">
+                            <i class="bi bi-arrow-left-right me-2"></i>Reassign Writer
+                        </button>
+                        {% endif %}
+                        
+                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                            <i class="bi bi-pencil me-2"></i>Add Admin Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Statistics -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Order Age</span>
+                            <span>{{ order.created_at|timesince }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Time to Deadline</span>
+                            <span class="{% if order.is_overdue %}text-danger{% endif %}">
+                                {% if order.is_overdue %}
+                                {{ order.deadline|timesince }} overdue
+                                {% else %}
+                                {{ order.time_remaining|humanize_timedelta }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Revisions Used</span>
+                            <span>{{ order.revision_count }}/{{ order.max_revisions }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Progress</span>
+                            <span>{{ order.progress_percentage }}%</span>
+                        </div>
+                        {% if order.writer %}
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Writer Rating</span>
+                            <span>{{ order.writer.writer_profile.average_rating|default:"N/A" }}/5.0</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Writer Load</span>
+                            <span>{{ order.writer.writer_profile.current_orders }}/{{ order.writer.writer_profile.max_orders }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Notes -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Admin Notes</h5>
+                </div>
+                <div class="card-body">
+                    {% if order.admin_notes %}
+                    <div class="bg-light p-3 rounded mb-3">
+                        {{ order.admin_notes|linebreaks }}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-3">No admin notes yet.</p>
+                    {% endif %}
+                    
+                    <button class="btn btn-sm btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                        <i class="bi bi-plus-circle me-2"></i>Add Note
+                    </button>
+                </div>
+            </div>
+
+            <!-- Files -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-files me-2"></i>Files</h5>
+                </div>
+                <div class="card-body">
+                    {% if files %}
+                    <div class="list-group list-group-flush">
+                        {% for file in files|slice:":5" %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                                    <small>{{ file.original_filename|truncatechars:20 }}</small>
+                                </div>
+                                <div>
+                                    <a href="{{ file.download_url }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if files.count > 5 %}
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-sm btn-outline-secondary">
+                            View all {{ files.count }} files
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <p class="text-muted mb-0">No files uploaded yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Actions Modal -->
+{% include 'orders/admin/partials/admin_actions_modal.html' %}
+
+<!-- Force Complete Modal -->
+{% include 'orders/admin/partials/force_complete_modal.html' %}
+
+<!-- Cancel Order Modal -->
+{% include 'orders/admin/partials/cancel_order_modal.html' %}
+
+<!-- Refund Modal -->
+{% include 'orders/admin/partials/refund_modal.html' %}
+
+<!-- Reassign Modal -->
+{% include 'orders/admin/partials/reassign_modal.html' %}
+
+<!-- Add Note Modal -->
+{% include 'orders/admin/partials/add_note_modal.html' %}
+
+<!-- Overdue Actions Modal -->
+{% include 'orders/admin/partials/overdue_actions_modal.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Update time remaining
+    function updateTimeRemaining() {
+        const deadline = new Date("{{ order.deadline|date:'c' }}");
+        const now = new Date();
+        const diff = deadline - now;
+        
+        if (diff > 0) {
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            
+            $('.time-remaining').text(`${days}d ${hours}h left`);
+        } else {
+            $('.time-remaining').text('OVERDUE').addClass('text-danger');
+        }
+    }
+    
+    updateTimeRemaining();
+    setInterval(updateTimeRemaining, 60000);
+    
+    // Admin action confirmations
+    $('.admin-action-btn').click(function(e) {
+        const action = $(this).data('action');
+        const orderNumber = "{{ order.order_number }}";
+        
+        if (!confirm(`Are you sure you want to ${action} order ${orderNumber}?`)) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,305 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}My Orders - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">My Orders</h1>
+                    <p class="text-muted mb-0">Manage and track all your orders</p>
+                </div>
+                <a href="{% url 'orders:create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>New Order
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Orders</h6>
+                            <h3 class="mb-0">{{ total_orders }}</h3>
+                        </div>
+                        <div class="avatar avatar-sm">
+                            <i class="bi bi-journal-text fs-4 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-start border-warning border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Active Orders</h6>
+                            <h3 class="mb-0">{{ active_orders }}</h3>
+                        </div>
+                        <div class="avatar avatar-sm">
+                            <i class="bi bi-clock-history fs-4 text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-start border-success border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Completed</h6>
+                            <h3 class="mb-0">{{ completed_orders }}</h3>
+                        </div>
+                        <div class="avatar avatar-sm">
+                            <i class="bi bi-check-circle fs-4 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-start border-info border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Spent</h6>
+                            <h3 class="mb-0">${{ stats.total_spent|default:"0.00" }}</h3>
+                        </div>
+                        <div class="avatar avatar-sm">
+                            <i class="bi bi-currency-dollar fs-4 text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="state" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="draft" {% if request.GET.state == 'draft' %}selected{% endif %}>Draft</option>
+                        <option value="paid" {% if request.GET.state == 'paid' %}selected{% endif %}>Paid</option>
+                        <option value="assigned" {% if request.GET.state == 'assigned' %}selected{% endif %}>Assigned</option>
+                        <option value="in_progress" {% if request.GET.state == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="delivered" {% if request.GET.state == 'delivered' %}selected{% endif %}>Delivered</option>
+                        <option value="completed" {% if request.GET.state == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="cancelled" {% if request.GET.state == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Academic Level</label>
+                    <select name="academic_level" class="form-select">
+                        <option value="">All Levels</option>
+                        <option value="high_school" {% if request.GET.academic_level == 'high_school' %}selected{% endif %}>High School</option>
+                        <option value="undergraduate" {% if request.GET.academic_level == 'undergraduate' %}selected{% endif %}>Undergraduate</option>
+                        <option value="bachelors" {% if request.GET.academic_level == 'bachelors' %}selected{% endif %}>Bachelor's</option>
+                        <option value="masters" {% if request.GET.academic_level == 'masters' %}selected{% endif %}>Master's</option>
+                        <option value="phd" {% if request.GET.academic_level == 'phd' %}selected{% endif %}>PhD</option>
+                        <option value="professional" {% if request.GET.academic_level == 'professional' %}selected{% endif %}>Professional</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Search orders..." value="{{ request.GET.search }}">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="col-md-2 d-flex align-items-end">
+                    <a href="{% url 'orders:list' %}" class="btn btn-outline-secondary me-2">Clear</a>
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if orders %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Writer</th>
+                            <th>Deadline</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>
+                                <strong>{{ order.order_number }}</strong>
+                                <div class="small text-muted">{{ order.created_at|date:"M d, Y" }}</div>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 200px;" title="{{ order.title }}">
+                                    {{ order.title }}
+                                </div>
+                                <div class="small text-muted">
+                                    {{ order.get_academic_level_display }} • {{ order.subject }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ order.state|state_bg_color }} rounded-pill">
+                                    {{ order.get_state_display }}
+                                </span>
+                                {% if order.is_overdue %}
+                                <div class="small text-danger mt-1">
+                                    <i class="bi bi-exclamation-triangle"></i> Overdue
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if order.writer %}
+                                <div>{{ order.writer.get_full_name|default:order.writer.email }}</div>
+                                <div class="small text-muted">Assigned: {{ order.assigned_at|date:"M d" }}</div>
+                                {% else %}
+                                <span class="text-muted">Not assigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ order.deadline|date:"M d, Y" }}</div>
+                                <div class="small {% if order.is_overdue %}text-danger{% else %}text-muted{% endif %}">
+                                    {{ order.deadline|time:"g:i A" }}
+                                </div>
+                                {% if not order.is_overdue %}
+                                <div class="small text-muted">
+                                    {{ order.time_remaining.days }}d {{ order.time_remaining.seconds|divisibleby:3600 }}h left
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>${{ order.price }}</strong>
+                                <div class="small text-muted">
+                                    Writer: ${{ order.writer_payment }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'orders:detail' order.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    
+                                    {% if order.state == 'draft' %}
+                                    <a href="{% url 'orders:update' order.pk %}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                    
+                                    {% if order.state == 'delivered' %}
+                                    <button class="btn btn-sm btn-outline-success" title="Complete">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="bi bi-journal-text fs-1 text-muted"></i>
+                </div>
+                <h4 class="text-muted">No orders found</h4>
+                <p class="text-muted">You haven't placed any orders yet.</p>
+                <a href="{% url 'orders:create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Create Your First Order
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Update time remaining every minute
+function updateTimeRemaining() {
+    $('.time-remaining').each(function() {
+        const deadline = new Date($(this).data('deadline'));
+        const now = new Date();
+        const diff = deadline - now;
+        
+        if (diff > 0) {
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            $(this).text(`${days}d ${hours}h left`);
+        } else {
+            $(this).text('Overdue').addClass('text-danger');
+        }
+    });
+}
+
+// Update initially
+updateTimeRemaining();
+
+// Update every minute
+setInterval(updateTimeRemaining, 60000);
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% comment %}
+Rating Stars Partial Template
+Usage: {% include 'reviews/partials/rating_stars.html' with rating=review.rating %}
+Optional parameters: size='sm', show_number=true, readonly=false
+{% endcomment %}
+
+{% load static %}
+
+{% if not size %}{% assign size = '' %}{% endif %}
+{% if show_number == None %}{% assign show_number = false %}{% endif %}
+{% if readonly == None %}{% assign readonly = false %}{% endif %}
+
+<div class="rating-stars d-inline-flex align-items-center {{ size }}">
+    {% if show_number %}
+    <span class="rating-number fw-bold me-2">{{ rating }}</span>
+    {% endif %}
+    
+    <div class="stars-container">
+        {% for i in "12345" %}
+        {% if forloop.counter <= rating %}
+        <i class="fas fa-star text-warning"></i>
+        {% else %}
+        <i class="far fa-star text-muted"></i>
+        {% endif %}
+        {% endfor %}
+    </div>
+    
+    {% if not readonly and editable %}
+    <button type="button" class="btn btn-link btn-sm ms-2 p-0 edit-rating" 
+            data-bs-toggle="tooltip" title="Edit rating">
+        <i class="fas fa-edit text-muted"></i>
+    </button>
+    {% endif %}
+</div>
+
+<style>
+.rating-stars.sm .stars-container i {
+    font-size: 0.875rem;
+}
+
+.rating-stars .stars-container i {
+    font-size: 1rem;
+    margin-right: 0.125rem;
+}
+
+.rating-number {
+    font-size: 1.125rem;
+}
+</style>

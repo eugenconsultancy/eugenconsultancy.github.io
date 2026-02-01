@@ -1,0 +1,70 @@
+<div class="transaction-item d-flex align-items-center py-3 border-bottom">
+    <div class="transaction-icon me-3">
+        <div class="icon-circle bg-{% if transaction.transaction_type == 'credit' %}success{% else %}danger{% endif %}">
+            <i class="fas fa-{% if transaction.transaction_type == 'credit' %}plus{% else %}minus{% endif %}"></i>
+        </div>
+    </div>
+    
+    <div class="transaction-details flex-grow-1">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h6 class="mb-1">{{ transaction.description|truncatechars:60 }}</h6>
+                <p class="text-muted small mb-0">
+                    {{ transaction.created_at|date:"M d, Y H:i" }}
+                    {% if transaction.reference_type %}
+                    • {{ transaction.reference_type|title }}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="text-end">
+                <span class="fw-bold {% if transaction.transaction_type == 'credit' %}text-success{% else %}text-danger{% endif %}">
+                    {% if transaction.transaction_type == 'credit' %}+{% else %}-{% endif %}
+                    ${{ transaction.amount|floatformat:2 }}
+                </span>
+                <br>
+                <span class="badge bg-{% if transaction.status == 'completed' %}success{% elif transaction.status == 'pending' %}warning{% else %}secondary{% endif %} small">
+                    {{ transaction.get_status_display }}
+                </span>
+            </div>
+        </div>
+        
+        {% if transaction.metadata %}
+        <div class="mt-2">
+            <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" 
+                    data-bs-target="#metadata-{{ transaction.id }}">
+                <i class="fas fa-info-circle"></i> Details
+            </button>
+            
+            <div class="collapse mt-2" id="metadata-{{ transaction.id }}">
+                <div class="card card-body bg-light">
+                    <pre class="mb-0 small">{{ transaction.metadata|pprint }}</pre>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.transaction-item {
+    transition: background-color 0.2s;
+}
+.transaction-item:hover {
+    background-color: #f8f9fa;
+}
+.icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+.bg-success {
+    background-color: #28a745 !important;
+}
+.bg-danger {
+    background-color: #dc3545 !important;
+}
+</style>

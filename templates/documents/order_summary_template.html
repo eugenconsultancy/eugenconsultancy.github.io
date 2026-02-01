@@ -1,0 +1,328 @@
+<!-- templates/documents/order_summary_template.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Summary #{{ order.order_id }} - EBWriting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fff;
+            padding: 40px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .header h1 {
+            font-size: 36px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+        
+        .order-number {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .summary-date {
+            text-align: right;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px 20px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        
+        .card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #3498db;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -36px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #3498db;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #3498db;
+        }
+        
+        .timeline-item.completed::before {
+            background-color: #27ae60;
+            box-shadow: 0 0 0 2px #27ae60;
+        }
+        
+        .timeline-item.pending::before {
+            background-color: #f39c12;
+            box-shadow: 0 0 0 2px #f39c12;
+        }
+        
+        .timeline-event {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .timeline-date {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-paid {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .status-pending {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .status-in-progress {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .requirements {
+            background-color: #e8f4fc;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .important-note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .important-note h4 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Summary</h1>
+            <div class="subtitle">Detailed overview of your academic writing order</div>
+            <div class="order-number">Order #{{ order.order_id }}</div>
+        </div>
+        
+        <div class="summary-date">
+            Generated on: {{ summary_date }}
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Order Information</h2>
+            <div class="info-grid">
+                <div class="info-label">Order Title:</div>
+                <div>{{ order_details.title }}</div>
+                
+                <div class="info-label">Order Status:</div>
+                <div>
+                    <span class="status-badge status-{{ order.status|lower|slugify }}">
+                        {{ order.status|title }}
+                    </span>
+                </div>
+                
+                <div class="info-label">Deadline:</div>
+                <div>{{ order_details.deadline }}</div>
+                
+                <div class="info-label">Total Amount:</div>
+                <div>{{ order_details.total_amount }}</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Client Information</h2>
+            <div class="card">
+                <div class="card-title">{{ client_info.name }}</div>
+                <div>Email: {{ client_info.email }}</div>
+                <div>Client since: {{ order.client.date_joined|date:"F d, Y" }}</div>
+            </div>
+        </div>
+        
+        {% if writer_info.name != 'Not assigned' %}
+        <div class="section">
+            <h2 class="section-title">Writer Information</h2>
+            <div class="card">
+                <div class="card-title">{{ writer_info.name }}</div>
+                <div>Email: {{ writer_info.email }}</div>
+                {% if writer_info.writer_id != 'N/A' %}
+                <div>Writer ID: {{ writer_info.writer_id }}</div>
+                {% endif %}
+                <div>Specialization: {{ order.assigned_writer.writer_profile.specialization|default:"General" }}</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="section">
+            <h2 class="section-title">Order Specifications</h2>
+            <div class="info-grid">
+                <div class="info-label">Academic Level:</div>
+                <div>{{ order_details.academic_level }}</div>
+                
+                <div class="info-label">Format:</div>
+                <div>{{ order_details.format }}</div>
+                
+                <div class="info-label">Number of Pages:</div>
+                <div>{{ order_details.pages }}</div>
+                
+                <div class="info-label">Word Count:</div>
+                <div>{{ order_details.words }} words</div>
+                
+                {% if order.subject %}
+                <div class="info-label">Subject:</div>
+                <div>{{ order.subject }}</div>
+                {% endif %}
+                
+                {% if order.citation_style %}
+                <div class="info-label">Citation Style:</div>
+                <div>{{ order.citation_style }}</div>
+                {% endif %}
+            </div>
+            
+            {% if order_details.description %}
+            <div class="requirements">
+                <div class="card-title">Order Description:</div>
+                <p>{{ order_details.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Order Timeline</h2>
+            <div class="timeline">
+                {% for event in timeline %}
+                <div class="timeline-item {% if event.date != 'Pending' %}completed{% else %}pending{% endif %}">
+                    <div class="timeline-event">{{ event.event }}</div>
+                    <div class="timeline-date">{{ event.date }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="important-note">
+            <h4>Important Notes:</h4>
+            <p>
+                • This document is for reference purposes only.<br>
+                • All communications should be made through the EBWriting platform.<br>
+                • Payments are held in escrow until order completion.<br>
+                • Revision requests must be made within the revision period.<br>
+                • For any issues, contact our support team immediately.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>EBWriting - Professional Academic Writing Services</p>
+            <p>This document was automatically generated on {{ summary_date }}</p>
+            <p>Document ID: ORDER-SUMMARY-{{ order.order_id }}-{{ summary_date|date:"Ymd" }}</p>
+        </div>
+    </div>
+</body>
+</html>

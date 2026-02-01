@@ -1,0 +1,213 @@
+{% extends 'base/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Complete Writer Profile - EBWriting{% endblock %}
+
+{% block page_title %}Complete Your Writer Profile{% endblock %}
+{% block page_subtitle %}Step 1 of 2: Tell us about your qualifications{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-person-badge me-2"></i>Writer Profile Information
+                </h4>
+            </div>
+            
+            <div class="card-body">
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-primary fw-bold">Step 1: Profile</span>
+                        <span class="text-muted">Step 2: Documents</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- Requirements Alert -->
+                <div class="alert alert-info">
+                    <h5 class="alert-heading">
+                        <i class="bi bi-info-circle"></i> Profile Requirements
+                    </h5>
+                    <ul class="mb-0">
+                        <li>All fields marked with * are required</li>
+                        <li>Provide accurate academic and professional information</li>
+                        <li>This information will be verified during approval</li>
+                        <li>Incomplete profiles cannot proceed to document submission</li>
+                    </ul>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="profileForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <!-- Personal Information -->
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-person me-2"></i>Personal Information
+                            </h5>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.first_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.last_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.phone_number|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.country|as_crispy_field }}
+                        </div>
+
+                        <!-- Academic Background -->
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-mortarboard me-2"></i>Academic Background
+                            </h5>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.education_level|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.graduation_year|as_crispy_field }}
+                        </div>
+                        <div class="col-12 mb-3">
+                            {{ form.institution|as_crispy_field }}
+                        </div>
+                        <div class="col-12 mb-3">
+                            {{ form.bio|as_crispy_field }}
+                            <small class="form-text text-muted">Brief professional biography (max 2000 characters)</small>
+                        </div>
+
+                        <!-- Professional Information -->
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-briefcase me-2"></i>Professional Information
+                            </h5>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.years_of_experience|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.hourly_rate|as_crispy_field }}
+                            <small class="form-text text-muted">Your suggested hourly rate (can be adjusted later)</small>
+                        </div>
+                        <div class="col-12 mb-3">
+                            {{ form.specialization|as_crispy_field }}
+                            <small class="form-text text-muted">Comma-separated list of your areas of expertise</small>
+                        </div>
+
+                        <!-- Availability -->
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-calendar-check me-2"></i>Availability
+                            </h5>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            {{ form.max_orders|as_crispy_field }}
+                            <small class="form-text text-muted">Maximum orders you can handle simultaneously</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch mt-4">
+                                {{ form.is_available|as_crispy_field }}
+                                <label class="form-check-label" for="{{ form.is_available.id_for_label }}">
+                                    Available for new assignments
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Terms & Conditions -->
+                        <div class="col-12 mt-4">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" required id="termsAccepted">
+                                <label class="form-check-label" for="termsAccepted">
+                                    I certify that all information provided is accurate and truthful
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" required id="ethicsAccepted">
+                                <label class="form-check-label" for="ethicsAccepted">
+                                    I agree to follow academic ethics and platform guidelines
+                                </label>
+                            </div>
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" type="checkbox" required id="gdprAccepted">
+                                <label class="form-check-label" for="gdprAccepted">
+                                    I agree to the processing of my data for verification purposes
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                        <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Save & Continue
+                            <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="bi bi-question-circle me-2"></i>Need Help?
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Profile Tips:</h6>
+                        <ul class="small">
+                            <li>Use your real academic credentials</li>
+                            <li>Be specific about your specialization</li>
+                            <li>Set realistic availability expectations</li>
+                            <li>Proofread your biography</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Next Steps:</h6>
+                        <ul class="small">
+                            <li>After saving, you'll proceed to document upload</li>
+                            <li>You'll need at least 3 verification documents</li>
+                            <li>Admin review typically takes 2-3 business days</li>
+                            <li>You'll be notified via email of any updates</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        const termsAccepted = document.getElementById('termsAccepted').checked;
+        const ethicsAccepted = document.getElementById('ethicsAccepted').checked;
+        const gdprAccepted = document.getElementById('gdprAccepted').checked;
+        
+        if (!termsAccepted || !ethicsAccepted || !gdprAccepted) {
+            e.preventDefault();
+            alert('Please accept all terms and conditions to proceed.');
+        }
+    });
+</script>
+{% endblock %}

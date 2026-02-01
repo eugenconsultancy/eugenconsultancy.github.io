@@ -1,0 +1,619 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Payout Management - EBWriting Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-money-check-alt me-2"></i>Payout Management</h4>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#statsModal">
+                                <i class="fas fa-chart-bar me-1"></i> Stats
+                            </button>
+                            <a href="{% url 'admin:wallet_payoutrequest_changelist' %}" class="btn btn-light btn-sm">
+                                <i class="fas fa-cog me-1"></i> Advanced
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Pending Review</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_pending }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Approved</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_approved }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Processing</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_processing }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-sync-alt fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Total Amount</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_amount|default:"0.00" }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payout Requests Table -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Payout Requests</h6>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                                Filter Status
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?">All Statuses</a></li>
+                                <li><a class="dropdown-item" href="?status=pending">Pending Only</a></li>
+                                <li><a class="dropdown-item" href="?status=approved">Approved Only</a></li>
+                                <li><a class="dropdown-item" href="?status=processing">Processing Only</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if payout_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="payoutTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAll">
+                                    </th>
+                                    <th>Request ID</th>
+                                    <th>Writer</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                    <th>Requested</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payout in payout_requests %}
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="payout-checkbox" value="{{ payout.id }}">
+                                    </td>
+                                    <td>
+                                        <small class="font-monospace">{{ payout.id|truncatechars:10 }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'admin:accounts_user_change' payout.wallet.user.id %}" target="_blank">
+                                            {{ payout.wallet.user.email }}
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">Balance: ${{ payout.wallet.balance|floatformat:2 }}</small>
+                                    </td>
+                                    <td class="font-weight-bold">
+                                        ${{ payout.amount|floatformat:2 }}
+                                        {% if not payout.is_eligible %}
+                                        <br>
+                                        <small class="text-danger">
+                                            <i class="fas fa-exclamation-triangle"></i> Not eligible
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ payout.get_payout_method_display }}</span>
+                                    </td>
+                                    <td>
+                                        {% if payout.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending Review</span>
+                                        {% elif payout.status == 'approved' %}
+                                        <span class="badge bg-success">Approved</span>
+                                        {% elif payout.status == 'processing' %}
+                                        <span class="badge bg-primary">Processing</span>
+                                        {% elif payout.status == 'completed' %}
+                                        <span class="badge bg-secondary">Completed</span>
+                                        {% elif payout.status == 'rejected' %}
+                                        <span class="badge bg-danger">Rejected</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ payout.created_at|date:"M d, Y" }}<br>
+                                        <small class="text-muted">{{ payout.created_at|timesince }} ago</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            {% if payout.status == 'pending' %}
+                                            <button class="btn btn-success approve-btn" data-id="{{ payout.id }}">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-danger reject-btn" data-id="{{ payout.id }}">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            {% elif payout.status == 'approved' %}
+                                            <button class="btn btn-primary process-btn" data-id="{{ payout.id }}">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                            {% endif %}
+                                            <button class="btn btn-info" data-bs-toggle="modal" 
+                                                    data-bs-target="#detailsModal{{ payout.id }}">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Details Modal -->
+                                <div class="modal fade" id="detailsModal{{ payout.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Payout Details</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6>Writer Information</h6>
+                                                        <p>
+                                                            <strong>Email:</strong> {{ payout.wallet.user.email }}<br>
+                                                            <strong>Name:</strong> {{ payout.wallet.user.get_full_name }}<br>
+                                                            <strong>Balance:</strong> ${{ payout.wallet.balance|floatformat:2 }}<br>
+                                                            <strong>Total Earned:</strong> ${{ payout.wallet.total_earned|floatformat:2 }}
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6>Payout Information</h6>
+                                                        <p>
+                                                            <strong>Amount:</strong> ${{ payout.amount|floatformat:2 }}<br>
+                                                            <strong>Method:</strong> {{ payout.get_payout_method_display }}<br>
+                                                            <strong>Status:</strong> {{ payout.get_status_display }}<br>
+                                                            <strong>Requested:</strong> {{ payout.created_at|date:"F d, Y H:i" }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mt-3">
+                                                    <h6>Payment Details</h6>
+                                                    <pre class="bg-light p-3">{{ payout.payout_details|default:"No details provided" }}</pre>
+                                                </div>
+                                                
+                                                {% if payout.admin_notes %}
+                                                <div class="mt-3">
+                                                    <h6>Admin Notes</h6>
+                                                    <p>{{ payout.admin_notes }}</p>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if payout.rejection_reason %}
+                                                <div class="mt-3 alert alert-warning">
+                                                    <h6>Rejection Reason</h6>
+                                                    <p>{{ payout.rejection_reason }}</p>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if payout.transaction_reference %}
+                                                <div class="mt-3 alert alert-success">
+                                                    <h6>Transaction Reference</h6>
+                                                    <p>{{ payout.transaction_reference }}</p>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                {% if payout.status == 'pending' %}
+                                                <button class="btn btn-success approve-btn" data-id="{{ payout.id }}" data-bs-dismiss="modal">
+                                                    Approve
+                                                </button>
+                                                <button class="btn btn-danger reject-btn" data-id="{{ payout.id }}" data-bs-dismiss="modal">
+                                                    Reject
+                                                </button>
+                                                {% elif payout.status == 'approved' %}
+                                                <button class="btn btn-primary process-btn" data-id="{{ payout.id }}" data-bs-dismiss="modal">
+                                                    Process
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>Selected:</strong>
+                                                <span id="selectedCount">0</span> payouts
+                                                <span id="selectedAmount" class="ms-3">$0.00</span>
+                                            </div>
+                                            <div class="btn-group">
+                                                <button class="btn btn-success" id="bulkApproveBtn" disabled>
+                                                    <i class="fas fa-check me-1"></i> Approve Selected
+                                                </button>
+                                                <button class="btn btn-danger" id="bulkRejectBtn" disabled>
+                                                    <i class="fas fa-times me-1"></i> Reject Selected
+                                                </button>
+                                                <button class="btn btn-primary" id="bulkProcessBtn" disabled>
+                                                    <i class="fas fa-play me-1"></i> Process Selected
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <nav aria-label="Pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-money-check-alt fa-4x text-muted mb-4"></i>
+                        <h4 class="text-muted mb-3">No Payout Requests</h4>
+                        <p class="text-muted">There are no payout requests matching your criteria.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Modal -->
+<div class="modal fade" id="statsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payout Statistics</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Status Distribution</h6>
+                                <canvas id="statusChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Method Distribution</h6>
+                                <canvas id="methodChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Recent Activity</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Writer</th>
+                                                <th>Amount</th>
+                                                <th>Method</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for payout in payout_requests|slice:":5" %}
+                                            <tr>
+                                                <td>{{ payout.created_at|date:"M d" }}</td>
+                                                <td>{{ payout.wallet.user.email|truncatechars:20 }}</td>
+                                                <td>${{ payout.amount|floatformat:2 }}</td>
+                                                <td>{{ payout.get_payout_method_display|truncatechars:10 }}</td>
+                                                <td>{{ payout.get_status_display }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize checkboxes
+    $('#selectAll').change(function() {
+        $('.payout-checkbox').prop('checked', this.checked);
+        updateSelectionSummary();
+    });
+    
+    $('.payout-checkbox').change(function() {
+        if (!this.checked) {
+            $('#selectAll').prop('checked', false);
+        }
+        updateSelectionSummary();
+    });
+    
+    function updateSelectionSummary() {
+        const selected = $('.payout-checkbox:checked');
+        const count = selected.length;
+        let total = 0;
+        
+        selected.each(function() {
+            const row = $(this).closest('tr');
+            const amountText = row.find('td:nth-child(4)').text().trim();
+            const amount = parseFloat(amountText.replace('$', '').replace(',', ''));
+            if (!isNaN(amount)) {
+                total += amount;
+            }
+        });
+        
+        $('#selectedCount').text(count);
+        $('#selectedAmount').text('$' + total.toFixed(2));
+        
+        // Enable/disable bulk buttons
+        $('#bulkApproveBtn, #bulkRejectBtn, #bulkProcessBtn').prop('disabled', count === 0);
+    }
+    
+    // Single payout actions
+    $('.approve-btn').click(function() {
+        const payoutId = $(this).data('id');
+        if (confirm('Approve this payout request?')) {
+            approvePayout(payoutId);
+        }
+    });
+    
+    $('.reject-btn').click(function() {
+        const payoutId = $(this).data('id');
+        const reason = prompt('Enter rejection reason:');
+        if (reason !== null) {
+            rejectPayout(payoutId, reason);
+        }
+    });
+    
+    $('.process-btn').click(function() {
+        const payoutId = $(this).data('id');
+        const reference = prompt('Enter transaction reference:');
+        if (reference !== null) {
+            processPayout(payoutId, reference);
+        }
+    });
+    
+    // Bulk actions
+    $('#bulkApproveBtn').click(function() {
+        const selected = getSelectedPayouts();
+        if (selected.length > 0 && confirm(`Approve ${selected.length} selected payout(s)?`)) {
+            bulkAction('approve', selected);
+        }
+    });
+    
+    $('#bulkRejectBtn').click(function() {
+        const selected = getSelectedPayouts();
+        if (selected.length > 0) {
+            const reason = prompt('Enter rejection reason for all selected payouts:');
+            if (reason !== null) {
+                bulkAction('reject', selected, {reason: reason});
+            }
+        }
+    });
+    
+    $('#bulkProcessBtn').click(function() {
+        const selected = getSelectedPayouts();
+        if (selected.length > 0) {
+            const reference = prompt('Enter transaction reference (will be appended with IDs):');
+            if (reference !== null) {
+                bulkAction('process', selected, {reference: reference});
+            }
+        }
+    });
+    
+    function getSelectedPayouts() {
+        const selected = [];
+        $('.payout-checkbox:checked').each(function() {
+            selected.push($(this).val());
+        });
+        return selected;
+    }
+    
+    function approvePayout(payoutId) {
+        $.ajax({
+            url: '{% url "wallet:admin_approve_payout" payout_id="00000000-0000-0000-0000-000000000000" %}'.replace('00000000-0000-0000-0000-000000000000', payoutId),
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.error);
+                }
+            }
+        });
+    }
+    
+    function rejectPayout(payoutId, reason) {
+        // This would be implemented with a proper API endpoint
+        alert('Rejection would be processed for payout: ' + payoutId + '\nReason: ' + reason);
+        // In production, implement AJAX call here
+    }
+    
+    function processPayout(payoutId, reference) {
+        $.ajax({
+            url: '{% url "wallet:admin_process_payout" payout_id="00000000-0000-0000-0000-000000000000" %}'.replace('00000000-0000-0000-0000-000000000000', payoutId),
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            data: {reference: reference},
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.error);
+                }
+            }
+        });
+    }
+    
+    function bulkAction(action, payoutIds, data = {}) {
+        data.payout_ids = payoutIds;
+        $.ajax({
+            url: `/admin/wallet/payoutrequest/bulk_${action}/`,
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            data: data,
+            success: function() {
+                location.reload();
+            }
+        });
+    }
+    
+    // CSRF token helper
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Charts
+    if ($('#statusChart').length) {
+        const statusCtx = $('#statusChart')[0].getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pending', 'Approved', 'Processing', 'Completed', 'Rejected'],
+                datasets: [{
+                    data: [{{ total_pending }}, {{ total_approved }}, {{ total_processing }}, 0, 0],
+                    backgroundColor: [
+                        '#ffc107',
+                        '#28a745',
+                        '#007bff',
+                        '#6c757d',
+                        '#dc3545'
+                    ]
+                }]
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

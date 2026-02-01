@@ -1,0 +1,204 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Raise Dispute - Order #{{ order.order_number }} - EssayBurst{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Raise Dispute</h4>
+                    <p class="mb-0 small">Order #{{ order.order_number }} - {{ order.title }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger mb-4">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Important:</strong> Please try to resolve issues through revisions first. 
+                        Disputes should only be raised for serious issues that cannot be resolved through normal channels.
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Dispute Information -->
+                        <div class="mb-4">
+                            <h5>Dispute Details</h5>
+                            
+                            <div class="mb-3">
+                                {{ form.reason|as_crispy_field }}
+                                <small class="form-text text-muted">
+                                    Briefly describe the main issue with the delivered work.
+                                </small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.details|as_crispy_field }}
+                                <small class="form-text text-muted">
+                                    Provide detailed explanation of the problem. Include:
+                                    <ul class="small">
+                                        <li>How the work differs from requirements</li>
+                                        <li>Specific issues found</li>
+                                        <li>Attempts made to resolve through revisions</li>
+                                        <li>Desired resolution</li>
+                                    </ul>
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Evidence -->
+                        <div class="mb-4">
+                            <h5>Evidence</h5>
+                            <p class="text-muted">Upload evidence to support your dispute claim.</p>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Evidence Files</label>
+                                <input type="file" class="form-control" name="evidence_files" multiple>
+                                <small class="form-text text-muted">
+                                    Upload screenshots, documents, or other evidence.
+                                    Supported formats: PDF, DOC, DOCX, JPG, PNG. Max 10MB per file.
+                                </small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Additional Evidence Notes</label>
+                                <textarea class="form-control" name="evidence_notes" rows="3" 
+                                          placeholder="Explain what each evidence file shows..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Desired Resolution -->
+                        <div class="mb-4">
+                            <h5>Desired Resolution</h5>
+                            <p class="text-muted">What outcome are you seeking?</p>
+                            
+                            <div class="list-group mb-3">
+                                <div class="list-group-item">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="desired_resolution" 
+                                               id="full_refund" value="full_refund" checked>
+                                        <label class="form-check-label" for="full_refund">
+                                            <strong>Full Refund</strong> - I want a complete refund and the order cancelled
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="desired_resolution" 
+                                               id="partial_refund" value="partial_refund">
+                                        <label class="form-check-label" for="partial_refund">
+                                            <strong>Partial Refund</strong> - I want a partial refund for unsatisfactory work
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="desired_resolution" 
+                                               id="new_writer" value="new_writer">
+                                        <label class="form-check-label" for="new_writer">
+                                            <strong>New Writer</strong> - I want the order reassigned to a different writer
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="list-group-item">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="desired_resolution" 
+                                               id="major_revision" value="major_revision">
+                                        <label class="form-check-label" for="major_revision">
+                                            <strong>Major Revision</strong> - I want extensive revisions by the same writer
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dispute Process -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h6><i class="bi bi-info-circle me-2"></i>Dispute Process</h6>
+                                <ul class="small mb-0">
+                                    <li>Disputes are reviewed by our admin team within 24-48 hours</li>
+                                    <li>Both parties will have a chance to present their case</li>
+                                    <li>Payment is held in escrow until dispute is resolved</li>
+                                    <li>Decision is based on evidence and order requirements</li>
+                                    <li>You will be notified of the resolution via email</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Confirmation -->
+                        <div class="alert alert-warning mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirmDispute" required>
+                                <label class="form-check-label" for="confirmDispute">
+                                    I confirm that I have attempted to resolve this issue through revisions and communication with the writer, and I am raising this dispute in good faith.
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'orders:detail' order.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-exclamation-triangle me-2"></i>Raise Dispute
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Order Details -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Order Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th class="text-muted">Order Number:</th>
+                                    <td>{{ order.order_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Title:</th>
+                                    <td>{{ order.title }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Writer:</th>
+                                    <td>{{ order.writer.get_full_name|default:order.writer.email }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th class="text-muted">Price:</th>
+                                    <td>${{ order.price }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Revisions Used:</th>
+                                    <td>{{ order.revision_count }}/{{ order.max_revisions }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Status:</th>
+                                    <td>{{ order.get_state_display }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

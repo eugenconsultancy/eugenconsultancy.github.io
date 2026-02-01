@@ -1,0 +1,463 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Request Refund - Order #{{ order.order_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .refund-steps {
+        border-left: 3px solid #4e73df;
+        padding-left: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .refund-step {
+        position: relative;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px dashed #e0e0e0;
+    }
+    
+    .refund-step:last-child {
+        border-bottom: none;
+    }
+    
+    .refund-step:before {
+        content: '';
+        position: absolute;
+        left: -26px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #4e73df;
+        border: 3px solid white;
+    }
+    
+    .refund-step.completed:before {
+        background: #28a745;
+    }
+    
+    .refund-step.current:before {
+        background: #ffc107;
+        box-shadow: 0 0 0 5px rgba(255, 193, 7, 0.2);
+    }
+    
+    .amount-preview {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .policy-card {
+        border-left: 5px solid #28a745;
+        background-color: rgba(40, 167, 69, 0.05);
+    }
+    
+    .warning-card {
+        border-left: 5px solid #ffc107;
+        background-color: rgba(255, 193, 7, 0.05);
+    }
+    
+    .reason-option {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .reason-option:hover {
+        border-color: #4e73df;
+        background-color: rgba(78, 115, 223, 0.05);
+    }
+    
+    .reason-option.selected {
+        border-color: #4e73df;
+        background-color: rgba(78, 115, 223, 0.1);
+    }
+    
+    .reason-icon {
+        font-size: 1.5rem;
+        color: #4e73df;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Request Refund</h1>
+        <a href="{% url 'payments:detail' payment.payment_id %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Payment
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Left Column: Form -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Refund Request Form
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Refund Steps -->
+                    <div class="refund-steps">
+                        <div class="refund-step current">
+                            <h6 class="mb-1">Step 1: Select Refund Type</h6>
+                            <p class="text-muted mb-0">Choose between full or partial refund</p>
+                        </div>
+                        <div class="refund-step">
+                            <h6 class="mb-1">Step 2: Provide Reason</h6>
+                            <p class="text-muted mb-0">Explain why you're requesting a refund</p>
+                        </div>
+                        <div class="refund-step">
+                            <h6 class="mb-1">Step 3: Review & Submit</h6>
+                            <p class="text-muted mb-0">Review details and submit your request</p>
+                        </div>
+                    </div>
+
+                    <!-- Amount Preview -->
+                    <div class="amount-preview">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Order Number:</strong> #{{ order.order_number }}</p>
+                                <p class="mb-1"><strong>Payment Amount:</strong> ${{ payment.amount|floatformat:2 }}</p>
+                                <p class="mb-0"><strong>Payment Date:</strong> {{ payment.created_at|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <p class="mb-1"><strong>Available for Refund:</strong></p>
+                                <h3 class="text-primary">${{ payment.amount|floatformat:2 }}</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Refund Form -->
+                    <form method="post" id="refundForm">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Refund Type -->
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Refund Type *</strong></label>
+                            <div class="row">
+                                {% for value, label in form.refund_type.field.choices %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="reason-option {% if form.refund_type.value == value %}selected{% endif %}"
+                                         onclick="selectRefundType('{{ value }}')">
+                                        <div class="text-center">
+                                            {% if value == 'full' %}
+                                            <div class="reason-icon">
+                                                <i class="bi bi-arrow-left-right"></i>
+                                            </div>
+                                            <h6>{{ label }}</h6>
+                                            <p class="small text-muted mb-0">Get back the full amount</p>
+                                            {% elif value == 'partial' %}
+                                            <div class="reason-icon">
+                                                <i class="bi bi-percent"></i>
+                                            </div>
+                                            <h6>{{ label }}</h6>
+                                            <p class="small text-muted mb-0">Specify partial amount</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <input type="radio" name="refund_type" value="{{ value }}" 
+                                           id="id_refund_type_{{ forloop.counter }}"
+                                           {% if form.refund_type.value == value %}checked{% endif %}
+                                           style="display: none;">
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Partial Refund Amount -->
+                        <div id="partial-amount-section" class="mb-4 d-none">
+                            <label class="form-label"><strong>Refund Amount *</strong></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" name="custom_amount" id="id_custom_amount" 
+                                       class="form-control" step="0.01" min="0.01" 
+                                       max="{{ payment.amount }}" placeholder="Enter amount">
+                                <span class="input-group-text">.00</span>
+                            </div>
+                            <div class="form-text">
+                                Enter amount between $10.00 and ${{ payment.amount|floatformat:2 }}
+                            </div>
+                            <div class="progress mt-2">
+                                <div id="amount-progress" class="progress-bar" role="progressbar" 
+                                     style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted">
+                                <span id="amount-percentage">0%</span> of total payment
+                            </small>
+                        </div>
+
+                        <!-- Refund Reason -->
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Refund Reason *</strong></label>
+                            <select name="refund_reason" id="id_refund_reason" class="form-select" 
+                                    onchange="toggleCustomReason()">
+                                {% for value, label in form.refund_reason.field.choices %}
+                                <option value="{{ value }}" {% if form.refund_reason.value == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Custom Reason -->
+                        <div class="mb-4" id="custom-reason-section">
+                            <label class="form-label"><strong>Please provide details *</strong></label>
+                            <textarea name="custom_reason" id="id_custom_reason" 
+                                      class="form-control" rows="4"
+                                      placeholder="Please explain in detail why you are requesting a refund...">
+                                {{ form.custom_reason.value|default:'' }}
+                            </textarea>
+                            <div class="form-text">
+                                The more details you provide, the faster we can process your request.
+                            </div>
+                        </div>
+
+                        <!-- Terms Agreement -->
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="termsAgreement" required>
+                            <label class="form-check-label" for="termsAgreement">
+                                I understand that:
+                                <ul class="mt-2 mb-0">
+                                    <li>Refund requests are reviewed by our team within 24-48 hours</li>
+                                    <li>Approved refunds are processed within 3-5 business days</li>
+                                    <li>Refunds are issued to the original payment method</li>
+                                    <li>I may be contacted for additional information</li>
+                                </ul>
+                            </label>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'payments:detail' payment.payment_id %}" class="btn btn-secondary me-md-2">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submitButton" disabled>
+                                <i class="bi bi-send"></i> Submit Refund Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Information -->
+        <div class="col-lg-4">
+            <!-- Order Summary -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-file-text"></i> Order Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <small class="text-muted">Order Number</small>
+                            <p class="mb-0">#{{ order.order_number }}</p>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Status</small>
+                            <p class="mb-0">
+                                <span class="badge bg-{{ order.state_color }}">
+                                    {{ order.get_state_display }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <small class="text-muted">Service</small>
+                            <p class="mb-0">{{ order.service_type|title }}</p>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Deadline</small>
+                            <p class="mb-0">{{ order.deadline|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <small class="text-muted">Writer Level</small>
+                            <p class="mb-0">{{ order.writer_level|title }}</p>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Pages</small>
+                            <p class="mb-0">{{ order.pages }}</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <small class="text-muted">Payment Details</small>
+                            <p class="mb-1">Amount: <strong>${{ payment.amount|floatformat:2 }}</strong></p>
+                            <p class="mb-0">Method: {{ payment.get_payment_method_display }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Refund Policy -->
+            <div class="card shadow policy-card mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="bi bi-shield-check text-success"></i> Refund Policy
+                    </h6>
+                    <ul class="small mb-0">
+                        <li>Full refunds are available within 30 days of payment</li>
+                        <li>Partial refunds require detailed justification</li>
+                        <li>Quality-related issues are reviewed by our team</li>
+                        <li>Late delivery qualifies for partial refund</li>
+                        <li>Writer misconduct qualifies for full refund</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Important Notes -->
+            <div class="card shadow warning-card">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="bi bi-exclamation-triangle text-warning"></i> Important Notes
+                    </h6>
+                    <ul class="small mb-0">
+                        <li>Refunds are processed to the original payment method</li>
+                        <li>Bank transfers may take 5-7 business days</li>
+                        <li>Credit card refunds may take 3-5 business days</li>
+                        <li>We may contact you for additional information</li>
+                        <li>Misuse of refund system may result in account suspension</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Need Help? -->
+            <div class="card shadow mt-4">
+                <div class="card-body text-center">
+                    <h6 class="card-title mb-3">Need Help?</h6>
+                    <p class="small text-muted mb-3">
+                        Contact our support team if you have questions about the refund process.
+                    </p>
+                    <a href="mailto:support@ebwriting.com" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-envelope"></i> Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Refund type selection
+    function selectRefundType(type) {
+        // Update radio button
+        document.querySelector(`input[name="refund_type"][value="${type}"]`).checked = true;
+        
+        // Update visual selection
+        document.querySelectorAll('.reason-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        event.currentTarget.classList.add('selected');
+        
+        // Show/hide partial amount section
+        const partialSection = document.getElementById('partial-amount-section');
+        if (type === 'partial') {
+            partialSection.classList.remove('d-none');
+            updateAmountProgress();
+        } else {
+            partialSection.classList.add('d-none');
+        }
+        
+        validateForm();
+    }
+    
+    // Toggle custom reason field
+    function toggleCustomReason() {
+        const reason = document.getElementById('id_refund_reason').value;
+        const customReasonSection = document.getElementById('custom-reason-section');
+        
+        if (reason === 'other') {
+            customReasonSection.classList.remove('d-none');
+        } else {
+            customReasonSection.classList.add('d-none');
+        }
+        
+        validateForm();
+    }
+    
+    // Update amount progress bar
+    function updateAmountProgress() {
+        const amountInput = document.getElementById('id_custom_amount');
+        const maxAmount = parseFloat('{{ payment.amount }}');
+        const currentAmount = parseFloat(amountInput.value) || 0;
+        
+        const percentage = Math.min((currentAmount / maxAmount) * 100, 100);
+        document.getElementById('amount-progress').style.width = `${percentage}%`;
+        document.getElementById('amount-percentage').textContent = `${percentage.toFixed(1)}%`;
+        
+        validateForm();
+    }
+    
+    // Form validation
+    function validateForm() {
+        const termsChecked = document.getElementById('termsAgreement').checked;
+        const refundType = document.querySelector('input[name="refund_type"]:checked')?.value;
+        const refundReason = document.getElementById('id_refund_reason').value;
+        const customReason = document.getElementById('id_custom_reason');
+        
+        let isValid = termsChecked && refundType && refundReason;
+        
+        if (refundType === 'partial') {
+            const amount = parseFloat(document.getElementById('id_custom_amount').value) || 0;
+            const minAmount = 10.00;
+            const maxAmount = parseFloat('{{ payment.amount }}');
+            isValid = isValid && amount >= minAmount && amount <= maxAmount;
+        }
+        
+        if (refundReason === 'other' && customReason) {
+            isValid = isValid && customReason.value.trim().length > 0;
+        }
+        
+        document.getElementById('submitButton').disabled = !isValid;
+    }
+    
+    // Initialize form
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up event listeners
+        document.getElementById('termsAgreement').addEventListener('change', validateForm);
+        document.getElementById('id_refund_reason').addEventListener('change', toggleCustomReason);
+        document.getElementById('id_custom_amount')?.addEventListener('input', updateAmountProgress);
+        document.getElementById('id_custom_reason')?.addEventListener('input', validateForm);
+        
+        // Initialize based on current values
+        const selectedType = document.querySelector('input[name="refund_type"]:checked');
+        if (selectedType) {
+            selectRefundType(selectedType.value);
+        }
+        
+        toggleCustomReason();
+        validateForm();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,336 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Stats: {{ post.title }} - EWBWriting Blog{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Stats Header -->
+    <div class="row mb-5">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'blog:home' %}">Blog</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'blog:author_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'blog:edit_post' post.slug %}">Edit</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Stats</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="display-5 fw-bold text-dark mb-0">
+                    <i class="bi bi-graph-up me-2"></i> Post Statistics
+                </h1>
+                <span class="badge bg-{% if post.status == 'published' %}success{% else %}secondary{% endif %}">
+                    {{ post.get_status_display }}
+                </span>
+            </div>
+            
+            <h2 class="h4 text-muted">{{ post.title }}</h2>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <div class="d-grid gap-2">
+                <a href="{{ post.get_absolute_url }}" class="btn btn-outline-primary" target="_blank">
+                    <i class="bi bi-eye me-1"></i> View Post
+                </a>
+                <a href="{% url 'blog:edit_post' post.slug %}" class="btn btn-primary">
+                    <i class="bi bi-pencil me-1"></i> Edit Post
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-5">
+        <div class="col-md-3 col-6 mb-4">
+            <div class="stat-card bg-primary text-white rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Total Views</h6>
+                        <h2 class="display-6 fw-bold my-2">{{ post.view_count }}</h2>
+                        <small>All time</small>
+                    </div>
+                    <i class="bi bi-eye fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-4">
+            <div class="stat-card bg-success text-white rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Comments</h6>
+                        <h2 class="display-6 fw-bold my-2">{{ comment_stats.total }}</h2>
+                        <small>{{ comment_stats.approved }} approved</small>
+                    </div>
+                    <i class="bi bi-chat-dots fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-4">
+            <div class="stat-card bg-warning text-white rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Shares</h6>
+                        <h2 class="display-6 fw-bold my-2">{{ post.share_count }}</h2>
+                        <small>Social media</small>
+                    </div>
+                    <i class="bi bi-share fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-4">
+            <div class="stat-card bg-info text-white rounded-3 p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Avg. Time</h6>
+                        <h2 class="display-6 fw-bold my-2">{{ post.reading_time_minutes }} min</h2>
+                        <small>Reading time</small>
+                    </div>
+                    <i class="bi bi-clock fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Stats -->
+        <div class="col-lg-8">
+            <!-- Performance Chart -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">
+                        <i class="bi bi-bar-chart me-2"></i> Views Over Time
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 300px;">
+                        <!-- Chart will be rendered here -->
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <div class="text-center">
+                                <i class="bi bi-graph-up text-muted fs-1 mb-3"></i>
+                                <p class="text-muted">View analytics data not available</p>
+                                <small class="text-muted">Integration with analytics service required</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEO Audits -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="h5 fw-bold mb-0">
+                            <i class="bi bi-search me-2"></i> SEO Audit History
+                        </h4>
+                        <a href="#run-audit" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Run New Audit
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if seo_audits %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Readability</th>
+                                    <th>Issues Found</th>
+                                    <th>Performed By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for audit in seo_audits %}
+                                <tr>
+                                    <td>{{ audit.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if audit.audit_type == 'post_created' %}primary{% else %}info{% endif %}">
+                                            {{ audit.get_audit_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                                <div class="progress-bar {% if audit.readability_score >= 70 %}bg-success{% elif audit.readability_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                     style="width: {{ audit.readability_score }}%"></div>
+                                            </div>
+                                            <span class="small">{{ audit.readability_score|default:"-" }}/100</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ audit.issues_found|length }}</td>
+                                    <td>{{ audit.performed_by.get_full_name|default:"System" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                        <p class="text-muted">No SEO audits yet</p>
+                        <a href="#run-audit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-search me-1"></i> Run First Audit
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Stats -->
+        <div class="col-lg-4">
+            <!-- Post Details -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Post Details</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span class="text-muted">Status:</span>
+                            <span class="fw-bold">{{ post.get_status_display }}</span>
+                        </li>
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span class="text-muted">Published:</span>
+                            <span class="fw-bold">
+                                {% if post.published_at %}
+                                {{ post.published_at|date:"M d, Y" }}
+                                {% else %}
+                                Not published
+                                {% endif %}
+                            </span>
+                        </li>
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span class="text-muted">Last Updated:</span>
+                            <span class="fw-bold">{{ post.updated_at|date:"M d, Y" }}</span>
+                        </li>
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span class="text-muted">Category:</span>
+                            <span class="fw-bold">
+                                {% if post.category %}
+                                {{ post.category.name }}
+                                {% else %}
+                                Uncategorized
+                                {% endif %}
+                            </span>
+                        </li>
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span class="text-muted">Word Count:</span>
+                            <span class="fw-bold">{{ post.word_count }}</span>
+                        </li>
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span class="text-muted">Reading Time:</span>
+                            <span class="fw-bold">{{ post.reading_time_minutes }} min</span>
+                        </li>
+                        <li class="d-flex justify-content-between">
+                            <span class="text-muted">Tags:</span>
+                            <span class="fw-bold">{{ post.tags.count }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Comment Stats -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Comment Statistics</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span>Total Comments:</span>
+                            <span class="fw-bold">{{ comment_stats.total }}</span>
+                        </li>
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span>Approved:</span>
+                            <span class="fw-bold text-success">{{ comment_stats.approved }}</span>
+                        </li>
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span>Pending:</span>
+                            <span class="fw-bold text-warning">{{ comment_stats.pending }}</span>
+                        </li>
+                        <li class="mb-3 d-flex justify-content-between">
+                            <span>Spam/Rejected:</span>
+                            <span class="fw-bold text-danger">
+                                {{ comment_stats.total|add:"-1"|add:"-comment_stats.approved"|add:"-comment_stats.pending" }}
+                            </span>
+                        </li>
+                        <li class="pt-3 border-top">
+                            <a href="{{ post.get_absolute_url }}#comments" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-chat-dots me-1"></i> Manage Comments
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h4 class="h5 fw-bold mb-0">Quick Actions</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'blog:preview' post.slug %}" class="btn btn-outline-primary">
+                            <i class="bi bi-eye me-1"></i> Preview Post
+                        </a>
+                        <a href="{% url 'blog:edit_post' post.slug %}" class="btn btn-primary">
+                            <i class="bi bi-pencil me-1"></i> Edit Post
+                        </a>
+                        <a href="#share-stats" class="btn btn-outline-secondary">
+                            <i class="bi bi-share me-1"></i> Share Stats
+                        </a>
+                        <a href="{% url 'blog:author_dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h4 class="h5 fw-bold mb-3">Export Statistics</h4>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="button" class="btn btn-outline-primary">
+                            <i class="bi bi-file-earmark-text me-1"></i> PDF Report
+                        </button>
+                        <button type="button" class="btn btn-outline-primary">
+                            <i class="bi bi-file-earmark-excel me-1"></i> Excel Data
+                        </button>
+                        <button type="button" class="btn btn-outline-primary">
+                            <i class="bi bi-file-earmark-image me-1"></i> Chart Image
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card {
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    border-radius: 4px;
+}
+</style>
+{% endblock %}

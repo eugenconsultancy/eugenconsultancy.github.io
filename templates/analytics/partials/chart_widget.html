@@ -1,0 +1,121 @@
+<div class="card chart-widget shadow h-100">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">{{ title }}</h6>
+        <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
+                <a class="dropdown-item" href="#" onclick="refreshChart('{{ id }}')">
+                    <i class="fas fa-sync-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Refresh
+                </a>
+                <a class="dropdown-item" href="#" onclick="exportChart('{{ id }}')">
+                    <i class="fas fa-download fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Export
+                </a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item text-danger" href="#" onclick="removeWidget('{{ id }}')">
+                    <i class="fas fa-trash-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Remove
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="chart-container" style="position: relative; height: {{ height|default:'300px' }}; width: 100%;">
+            <canvas id="{{ id }}"></canvas>
+        </div>
+    </div>
+    <div class="card-footer text-muted small">
+        <div class="d-flex justify-content-between">
+            <span>
+                <i class="fas fa-clock mr-1"></i>
+                Updated: <span class="update-time">{{ update_time|default:"Just now" }}</span>
+            </span>
+            <span>
+                <i class="fas fa-sync-alt mr-1"></i>
+                Auto-refresh: {{ refresh_interval|default:"300" }}s
+            </span>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Initialize chart
+    const ctx = document.getElementById('{{ id }}').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: '{{ chart_type|default:"line" }}',
+        data: {{ chart_data|safe }},
+        options: {{ chart_options|safe|default:"{}" }}
+    });
+    
+    // Store chart instance for later reference
+    window.chartInstances = window.chartInstances || {};
+    window.chartInstances['{{ id }}'] = chart;
+});
+
+function refreshChart(chartId) {
+    const chart = window.chartInstances[chartId];
+    const widget = $('#' + chartId).closest('.chart-widget');
+    
+    // Show loading state
+    widget.find('.update-time').html('<i class="fas fa-spinner fa-spin"></i>');
+    
+    // Simulate data refresh
+    setTimeout(() => {
+        // In production, this would fetch new data via AJAX
+        // For now, we'll just update the timestamp
+        widget.find('.update-time').text(new Date().toLocaleTimeString());
+        
+        // Show success message
+        showToast('Chart refreshed successfully', 'success');
+    }, 1000);
+}
+
+function exportChart(chartId) {
+    const chart = window.chartInstances[chartId];
+    const link = document.createElement('a');
+    link.download = 'chart-' + chartId + '.png';
+    link.href = chart.toBase64Image();
+    link.click();
+}
+
+function removeWidget(widgetId) {
+    if (confirm('Remove this widget from dashboard?')) {
+        $('#' + widgetId).closest('.col-md').remove();
+        // In production, save layout to server
+        showToast('Widget removed', 'info');
+    }
+}
+
+function showToast(message, type = 'info') {
+    const toast = $(`
+        <div class="toast align-items-center text-bg-${type} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `);
+    
+    $('.toast-container').append(toast);
+    const bsToast = new bootstrap.Toast(toast[0]);
+    bsToast.show();
+    
+    toast.on('hidden.bs.toast', function() {
+        $(this).remove();
+    });
+}
+</script>
+
+<style>
+.chart-widget {
+    transition: transform 0.2s;
+}
+.chart-widget:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+</style>

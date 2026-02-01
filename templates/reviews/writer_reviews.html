@@ -1,0 +1,521 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}My Reviews - Writer Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-2">My Reviews</h1>
+            <p class="text-muted mb-0">Monitor and manage reviews from customers</p>
+        </div>
+        <a href="{% url 'reviews:writer_performance' %}" class="btn btn-outline-primary">
+            <i class="fas fa-chart-line me-2"></i>Performance Report
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Reviews List -->
+        <div class="col-lg-8">
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card border-start border-primary border-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-1">Avg Rating</h6>
+                                    <h3 class="mb-0">{{ rating_summary.average_rating|floatformat:1 }}</h3>
+                                </div>
+                                <div class="avatar-sm rounded-circle bg-primary bg-opacity-10">
+                                    <i class="fas fa-star text-primary fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card border-start border-success border-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-1">Total Reviews</h6>
+                                    <h3 class="mb-0">{{ rating_summary.total_reviews }}</h3>
+                                </div>
+                                <div class="avatar-sm rounded-circle bg-success bg-opacity-10">
+                                    <i class="fas fa-comments text-success fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card border-start border-info border-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-1">Positive %</h6>
+                                    <h3 class="mb-0">{{ rating_summary.positive_review_percentage|floatformat:1 }}%</h3>
+                                </div>
+                                <div class="avatar-sm rounded-circle bg-info bg-opacity-10">
+                                    <i class="fas fa-thumbs-up text-info fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card border-start border-warning border-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted mb-1">Response Rate</h6>
+                                    <h3 class="mb-0">
+                                        {% with responses=reviews|length|default:0 %}
+                                        {% if responses > 0 %}
+                                        {% with responded=reviews|dictsort:"response"|length %}
+                                        {{ responded|divisibleby:responses|multiply:100|floatformat:1 }}%
+                                        {% endwith %}
+                                        {% else %}
+                                        0%
+                                        {% endif %}
+                                        {% endwith %}
+                                    </h3>
+                                </div>
+                                <div class="avatar-sm rounded-circle bg-warning bg-opacity-10">
+                                    <i class="fas fa-reply text-warning fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Rating Filter</label>
+                            <select class="form-select" id="ratingFilter">
+                                <option value="all">All Ratings</option>
+                                <option value="5">5 Stars</option>
+                                <option value="4">4 Stars</option>
+                                <option value="3">3 Stars</option>
+                                <option value="2">2 Stars</option>
+                                <option value="1">1 Star</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Response Status</label>
+                            <select class="form-select" id="responseFilter">
+                                <option value="all">All</option>
+                                <option value="responded">Responded</option>
+                                <option value="not-responded">Not Responded</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Sort By</label>
+                            <select class="form-select" id="sortFilter">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="highest">Highest Rating</option>
+                                <option value="lowest">Lowest Rating</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews List -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Customer Reviews</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if reviews %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Customer</th>
+                                    <th>Rating</th>
+                                    <th>Feedback</th>
+                                    <th>Date</th>
+                                    <th>Response</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for review in reviews %}
+                                <tr class="review-row" 
+                                    data-rating="{{ review.rating }}"
+                                    data-has-response="{% if review.response %}yes{% else %}no{% endif %}">
+                                    <td>
+                                        <a href="{% url 'orders:order_detail' pk=review.order.id %}" 
+                                           class="text-decoration-none">
+                                            #{{ review.order.order_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ review.customer.get_full_name|default:review.customer.email|truncatechars:20 }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="fw-bold me-2">{{ review.rating }}</span>
+                                            <div>
+                                                {% for i in "12345" %}
+                                                {% if forloop.counter <= review.rating %}
+                                                <i class="fas fa-star text-warning" style="font-size: 0.8rem;"></i>
+                                                {% else %}
+                                                <i class="far fa-star text-muted" style="font-size: 0.8rem;"></i>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if review.comment %}
+                                        <span class="text-truncate" style="max-width: 150px; display: inline-block;">
+                                            {{ review.comment|truncatechars:30 }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">No comment</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ review.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if review.response %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Responded
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-clock me-1"></i>Pending
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'reviews:view' review_id=review.id %}" 
+                                               class="btn btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if not review.response %}
+                                            <a href="{% url 'reviews:create_response' review_id=review.id %}" 
+                                               class="btn btn-outline-success">
+                                                <i class="fas fa-reply"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <div class="card-footer">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                </li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Reviews Yet</h5>
+                        <p class="text-muted">You haven't received any reviews from customers yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Rating Summary -->
+        <div class="col-lg-4">
+            <!-- Overall Rating Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Rating Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="display-1 fw-bold text-primary">
+                            {{ rating_summary.average_rating|floatformat:1 }}
+                        </div>
+                        <div class="mb-2">
+                            {% with avg=rating_summary.average_rating|floatformat:"0" %}
+                            {% for i in "12345" %}
+                            {% if forloop.counter <= avg|add:"0" %}
+                            <i class="fas fa-star text-warning" style="font-size: 1.5rem;"></i>
+                            {% else %}
+                            <i class="far fa-star text-muted" style="font-size: 1.5rem;"></i>
+                            {% endif %}
+                            {% endfor %}
+                            {% endwith %}
+                        </div>
+                        <div class="text-muted">
+                            Based on {{ rating_summary.total_reviews }} review{{ rating_summary.total_reviews|pluralize }}
+                        </div>
+                    </div>
+                    
+                    <div class="rating-distribution">
+                        {% for i in "54321" %}
+                        <div class="row align-items-center mb-2">
+                            <div class="col-2">
+                                <span class="text-muted">{{ i }} star{{ i|pluralize }}</span>
+                            </div>
+                            <div class="col-7">
+                                <div class="progress" style="height: 10px;">
+                                    {% with rating_key="rating_"|add:i %}
+                                    {% with rating_count=rating_summary|getattr:rating_key %}
+                                    {% with percentage=rating_count|divisibleby:rating_summary.total_reviews|multiply:100 %}
+                                    <div class="progress-bar" 
+                                         style="width: {{ percentage|floatformat:1 }}%; 
+                                                background-color: 
+                                                {% if i == '5' %}#28a745
+                                                {% elif i == '4' %}#17a2b8
+                                                {% elif i == '3' %}#ffc107
+                                                {% elif i == '2' %}#fd7e14
+                                                {% else %}#dc3545{% endif %}">
+                                    </div>
+                                    {% endwith %}
+                                    {% endwith %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                            <div class="col-3 text-end">
+                                <span class="fw-bold">
+                                    {% with rating_key="rating_"|add:i %}
+                                    {{ rating_summary|getattr:rating_key }}
+                                    {% endwith %}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quality Metrics Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Quality Metrics</h5>
+                </div>
+                <div class="card-body">
+                    {% if rating_summary.avg_communication > 0 %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Communication</span>
+                            <span class="fw-bold">{{ rating_summary.avg_communication|floatformat:1 }}/5</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" 
+                                 style="width: {{ rating_summary.avg_communication|multiply:20 }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if rating_summary.avg_timeliness > 0 %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Timeliness</span>
+                            <span class="fw-bold">{{ rating_summary.avg_timeliness|floatformat:1 }}/5</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" 
+                                 style="width: {{ rating_summary.avg_timeliness|multiply:20 }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if rating_summary.avg_quality > 0 %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Quality</span>
+                            <span class="fw-bold">{{ rating_summary.avg_quality|floatformat:1 }}/5</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" 
+                                 style="width: {{ rating_summary.avg_quality|multiply:20 }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if rating_summary.avg_adherence > 0 %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Adherence</span>
+                            <span class="fw-bold">{{ rating_summary.avg_adherence|floatformat:1 }}/5</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" 
+                                 style="width: {{ rating_summary.avg_adherence|multiply:20 }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Activity (30 days)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Reviews Received</span>
+                            <span class="badge bg-primary rounded-pill">{{ recent_stats.total_reviews }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Average Rating</span>
+                            <span class="badge bg-success rounded-pill">{{ recent_stats.average_rating }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Last Review</span>
+                            <span class="text-muted">
+                                {% if rating_summary.last_review_at %}
+                                {{ rating_summary.last_review_at|date:"M d" }}
+                                {% else %}
+                                Never
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{% url 'reviews:writer_performance' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-chart-bar me-2"></i>View Full Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.border-start {
+    border-left-width: 3px !important;
+}
+
+.progress-bar {
+    border-radius: 4px;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+.review-row:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.rating-distribution .progress {
+    background-color: #e9ecef;
+}
+
+.display-1 {
+    font-size: 3.5rem;
+    font-weight: 300;
+    line-height: 1.2;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter functionality
+    const ratingFilter = document.getElementById('ratingFilter');
+    const responseFilter = document.getElementById('responseFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const reviewRows = document.querySelectorAll('.review-row');
+    
+    function applyFilters() {
+        const ratingValue = ratingFilter.value;
+        const responseValue = responseFilter.value;
+        const sortValue = sortFilter.value;
+        
+        // Filter and sort logic would go here
+        // In a real implementation, this would be done server-side
+        // This is a client-side demonstration
+        
+        reviewRows.forEach(row => {
+            let showRow = true;
+            
+            // Filter by rating
+            if (ratingValue !== 'all' && row.dataset.rating !== ratingValue) {
+                showRow = false;
+            }
+            
+            // Filter by response
+            if (responseValue !== 'all') {
+                if (responseValue === 'responded' && row.dataset.hasResponse !== 'yes') {
+                    showRow = false;
+                }
+                if (responseValue === 'not-responded' && row.dataset.hasResponse !== 'no') {
+                    showRow = false;
+                }
+            }
+            
+            // Show/hide row
+            row.style.display = showRow ? '' : 'none';
+        });
+    }
+    
+    // Add event listeners to filters
+    [ratingFilter, responseFilter, sortFilter].forEach(filter => {
+        filter.addEventListener('change', applyFilters);
+    });
+    
+    // Initialize filters
+    applyFilters();
+});
+
+// Custom template filter for division
+function divisibleby(value, arg) {
+    return value / arg;
+}
+</script>
+{% endblock %}

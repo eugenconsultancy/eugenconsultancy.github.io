@@ -1,0 +1,268 @@
+<!-- templates/notifications/notification_list.html -->
+{% extends "base/base.html" %}
+
+{% block title %}Notifications - EBWriting{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main content -->
+        <main class="col-md-12 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    Notifications
+                    {% if unread_count > 0 %}
+                    <span class="badge bg-danger unread-badge">{{ unread_count }}</span>
+                    {% endif %}
+                </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        {% if unread_count > 0 %}
+                        <form method="post" action="{% url 'notifications:mark_all_read' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-check-double"></i> Mark All Read
+                            </button>
+                        </form>
+                        {% endif %}
+                        <a href="{% url 'notifications:preferences' %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-cog"></i> Preferences
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select name="status" id="status" class="form-select" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                <option value="unread" {% if request.GET.status == 'unread' %}selected{% endif %}>Unread Only</option>
+                                <option value="read" {% if request.GET.status == 'read' %}selected{% endif %}>Read Only</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="type" class="form-label">Type</label>
+                            <select name="type" id="type" class="form-select" onchange="this.form.submit()">
+                                <option value="">All Types</option>
+                                <option value="info" {% if request.GET.type == 'info' %}selected{% endif %}>Information</option>
+                                <option value="warning" {% if request.GET.type == 'warning' %}selected{% endif %}>Warning</option>
+                                <option value="alert" {% if request.GET.type == 'alert' %}selected{% endif %}>Alert</option>
+                                <option value="success" {% if request.GET.type == 'success' %}selected{% endif %}>Success</option>
+                                <option value="error" {% if request.GET.type == 'error' %}selected{% endif %}>Error</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="start_date" class="form-label">From Date</label>
+                            <input type="date" name="start_date" id="start_date" class="form-control" 
+                                   value="{{ request.GET.start_date }}" onchange="this.form.submit()">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="end_date" class="form-label">To Date</label>
+                            <input type="date" name="end_date" id="end_date" class="form-control" 
+                                   value="{{ request.GET.end_date }}" onchange="this.form.submit()">
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Notifications List -->
+            <div class="list-group">
+                {% for notification in notifications %}
+                <div class="list-group-item list-group-item-action {% if not notification.is_read %}list-group-item-light{% endif %}">
+                    <div class="d-flex w-100 justify-content-between">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-2">
+                                <h5 class="mb-0 me-2">{{ notification.title }}</h5>
+                                <span class="badge bg-{{ notification.notification_type }} me-2">
+                                    {{ notification.get_notification_type_display }}
+                                </span>
+                                {% if notification.priority >= 3 %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-exclamation-circle"></i> Priority {{ notification.priority }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <p class="mb-2">{{ notification.message }}</p>
+                            
+                            {% if notification.context_data %}
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    {% for key, value in notification.context_data.items %}
+                                    <span class="me-3"><strong>{{ key }}:</strong> {{ value|truncatechars:50 }}</span>
+                                    {% endfor %}
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if notification.action_url %}
+                            <div class="mt-3">
+                                <a href="{{ notification.action_url }}" class="btn btn-sm btn-outline-primary">
+                                    {% if notification.action_text %}
+                                    {{ notification.action_text }}
+                                    {% else %}
+                                    View Details
+                                    {% endif %}
+                                    <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block">{{ notification.created_at|timesince }} ago</small>
+                            
+                            {% if not notification.is_read %}
+                            <form method="post" action="{% url 'notifications:mark_as_read' notification.id %}" class="mt-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-check"></i> Mark Read
+                                </button>
+                            </form>
+                            {% else %}
+                            <small class="text-success d-block mt-2">
+                                <i class="fas fa-check-circle"></i> Read
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> You're all caught up! No notifications to display.
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Notification pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&laquo; First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </main>
+    </div>
+</div>
+
+<!-- Real-time notifications script -->
+<script>
+    // WebSocket connection for real-time notifications
+    let notificationSocket = null;
+
+    function connectNotificationSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/notifications/`;
+        
+        notificationSocket = new WebSocket(wsUrl);
+        
+        notificationSocket.onopen = function(e) {
+            console.log('Notification WebSocket connected');
+        };
+        
+        notificationSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            handleNewNotification(data);
+        };
+        
+        notificationSocket.onclose = function(e) {
+            console.log('Notification WebSocket disconnected, reconnecting...');
+            setTimeout(connectNotificationSocket, 3000);
+        };
+        
+        notificationSocket.onerror = function(err) {
+            console.error('Notification WebSocket error:', err);
+        };
+    }
+
+    function handleNewNotification(data) {
+        // Show desktop notification if permitted
+        if (Notification.permission === 'granted') {
+            new Notification(data.title, {
+                body: data.message,
+                icon: '/static/favicon.ico'
+            });
+        }
+        
+        // Show in-app notification
+        showInAppNotification(data);
+        
+        // Update badge count
+        updateNotificationBadge(data.unread_count);
+    }
+
+    function showInAppNotification(data) {
+        // Create notification element
+        const notificationEl = document.createElement('div');
+        notificationEl.className = `alert alert-${data.type} alert-dismissible fade show position-fixed`;
+        notificationEl.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+        notificationEl.innerHTML = `
+            <strong>${data.title}</strong>
+            <p class="mb-0">${data.message}</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Add to page
+        document.body.appendChild(notificationEl);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (notificationEl.parentNode) {
+                notificationEl.remove();
+            }
+        }, 5000);
+    }
+
+    function updateNotificationBadge(count) {
+        const badge = document.querySelector('.unread-badge');
+        if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline' : 'none';
+        } else if (count > 0) {
+            // Create badge if it doesn't exist
+            const h1 = document.querySelector('h1.h2');
+            if (h1) {
+                const newBadge = document.createElement('span');
+                newBadge.className = 'badge bg-danger unread-badge';
+                newBadge.textContent = count;
+                h1.appendChild(newBadge);
+            }
+        }
+    }
+
+    // Request notification permission
+    if ('Notification' in window) {
+        if (Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }
+
+    // Connect WebSocket when page loads
+    document.addEventListener('DOMContentLoaded', connectNotificationSocket);
+</script>
+{% endblock %}
