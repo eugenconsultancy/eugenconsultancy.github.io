@@ -3,9 +3,27 @@ from django.utils import timezone
 
 register = template.Library()
 
+# --- Security & Device Filters ---
+
+@register.filter(name='device_icon')
+def device_icon(value):
+    """Maps device/OS strings to FontAwesome icon names for security logs."""
+    if not value:
+        return "laptop"
+    v = str(value).lower()
+    if any(x in v for x in ['iphone', 'android', 'mobile', 'phone']):
+        return "mobile-alt"
+    if any(x in v for x in ['ipad', 'tablet']):
+        return "tablet-alt"
+    if any(x in v for x in ['windows', 'mac', 'linux', 'desktop']):
+        return "desktop"
+    return "laptop"
+
+# --- Status & Color Filters ---
+
 @register.filter
 def state_color(state):
-    """Return Bootstrap color class for state."""
+    """Return Bootstrap color class for writer verification state."""
     color_map = {
         'registered': 'secondary',
         'profile_completed': 'info',
@@ -16,32 +34,6 @@ def state_color(state):
         'revision_required': 'warning',
     }
     return color_map.get(state, 'secondary')
-
-@register.filter
-def document_icon(document_type):
-    """Return icon class for document type."""
-    icon_map = {
-        'id_proof': 'fa-id-card',
-        'degree_certificate': 'fa-certificate',
-        'transcript': 'fa-scroll',
-        'cv': 'fa-file-alt',
-        'portfolio': 'fa-folder-open',
-        'other': 'fa-file',
-    }
-    return icon_map.get(document_type, 'fa-file')
-
-@register.filter
-def document_icon_class(document_type):
-    """Return CSS class for document icon."""
-    class_map = {
-        'id_proof': 'id',
-        'degree_certificate': 'certificate',
-        'transcript': 'word',
-        'cv': 'pdf',
-        'portfolio': 'pdf',
-        'other': 'word',
-    }
-    return class_map.get(document_type, 'word')
 
 @register.filter
 def status_color(status):
@@ -67,6 +59,36 @@ def request_status_color(status):
     }
     return color_map.get(status, 'secondary')
 
+# --- Document & Icon Filters ---
+
+@register.filter
+def document_icon(document_type):
+    """Return FontAwesome icon class for document types."""
+    icon_map = {
+        'id_proof': 'fa-id-card',
+        'degree_certificate': 'fa-certificate',
+        'transcript': 'fa-scroll',
+        'cv': 'fa-file-alt',
+        'portfolio': 'fa-folder-open',
+        'other': 'fa-file',
+    }
+    return icon_map.get(document_type, 'fa-file')
+
+@register.filter
+def document_icon_class(document_type):
+    """Return custom CSS category class for document icons."""
+    class_map = {
+        'id_proof': 'id',
+        'degree_certificate': 'certificate',
+        'transcript': 'word',
+        'cv': 'pdf',
+        'portfolio': 'pdf',
+        'other': 'word',
+    }
+    return class_map.get(document_type, 'word')
+
+# --- Math & String Utilities ---
+
 @register.filter
 def split(value, delimiter=','):
     """Split string by delimiter."""
@@ -75,7 +97,7 @@ def split(value, delimiter=','):
 @register.filter
 def strip(value):
     """Strip whitespace from string."""
-    return value.strip()
+    return str(value).strip() if value else ""
 
 @register.filter
 def subtract(value, arg):
@@ -87,141 +109,92 @@ def subtract(value, arg):
 
 @register.filter
 def filesizeformat(value):
-    """Format file size in human readable format."""
-    if value is None:
+    """Format bytes into human-readable strings (KB, MB, GB)."""
+    try:
+        bytes_value = float(value)
+    except (ValueError, TypeError):
         return "0 bytes"
     
-    try:
-        bytes_value = int(value)
-    except (ValueError, TypeError):
-        return value
-    
-    if bytes_value < 1024:
-        return f"{bytes_value} bytes"
-    elif bytes_value < 1024 * 1024:
-        return f"{bytes_value / 1024:.1f} KB"
-    elif bytes_value < 1024 * 1024 * 1024:
-        return f"{bytes_value / (1024 * 1024):.1f} MB"
-    else:
-        return f"{bytes_value / (1024 * 1024 * 1024):.1f} GB"
+    for unit in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+        if bytes_value < 1024.0:
+            return f"{bytes_value:.1f} {unit}"
+        bytes_value /= 1024.0
+    return f"{bytes_value:.1f} PB"
+
+# --- Date & Deadline Filters ---
 
 @register.filter
 def is_nearing_deadline(order):
-    """Check if order deadline is within 24 hours."""
-    if not order.deadline:
+    """True if order deadline is within 24 hours."""
+    if not order or not hasattr(order, 'deadline') or not order.deadline:
         return False
     time_left = order.deadline - timezone.now()
-    return time_left.total_seconds() <= 24 * 60 * 60
+    return 0 <= time_left.total_seconds() <= 86400
 
 @register.filter
 def days_until(value):
-    """Calculate days until given date."""
+    """Returns number of days until a future date."""
     if not value:
         return None
     delta = value - timezone.now().date()
     return delta.days
 
-@register.filter
-def verification_stage_color(stage):
-    """Return color for verification stage."""
-    color_map = {
-        'started': 'info',
-        'profile_completed': 'primary',
-        'documents_submitted': 'warning',
-        'under_review': 'warning',
-        'approved': 'success',
-        'rejected': 'danger',
-        'revision_required': 'warning',
-    }
-    return color_map.get(stage, 'secondary')
+# --- Complex Inclusion Tags & Progress ---
 
 @register.simple_tag
 def get_verification_progress(verification):
-    """Calculate verification progress percentage."""
+    """Returns progress percentage for verification progress bar."""
     stages = {
-        'registered': 0,
-        'profile_completed': 25,
+        'registered': 10,
+        'profile_completed': 30,
         'documents_submitted': 50,
         'under_admin_review': 75,
         'approved': 100,
-        'rejected': 0,
-        'revision_required': 50,
+        'rejected': 100,
+        'revision_required': 40,
     }
     return stages.get(verification.state, 0)
 
 @register.inclusion_tag('accounts/partials/verification_timeline.html')
 def verification_timeline(verification):
-    """Render verification timeline."""
+    """Renders a structured timeline list for the user UI."""
     timeline = []
     
-    # Registration
+    # Base Event: Registration
     timeline.append({
         'event': 'Registered',
         'date': verification.created_at,
         'completed': True,
-        'current': False,
         'icon': 'fa-user-plus',
     })
     
-    # Profile completion
     if verification.profile_completed_at:
         timeline.append({
             'event': 'Profile Completed',
             'date': verification.profile_completed_at,
             'completed': True,
-            'current': False,
             'icon': 'fa-user-check',
         })
-    elif verification.state in ['profile_completed', 'documents_submitted', 'under_admin_review', 'revision_required']:
-        timeline.append({
-            'event': 'Profile Completion',
-            'date': None,
-            'completed': False,
-            'current': True,
-            'icon': 'fa-user-edit',
-        })
-    
-    # Documents submission
+        
     if verification.documents_submitted_at:
         timeline.append({
             'event': 'Documents Submitted',
             'date': verification.documents_submitted_at,
             'completed': True,
-            'current': False,
-            'icon': 'fa-file-upload',
-        })
-    elif verification.state in ['documents_submitted', 'under_admin_review', 'revision_required']:
-        timeline.append({
-            'event': 'Document Submission',
-            'date': None,
-            'completed': False,
-            'current': True,
             'icon': 'fa-file-upload',
         })
     
-    # Admin review
-    if verification.review_started_at:
+    if verification.state == 'approved':
         timeline.append({
-            'event': 'Under Admin Review',
-            'date': verification.review_started_at,
-            'completed': verification.review_completed_at is not None,
-            'current': verification.state == 'under_admin_review',
-            'icon': 'fa-search',
-        })
-    
-    # Completion
-    if verification.review_completed_at:
-        timeline.append({
-            'event': verification.get_state_display(),
+            'event': 'Verified',
             'date': verification.review_completed_at,
             'completed': True,
-            'current': False,
-            'icon': 'fa-check-circle' if verification.state == 'approved' else 'fa-times-circle',
+            'icon': 'fa-check-circle',
         })
-    
+        
     return {'timeline': timeline}
 
 @register.inclusion_tag('accounts/partials/document_status.html')
 def document_status_badge(document):
-    """Render document status badge."""
+    """Context for document status badge partial."""
     return {'document': document}

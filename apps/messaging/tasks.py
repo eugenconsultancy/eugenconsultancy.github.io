@@ -8,7 +8,6 @@ from apps.messaging.services import MessageSecurityService
 
 logger = logging.getLogger(__name__)
 
-
 @shared_task
 def scan_attachment_for_viruses(attachment_id: str):
     """
@@ -52,8 +51,9 @@ def cleanup_old_attachments(days=90):
         # Find old attachments from completed orders
         from apps.orders.models import Order
         
+        # FIXED: Changed 'status__in' to 'state__in' to match your Order model
         completed_orders = Order.objects.filter(
-            status__in=['completed', 'cancelled', 'refunded'],
+            state__in=['completed', 'cancelled', 'refunded'],
             updated_at__lt=cutoff_date
         )
         
@@ -66,10 +66,11 @@ def cleanup_old_attachments(days=90):
         # Delete files and database records
         for attachment in attachments_to_delete:
             try:
-                # Delete the actual file
-                attachment.file.delete(save=False)
+                # Delete the actual file from storage
+                if attachment.file:
+                    attachment.file.delete(save=False)
             except Exception as e:
-                logger.error(f"Error deleting file {attachment.file.path}: {e}")
+                logger.error(f"Error deleting file {attachment.id}: {e}")
             
             # Delete the database record
             attachment.delete()

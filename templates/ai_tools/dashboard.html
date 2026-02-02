@@ -148,10 +148,14 @@
                                     <td>
                                         <div class="progress" style="height: 10px;">
                                             <div class="progress-bar {% if data.remaining > 5 %}bg-success{% elif data.remaining > 2 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                                 style="width: {{ data.daily_used|divisibleby:data.daily_limit|default:0|multiply:100 }}%">
+                                                role="progressbar"
+                                                style="width: {% if data.daily_limit > 0 %}{% widthratio data.daily_used data.daily_limit 100 %}{% else %}0{% endif %}%"
+                                                aria-valuenow="{{ data.daily_used }}" 
+                                                aria-valuemin="0" 
+                                                aria-valuemax="{{ data.daily_limit }}">
                                             </div>
                                         </div>
-                                    </td>
+                                                                            </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

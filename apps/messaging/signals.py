@@ -1,4 +1,3 @@
-# apps/messaging/signals.py
 import logging
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
@@ -15,20 +14,22 @@ def create_conversation_on_order_assignment(sender, instance, created, **kwargs)
     """
     Create conversation when a writer is assigned to an order.
     """
-    if instance.assigned_writer and not hasattr(instance, 'conversation'):
+    # Changed 'assigned_writer' to 'writer'
+    if instance.writer and not hasattr(instance, 'conversation'):
         from apps.messaging.services import ConversationService
         try:
             conversation = ConversationService.get_or_create_conversation(instance)
-            logger.info(f"Conversation created for order {instance.order_id}")
+            logger.info(f"Conversation created for order {instance.order_number}")
             
-            # Send welcome message
+            # Send welcome message - using instance.writer
+            writer_name = instance.writer.get_full_name() or instance.writer.username
             ConversationService.send_system_message(
                 conversation=conversation,
-                content=f"Writer {instance.assigned_writer.get_full_name()} has been assigned to your order. "
-                       f"You can now communicate securely about the order requirements."
+                content=f"Writer {writer_name} has been assigned to your order. "
+                        f"You can now communicate securely about the order requirements."
             )
         except Exception as e:
-            logger.error(f"Failed to create conversation for order {instance.order_id}: {e}")
+            logger.error(f"Failed to create conversation for order {instance.id}: {e}")
 
 
 @receiver(pre_save, sender=Message)

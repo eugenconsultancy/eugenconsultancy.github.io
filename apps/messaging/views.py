@@ -34,10 +34,10 @@ class ConversationListView(generics.ListAPIView):
     serializer_class = ConversationSerializer
     
     def get_queryset(self):
-        # Get conversations where user is either client or writer
+        # Changed 'assigned_writer' to 'writer' to match Order model fields
         user_orders = Order.objects.filter(
             models.Q(client=self.request.user) | 
-            models.Q(assigned_writer=self.request.user)
+            models.Q(writer=self.request.user)
         )
         
         return Conversation.objects.filter(
@@ -45,7 +45,7 @@ class ConversationListView(generics.ListAPIView):
         ).select_related(
             'order',
             'order__client',
-            'order__assigned_writer'
+            'order__writer'
         ).prefetch_related(
             'messages'
         ).order_by('-updated_at')

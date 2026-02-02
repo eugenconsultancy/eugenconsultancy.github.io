@@ -1,0 +1,34 @@
+<div class="modal fade" id="disputeModal" tabindex="-1" aria-labelledby="disputeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="{% url 'orders:dispute' order.pk %}" method="POST" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="disputeModalLabel"><i class="bi bi-shield-exclamation me-2"></i>Open Quality Dispute</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger small">
+                    <i class="bi bi-info-circle-fill me-2"></i> Disputes are reviewed by administrators. This should only be used if the writer has failed to follow instructions or provided poor quality work.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Primary Reason</label>
+                    <select name="reason" class="form-select" required>
+                        <option value="">Select a reason...</option>
+                        <option value="plagiarism">Plagiarism Detected</option>
+                        <option value="quality">Quality is unacceptable</option>
+                        <option value="late">Extreme delay in delivery</option>
+                        <option value="instructions">Instructions ignored</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Your Evidence / Explanation</label>
+                    <textarea name="dispute_note" class="form-control" rows="4" placeholder="Explain the issue in detail for our review team..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-danger">Initiate Dispute</button>
+            </div>
+        </form>
+    </div>
+</div>

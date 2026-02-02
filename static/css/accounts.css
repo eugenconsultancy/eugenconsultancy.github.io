@@ -105,7 +105,7 @@
 }
 
 .stat-card {
-    background: white;
+    background: rgb(162, 245, 239);
     border-radius: 10px;
     padding: 1.5rem;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -187,7 +187,7 @@
 }
 
 .document-icon.image {
-    background: linear-gradient(135deg, #4cd964 0%, #2ecc71 100%);
+    background: linear-gradient(135deg, #acf7c2 0%, #5ee5f1 100%);
     color: white;
 }
 

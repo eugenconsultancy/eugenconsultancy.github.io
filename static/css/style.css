@@ -19,7 +19,7 @@
 body {
     font-family: "Open Sans", sans-serif;
     color: #444444;
-    background-color: #91ffc8;
+    background-color: #e9f65d;
     line-height: 1.6;
     min-height: 100vh;
     display: flex;
@@ -31,12 +31,12 @@ main {
 }
 
 a {
-    color: #5fcf80;
+    color: #ecfc86;
     text-decoration: none;
 }
 
 a:hover {
-    color: #3ac162;
+    color: #f0fd9f;
     text-decoration: none;
 }
 
@@ -55,14 +55,14 @@ h1, h2, h3, h4, h5, h6 {
 --------------------------------------------------------------*/
 #header {
     transition: all 0.5s;
-    background: #fff;
+    background: #be96fa;
     z-index: 997;
     padding: 20px 0;
     box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.1);
 }
 
 #header.header-scrolled {
-    background: #fff;
+    background: #f0a9e3;
     box-shadow: 0px 2px 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -80,7 +80,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #header .logo a span {
-    color: #5fcf80;
+    color: #ffacf9;
 }
 
 /*--------------------------------------------------------------

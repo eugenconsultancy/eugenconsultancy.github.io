@@ -13,7 +13,11 @@ urlpatterns = [
     # Admin Management
     path('admin/writers/', views.AdminWriterListView.as_view(), name='admin_writers'),
     path('admin/clients/', views.AdminClientListView.as_view(), name='admin_clients'), # Added to fix admin sidebar error
-    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+     # Custom Logout View with Confirmation Page
+    path('logout/', auth_views.LogoutView.as_view(
+        template_name='accounts/auth/logout.html',
+        next_page=None  # We'll handle redirect in the template
+    ), name='logout'),
     # Writer-specific views
     path('writer/profile/', views.WriterProfileView.as_view(), name='writer_profile'),
     path('writer/documents/', views.WriterDocumentsView.as_view(), name='writer_documents'),

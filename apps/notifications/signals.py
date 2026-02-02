@@ -1,8 +1,8 @@
-# apps/notifications/signals.py
 import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 from apps.orders.models import Order
 from apps.messaging.models import Message
@@ -21,34 +21,36 @@ def notify_order_status_change(sender, instance, created, **kwargs):
     if created:
         return  # Skip notifications for new orders (handled separately)
     
-    # Get the old status from the database
+    # Get the old state from the database to compare
     try:
-        old_order = Order.objects.get(id=instance.id)
-        old_status = old_order.status
-    except Order.DoesNotExist:
-        old_status = None
+        # We use .filter().values().first() to avoid triggering signals recursively
+        old_instance = Order.objects.filter(id=instance.id).values('state').first()
+        old_state = old_instance['state'] if old_instance else None
+    except Exception:
+        old_state = None
     
-    # Check if status changed
-    if old_status != instance.status:
-        # Notify client
-        message = f"Your order #{instance.order_id} status changed to {instance.status}"
+    # FIXED: Changed .status to .state
+    if old_state != instance.state:
+        # FIXED: Changed .order_id to .order_number
+        message = f"Your order #{instance.order_number} status changed to {instance.get_state_display()}"
+        
         NotificationService.create_order_notification(
             user=instance.client,
             order=instance,
-            notification_type=instance.status,
+            notification_type=instance.state,
             message=message
         )
         
-        # Notify writer if assigned
-        if instance.assigned_writer:
+        # FIXED: Changed .assigned_writer to .writer based on your Order model fields
+        if instance.writer:
             NotificationService.create_order_notification(
-                user=instance.assigned_writer,
+                user=instance.writer,
                 order=instance,
-                notification_type=instance.status,
-                message=f"Order #{instance.order_id} status changed to {instance.status}"
+                notification_type=instance.state,
+                message=f"Order #{instance.order_number} status changed to {instance.get_state_display()}"
             )
         
-        logger.info(f"Order status notification sent for order {instance.order_id}")
+        logger.info(f"Order state notification sent for order {instance.order_number}")
 
 
 @receiver(post_save, sender=Message)
@@ -61,7 +63,7 @@ def notify_new_message(sender, instance, created, **kwargs):
     
     # Get conversation participants
     conversation = instance.conversation
-    participants = conversation.participants
+    participants = conversation.participants.all()
     
     # Notify all participants except sender
     for participant in participants:
@@ -90,9 +92,10 @@ def notify_payment_update(sender, instance, created, **kwargs):
     else:
         # Payment status change
         try:
-            old_payment = Payment.objects.get(id=instance.id)
-            old_status = old_payment.status
-        except Payment.DoesNotExist:
+            # Using values().first() to avoid unnecessary object overhead
+            old_payment = Payment.objects.filter(id=instance.id).values('status').first()
+            old_status = old_payment['status'] if old_payment else None
+        except Exception:
             old_status = None
         
         if old_status != instance.status:

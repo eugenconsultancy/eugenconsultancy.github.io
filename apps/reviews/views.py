@@ -198,18 +198,21 @@ class SelectOrderForReviewView(ListView):
         # Get completed orders that haven't been reviewed yet
         from ..orders.models import Order
         
+        # FIXED: Changed 'customer' to 'client' 
+        # FIXED: Changed 'status' to 'state' based on model choices
         return Order.objects.filter(
-            customer=self.request.user,
-            status='completed'
+            client=self.request.user,
+            state='completed' 
         ).exclude(
             review__isnull=False  # Exclude orders that already have reviews
         ).order_by('-completed_at')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Re-using the queryset logic for the count
         context['total_orders'] = self.get_queryset().count()
         return context
-    
+
 @login_required
 @require_http_methods(['POST'])
 def flag_review(request, review_id):

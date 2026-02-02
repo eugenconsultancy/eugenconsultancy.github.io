@@ -1,3 +1,6 @@
+import json
+from datetime import datetime, timedelta
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -9,12 +12,14 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
 from django.core.paginator import Paginator
-from datetime import datetime, timedelta
-import json
 
+# Local App Models & Services
 from .models.kpi import KPI, KPIValue, Dashboard, DashboardWidget, Report, ReportExecution
 from .services.report_generator import AnalyticsService, ReportGeneratorService
+
+# External App Imports (Cross-App)
 from apps.accounts.decorators import admin_required
+from apps.compliance.models import DataRequest  # Imported from its new home
 
 
 @method_decorator([login_required, admin_required], name='dispatch')

@@ -1,0 +1,44 @@
+{% extends "base/base.html" %}
+
+{% block title %}Acceptable Use Policy | Academic Platform{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <h1 class="mb-4">Acceptable Use Policy</h1>
+            <p class="lead text-muted">Guidelines for maintaining academic integrity on our platform.</p>
+            <hr>
+            
+            <section class="mb-5">
+                <h4 class="text-primary">1. Academic Integrity</h4>
+                <p>This platform is designed for research assistance and tutoring. Users must NOT use the provided materials to:</p>
+                <ul>
+                    <li>Submit them as their own original work for academic credit.</li>
+                    <li>Cheat on exams or online tests.</li>
+                    <li>Violate the honor code of their specific educational institution.</li>
+                </ul>
+            </section>
+
+            <section class="mb-5">
+                <h4 class="text-primary">2. Prohibited Content</h4>
+                <p>Users are strictly prohibited from uploading or sharing:</p>
+                <ul>
+                    <li>Malicious code, viruses, or spyware (all attachments are scanned).</li>
+                    <li>Highly sensitive personal data or unauthorized copyrighted materials.</li>
+                    <li>Content that promotes discrimination or illegal activities.</li>
+                </ul>
+            </section>
+
+            <section class="mb-5">
+                <h4 class="text-primary">3. System Security</h4>
+                <p>You may not attempt to circumvent our escrow payment system, bypass messaging filters, or reverse-engineer any part of the platform architecture.</p>
+            </section>
+
+            <div class="alert alert-warning">
+                <strong>Note:</strong> Failure to comply with these guidelines may lead to immediate account suspension and forfeiture of any pending funds.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -3,9 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.contrib.postgres.fields import ArrayField
 import json
-
 
 class AIToolUsageLog(models.Model):
     """
@@ -157,17 +155,18 @@ class AIToolTemplate(models.Model):
     name = models.CharField(max_length=100)
     template_type = models.CharField(max_length=50, choices=TemplateType.choices)
     
-    # Template structure
-    sections = ArrayField(
-        models.CharField(max_length=100),
+    # FIXED: Replaced ArrayField with JSONField for SQLite compatibility
+    sections = models.JSONField(
+        default=list, 
         help_text="List of section names for this template type"
     )
     
     # Guidelines
     guidelines = models.TextField(help_text="General guidelines for this type")
     common_mistakes = models.TextField(blank=True, help_text="Common mistakes to avoid")
-    recommended_sources = ArrayField(
-        models.URLField(),
+    
+    # FIXED: Replaced ArrayField with JSONField for SQLite compatibility
+    recommended_sources = models.JSONField(
         blank=True,
         default=list,
         help_text="Recommended sources or databases"
@@ -264,9 +263,8 @@ class WritingFeedback(models.Model):
     # Text being analyzed
     original_text = models.TextField()
     
-    # Feedback details
-    issues_found = ArrayField(
-        models.CharField(max_length=200),
+    # FIXED: Replaced ArrayField with JSONField for SQLite compatibility
+    issues_found = models.JSONField(
         blank=True,
         default=list
     )
@@ -381,9 +379,6 @@ class UserAILimits(models.Model):
             self.total_uses += 1
             self.save()
 
-
-
-# Add these at the bottom of your models.py file
 
 class GrammarCheckRequest(models.Model):
     """

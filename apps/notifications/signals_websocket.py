@@ -1,4 +1,3 @@
-# apps/notifications/signals_websocket.py
 import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -9,7 +8,7 @@ from apps.messaging.models import Message
 from apps.payments.models import Payment
 from apps.notifications.websocket_utils import WebSocketNotificationService
 from apps.notifications.services import NotificationService
-from apps.notifications.models import Notification  # Add this import
+from apps.notifications.models import Notification
 
 logger = logging.getLogger(__name__)
 
@@ -23,39 +22,36 @@ def send_order_update_websocket(sender, instance, created, **kwargs):
         return  # Skip notifications for new orders
     
     try:
-        # Get the old status from the database
-        old_order = Order.objects.get(id=instance.id)
-        old_status = old_order.status
-    except Order.DoesNotExist:
-        old_status = None
+        # FIXED: Use .values() to look up the previous state safely
+        old_instance = Order.objects.filter(id=instance.id).values('state').first()
+        old_state = old_instance['state'] if old_instance else None
+    except Exception:
+        old_state = None
     
-    # Check if status changed
-    if old_status != instance.status:
+    # FIXED: Changed .status to .state
+    if old_state != instance.state:
+        # Data payload for the client
+        # FIXED: Changed order_id to order_number
+        payload = {
+            'order_id': instance.order_number,
+            'order_title': instance.title,
+            'status': instance.state,
+            'old_status': old_state,
+            'message': f'Order status changed to {instance.get_state_display()}',
+            'action_url': f'/orders/{instance.order_number}'
+        }
+
         # Notify client
         WebSocketNotificationService.send_order_update(
             user_id=str(instance.client.id),
-            order_data={
-                'order_id': instance.order_id,
-                'order_title': instance.title,
-                'status': instance.status,
-                'old_status': old_status,
-                'message': f'Order status changed to {instance.status}',
-                'action_url': f'/orders/{instance.order_id}'
-            }
+            order_data=payload
         )
         
-        # Notify writer if assigned
-        if instance.assigned_writer:
+        # Notify writer if assigned (FIXED: changed assigned_writer to writer)
+        if instance.writer:
             WebSocketNotificationService.send_order_update(
-                user_id=str(instance.assigned_writer.id),
-                order_data={
-                    'order_id': instance.order_id,
-                    'order_title': instance.title,
-                    'status': instance.status,
-                    'old_status': old_status,
-                    'message': f'Order status changed to {instance.status}',
-                    'action_url': f'/orders/{instance.order_id}'
-                }
+                user_id=str(instance.writer.id),
+                order_data=payload
             )
 
 
@@ -69,7 +65,7 @@ def send_new_message_websocket(sender, instance, created, **kwargs):
     
     # Get conversation participants
     conversation = instance.conversation
-    participants = conversation.participants
+    participants = conversation.participants.all()
     
     # Send WebSocket notification to all participants except sender
     for participant in participants:
@@ -79,11 +75,11 @@ def send_new_message_websocket(sender, instance, created, **kwargs):
                 message_data={
                     'message_id': str(instance.id),
                     'conversation_id': str(conversation.id),
-                    'order_id': conversation.order.order_id,
+                    'order_id': conversation.order.order_number, # FIXED: order_id to order_number
                     'sender_id': str(instance.sender.id),
                     'sender_name': instance.sender.get_full_name() or instance.sender.email,
                     'preview': instance.content[:100] + ('...' if len(instance.content) > 100 else ''),
-                    'action_url': f'/orders/{conversation.order.order_id}/messages'
+                    'action_url': f'/orders/{conversation.order.order_number}/messages'
                 }
             )
 
@@ -93,13 +89,15 @@ def send_payment_update_websocket(sender, instance, created, **kwargs):
     """
     Send payment update via WebSocket.
     """
+    order_number = instance.order.order_number if instance.order else None
+
     if created:
         # New payment notification
         WebSocketNotificationService.send_payment_update(
             user_id=str(instance.user.id),
             payment_data={
                 'payment_id': str(instance.id),
-                'order_id': instance.order.order_id if instance.order else None,
+                'order_id': order_number,
                 'status': instance.status,
                 'amount': str(instance.amount),
                 'currency': instance.currency,
@@ -110,9 +108,9 @@ def send_payment_update_websocket(sender, instance, created, **kwargs):
     else:
         # Payment status change
         try:
-            old_payment = Payment.objects.get(id=instance.id)
-            old_status = old_payment.status
-        except Payment.DoesNotExist:
+            old_payment = Payment.objects.filter(id=instance.id).values('status').first()
+            old_status = old_payment['status'] if old_payment else None
+        except Exception:
             old_status = None
         
         if old_status != instance.status:
@@ -128,7 +126,7 @@ def send_payment_update_websocket(sender, instance, created, **kwargs):
                 user_id=str(instance.user.id),
                 payment_data={
                     'payment_id': str(instance.id),
-                    'order_id': instance.order.order_id if instance.order else None,
+                    'order_id': order_number,
                     'status': instance.status,
                     'amount': str(instance.amount),
                     'currency': instance.currency,
@@ -154,7 +152,7 @@ def send_notification_websocket(sender, instance, created, **kwargs):
             
             if 'category' in context_data:
                 category = context_data['category']
-            elif 'order_id' in context_data:
+            elif 'order_number' in context_data or 'order_id' in context_data:
                 category = 'order_updates'
             elif 'message_id' in context_data:
                 category = 'messages'

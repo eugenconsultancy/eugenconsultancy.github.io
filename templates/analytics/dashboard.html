@@ -124,79 +124,85 @@
                                         <br>
                                         <small class="text-muted">{{ kpi_data.kpi.description|truncatechars:50 }}</small>
                                     </td>
+
                                     <td>
                                         <span class="badge bg-{{ kpi_data.kpi.kpi_type|lower }}">
                                             {{ kpi_data.kpi.get_kpi_type_display }}
                                         </span>
                                     </td>
+
                                     <td>
                                         {% with latest=kpi_data.values|first %}
-                                        {% if latest %}
-                                            {% if kpi_data.kpi.kpi_type == 'financial' %}
-                                            <strong class="text-success">${{ latest.value|floatformat:2 }}</strong>
-                                            {% elif kpi_data.kpi.kpi_type == 'quality' %}
-                                            <strong class="text-warning">{{ latest.value|floatformat:1 }}/5</strong>
+                                            {% if latest %}
+                                                {% if kpi_data.kpi.kpi_type == 'financial' %}
+                                                    <strong class="text-success">${{ latest.value|floatformat:2 }}</strong>
+                                                {% elif kpi_data.kpi.kpi_type == 'quality' %}
+                                                    <strong class="text-warning">{{ latest.value|floatformat:1 }}/5</strong>
+                                                {% else %}
+                                                    <strong>{{ latest.value|floatformat:0 }}</strong>
+                                                {% endif %}
                                             {% else %}
-                                            <strong>{{ latest.value|floatformat:0 }}</strong>
+                                                <span class="text-muted">No data</span>
                                             {% endif %}
-                                        {% else %}
-                                        <span class="text-muted">No data</span>
-                                        {% endif %}
                                         {% endwith %}
                                     </td>
+
                                     <td>
                                         {% if kpi_data.kpi.target_value %}
-                                        {% if kpi_data.kpi.kpi_type == 'financial' %}
-                                        ${{ kpi_data.kpi.target_value|floatformat:2 }}
-                                        {% elif kpi_data.kpi.kpi_type == 'quality' %}
-                                        {{ kpi_data.kpi.target_value|floatformat:1 }}/5
-                                        {% else %}
-                                        {{ kpi_data.kpi.target_value|floatformat:0 }}
-                                        {% endif %}
-                                        {% else %}
-                                        <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% with values=kpi_data.values|slice:":2" %}
-                                        {% if values|length >= 2 %}
-                                            {% if values.0.value > values.1.value %}
-                                            <span class="text-success">
-                                                <i class="fas fa-arrow-up"></i> Improving
-                                            </span>
-                                            {% elif values.0.value < values.1.value %}
-                                            <span class="text-danger">
-                                                <i class="fas fa-arrow-down"></i> Declining
-                                            </span>
+                                            {% if kpi_data.kpi.kpi_type == 'financial' %}
+                                                ${{ kpi_data.kpi.target_value|floatformat:2 }}
+                                            {% elif kpi_data.kpi.kpi_type == 'quality' %}
+                                                {{ kpi_data.kpi.target_value|floatformat:1 }}/5
                                             {% else %}
-                                            <span class="text-muted">
-                                                <i class="fas fa-minus"></i> Stable
-                                            </span>
+                                                {{ kpi_data.kpi.target_value|floatformat:0 }}
                                             {% endif %}
                                         {% else %}
-                                        <span class="text-muted">Insufficient data</span>
-                                        {% endwith %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
                                     </td>
+
+                                    <td>
+                                        {% with values=kpi_data.values|slice:":2" %}
+                                            {% if values|length >= 2 %}
+                                                {% if values.0.value > values.1.value %}
+                                                    <span class="text-success">
+                                                        <i class="fas fa-arrow-up"></i> Improving
+                                                    </span>
+                                                {% elif values.0.value < values.1.value %}
+                                                    <span class="text-danger">
+                                                        <i class="fas fa-arrow-down"></i> Declining
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">
+                                                        <i class="fas fa-minus"></i> Stable
+                                                    </span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Insufficient data</span>
+                                            {% endif %}
+                                        {% endwith %} </td>
+
                                     <td>
                                         {% with latest=kpi_data.values|first %}
-                                        {% if latest %}
-                                        {{ latest.period_end|date:"M d, Y" }}
-                                        <br>
-                                        <small class="text-muted">{{ latest.calculated_at|timesince }} ago</small>
-                                        {% else %}
-                                        <span class="text-muted">Never</span>
-                                        {% endif %}
+                                            {% if latest %}
+                                                {{ latest.period_end|date:"M d, Y" }}
+                                                <br>
+                                                <small class="text-muted">{{ latest.calculated_at|timesince }} ago</small>
+                                            {% else %}
+                                                <span class="text-muted">Never</span>
+                                            {% endif %}
                                         {% endwith %}
                                     </td>
+
                                     <td>
                                         {% if kpi_data.kpi.status == 'on_target' %}
-                                        <span class="badge bg-success">On Target</span>
+                                            <span class="badge bg-success">On Target</span>
                                         {% elif kpi_data.kpi.status == 'warning' %}
-                                        <span class="badge bg-warning">Warning</span>
+                                            <span class="badge bg-warning">Warning</span>
                                         {% elif kpi_data.kpi.status == 'critical' %}
-                                        <span class="badge bg-danger">Critical</span>
+                                            <span class="badge bg-danger">Critical</span>
                                         {% else %}
-                                        <span class="badge bg-secondary">{{ kpi_data.kpi.status|title }}</span>
+                                            <span class="badge bg-secondary">{{ kpi_data.kpi.status|title }}</span>
                                         {% endif %}
                                     </td>
                                 </tr>

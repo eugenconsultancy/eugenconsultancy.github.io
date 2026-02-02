@@ -389,7 +389,8 @@ class OrderPaymentView(LoginRequiredMixin, DetailView):
     context_object_name = 'order'
     
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user)
+        # Change 'user' to 'client'
+        return Order.objects.filter(client=self.request.user)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
