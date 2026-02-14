@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Categories - DevPort{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-4 fw-bold mb-4" style="background: linear-gradient(135deg, #fff, #9d4edd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Browse by Category
+            </h1>
+            <p class="lead">Explore my work organized by medium, genre, technique, and more.</p>
+        </div>
+    </div>
+    
+    <!-- Categories Grid -->
+    {% regroup categories by get_category_type_display as category_groups %}
+    
+    {% for group in category_groups %}
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-12">
+            <h2 class="section-title">{{ group.grouper }}</h2>
+        </div>
+        
+        {% for category in group.list %}
+        <div class="col-lg-3 col-md-4 col-6">
+            <a href="{% url 'categories:detail' category.slug %}" class="text-decoration-none">
+                <div class="glass-card p-4 text-center mb-4 category-card">
+                    {% if category.cover_image %}
+                    <div class="rounded-3 overflow-hidden mb-3" style="height: 120px;">
+                        <img src="{{ category.cover_image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ category.name }}">
+                    </div>
+                    {% elif category.icon %}
+                    <i class="fas {{ category.icon }} fa-3x mb-3" style="color: #9d4edd;"></i>
+                    {% else %}
+                    <i class="fas fa-folder fa-3x mb-3" style="color: #9d4edd;"></i>
+                    {% endif %}
+                    
+                    <h3 class="h6 mb-2 text-white">{{ category.name }}</h3>
+                    <p class="small text-muted mb-0">{{ category.media_count }} items</p>
+                    
+                    {% if category.description %}
+                    <p class="small text-muted mt-2">{{ category.description|truncatechars:50 }}</p>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% empty %}
+    <div class="row">
+        <div class="col-12 text-center py-5">
+            <div class="glass-card p-5">
+                <i class="fas fa-tags fa-4x mb-3" style="color: rgba(255,255,255,0.3);"></i>
+                <h3>No categories yet</h3>
+                <p class="text-muted">Categories will appear here once created.</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .category-card {
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(106, 76, 156, 0.3);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,286 @@
+{% load static %}
+<div class="comment-form-container mb-4 p-4 bg-light rounded shadow-sm">
+    <h5 class="mb-3">
+        <i class="fas fa-comment me-2 text-primary"></i>
+        Leave a Comment
+    </h5>
+    
+    <!-- Reply indicator -->
+    <div id="replyIndicator" class="alert alert-info d-none fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-reply me-2"></i>
+            <strong>Replying to <span id="replyToName"></span></strong>
+            <button type="button" class="btn-close ms-auto" onclick="cancelReply()" aria-label="Cancel reply"></button>
+        </div>
+    </div>
+    
+    <!-- Success message placeholder -->
+    <div id="successMessage" class="d-none"></div>
+    
+    <!-- Error message placeholder -->
+    <div id="errorMessage" class="d-none"></div>
+    
+    <form method="post" action="{% url 'comments:add' media.id %}" class="comment-form needs-validation" id="commentForm" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="parent_id" id="parent_id" value="">
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="name" class="form-label fw-semibold">
+                    <i class="fas fa-user me-1 text-muted"></i>Name <span class="text-danger">*</span>
+                </label>
+                <input type="text" class="form-control" id="name" name="name" 
+                       placeholder="Your full name" required maxlength="100"
+                       pattern="[A-Za-z\s\-']+" title="Please enter a valid name">
+                <div class="invalid-feedback">Please enter your name.</div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="email" class="form-label fw-semibold">
+                    <i class="fas fa-envelope me-1 text-muted"></i>Email <span class="text-danger">*</span>
+                </label>
+                <input type="email" class="form-control" id="email" name="email" 
+                       placeholder="your@email.com" required maxlength="254">
+                <div class="invalid-feedback">Please enter a valid email address.</div>
+                <div class="form-text text-muted small">
+                    <i class="fas fa-lock me-1"></i>Your email will not be published
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="website" class="form-label fw-semibold">
+                <i class="fas fa-globe me-1 text-muted"></i>Website (optional)
+            </label>
+            <input type="url" class="form-control" id="website" name="website" 
+                   placeholder="https://yourwebsite.com" maxlength="200">
+            <div class="invalid-feedback">Please enter a valid URL.</div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="content" class="form-label fw-semibold">
+                <i class="fas fa-edit me-1 text-muted"></i>Comment <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" id="content" name="content" rows="4" 
+                      placeholder="Share your thoughts..." required minlength="5" maxlength="1000"></textarea>
+            <div class="invalid-feedback">Please enter your comment (min. 5 characters).</div>
+            <div class="form-text text-muted text-end">
+                <span id="charCount">0</span>/1000 characters
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="can_use_as_testimonial" name="can_use_as_testimonial">
+                <label class="form-check-label small" for="can_use_as_testimonial">
+                    <i class="far fa-star text-warning me-1"></i>
+                    I'm okay with this comment being featured as a testimonial
+                </label>
+            </div>
+        </div>
+        
+        <div class="d-flex align-items-center gap-2">
+            <button type="submit" class="btn btn-primary px-4" id="submitComment">
+                <i class="fas fa-paper-plane me-2"></i>Post Comment
+            </button>
+            <button type="button" class="btn btn-outline-secondary px-4 d-none" id="cancelReplyBtn" onclick="cancelReply()">
+                <i class="fas fa-times me-2"></i>Cancel Reply
+            </button>
+            <div class="spinner-border spinner-border-sm text-primary ms-2 d-none" id="formSpinner" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+.comment-form-container {
+    transition: all 0.3s ease;
+}
+
+.comment-form-container.replying {
+    border-left: 3px solid var(--bs-info);
+}
+
+.comment-form .form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+#charCount.invalid {
+    color: var(--bs-danger);
+}
+</style>
+
+<script>
+(function() {
+    // DOM elements
+    const form = document.getElementById('commentForm');
+    const submitBtn = document.getElementById('submitComment');
+    const spinner = document.getElementById('formSpinner');
+    const replyIndicator = document.getElementById('replyIndicator');
+    const cancelReplyBtn = document.getElementById('cancelReplyBtn');
+    const parentIdInput = document.getElementById('parent_id');
+    const replyToNameSpan = document.getElementById('replyToName');
+    const contentTextarea = document.getElementById('content');
+    const charCountSpan = document.getElementById('charCount');
+    const successMessageDiv = document.getElementById('successMessage');
+    const errorMessageDiv = document.getElementById('errorMessage');
+    
+    let currentParentId = null;
+    
+    // Character counter
+    if (contentTextarea) {
+        contentTextarea.addEventListener('input', function() {
+            const count = this.value.length;
+            charCountSpan.textContent = count;
+            
+            if (count > 1000) {
+                charCountSpan.classList.add('invalid');
+                this.setCustomValidity('Comment too long');
+            } else {
+                charCountSpan.classList.remove('invalid');
+                this.setCustomValidity('');
+            }
+        });
+    }
+    
+    // Form validation
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!form.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                form.classList.add('was-validated');
+                showNotification('Please fill in all required fields correctly.', 'error');
+            }
+        });
+    }
+    
+    // Set reply to function (make globally available)
+    window.setReplyTo = function(commentId, commenterName) {
+        parentIdInput.value = commentId;
+        replyToNameSpan.textContent = commenterName;
+        replyIndicator.classList.remove('d-none');
+        cancelReplyBtn.classList.remove('d-none');
+        currentParentId = commentId;
+        
+        // Add replying class to container
+        document.querySelector('.comment-form-container').classList.add('replying');
+        
+        // Scroll to form
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Focus on comment field
+        contentTextarea.focus();
+    };
+    
+    // Cancel reply function (make globally available)
+    window.cancelReply = function() {
+        parentIdInput.value = '';
+        replyIndicator.classList.add('d-none');
+        cancelReplyBtn.classList.add('d-none');
+        currentParentId = null;
+        document.querySelector('.comment-form-container').classList.remove('replying');
+    };
+    
+    // Form submission with AJAX
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+            
+            // Disable form
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+            
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reset form
+                    form.reset();
+                    form.classList.remove('was-validated');
+                    charCountSpan.textContent = '0';
+                    cancelReply();
+                    
+                    // Show success message
+                    showNotification(data.message || 'Your comment has been posted!', 'success');
+                    
+                    // Reload comments after delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    // Show errors
+                    let errorHtml = '<ul class="mb-0">';
+                    for (let field in data.errors) {
+                        data.errors[field].forEach(error => {
+                            errorHtml += `<li><strong>${field}:</strong> ${error}</li>`;
+                        });
+                    }
+                    errorHtml += '</ul>';
+                    showNotification(errorHtml, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                spinner.classList.add('d-none');
+            });
+        });
+    }
+    
+    // Helper function to show notifications
+    function showNotification(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show mt-3`;
+        alertDiv.setAttribute('role', 'alert');
+        alertDiv.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+                <div>${message}</div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        // Remove any existing alerts
+        const existingAlerts = document.querySelectorAll('.comment-alert');
+        existingAlerts.forEach(alert => alert.remove());
+        
+        alertDiv.classList.add('comment-alert');
+        form.parentNode.insertBefore(alertDiv, form.nextSibling);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    // Keyboard shortcut: Ctrl+Enter to submit
+    if (contentTextarea) {
+        contentTextarea.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+    }
+})();
+</script>

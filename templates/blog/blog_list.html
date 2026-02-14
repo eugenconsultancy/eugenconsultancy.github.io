@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Blog - DevPort{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-4 fw-bold mb-4" style="background: linear-gradient(135deg, #fff, #9d4edd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Latest Thoughts
+            </h1>
+            <p class="lead">Articles about development, design, and everything in between.</p>
+        </div>
+    </div>
+    
+    <!-- Blog Posts Grid -->
+    <div class="row g-4">
+        {% for post in posts %}
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:'100' }}">
+            <div class="glass-card h-100 p-4">
+                {% if post.cover_image %}
+                <div class="mb-3 rounded-3 overflow-hidden" style="height: 200px;">
+                    <img src="{{ post.cover_image }}" class="w-100 h-100 object-fit-cover" alt="{{ post.title }}">
+                </div>
+                {% endif %}
+                
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge" style="background: {% if post.source == 'devto' %}#0a0a0a{% elif post.source == 'medium' %}#00ab6c{% else %}#6b8cff{% endif %};">
+                        <i class="fab fa-{% if post.source == 'devto' %}dev{% elif post.source == 'medium' %}medium{% else %}blog{% endif %} me-1"></i>
+                        {{ post.get_source_display }}
+                    </span>
+                    <span class="small text-muted">{{ post.published_at|date:"M d, Y" }}</span>
+                </div>
+                
+                <h2 class="h5 mb-2">{{ post.title }}</h2>
+                <p class="small text-muted mb-3">{{ post.excerpt|truncatechars:120 }}</p>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="small">
+                        <i class="fas fa-clock me-1" style="color: #6b8cff;"></i> {{ post.read_time_minutes }} min read
+                    </span>
+                    <span>
+                        <span class="small me-2"><i class="fas fa-heart" style="color: #ff6b6b;"></i> {{ post.reactions_count }}</span>
+                        <span class="small"><i class="fas fa-comment" style="color: #9d4edd;"></i> {{ post.comments_count }}</span>
+                    </span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="small text-muted">By {{ post.author_name }}</span>
+                    <a href="{{ post.external_url }}" target="_blank" class="crystal-btn btn-sm">
+                        Read More <i class="fas fa-external-link-alt ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="glass-card p-5">
+                <i class="fas fa-newspaper fa-4x mb-3" style="color: rgba(255,255,255,0.3);"></i>
+                <h3>No blog posts yet</h3>
+                <p class="text-muted">Check back soon for new content!</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="row mt-5" data-aos="fade-up">
+        <div class="col-12">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link glass-card" href="?page={{ page_obj.previous_page_number }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link glass-card" style="background: linear-gradient(135deg, #6b8cff, #9d4edd); border: none;">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link glass-card" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link glass-card" href="?page={{ page_obj.next_page_number }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ project.title }} - DevPort{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Project Header -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="glass-card p-5">
+                <div class="d-flex justify-content-between align-items-start flex-wrap">
+                    <div>
+                        <h1 class="display-4 fw-bold mb-3" style="background: linear-gradient(135deg, #fff, #9d4edd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            {{ project.title }}
+                        </h1>
+                        <p class="lead mb-3">{{ project.short_summary }}</p>
+                        
+                        <!-- Meta Info -->
+                        <div class="d-flex flex-wrap gap-4 mb-4">
+                            <span class="badge" style="background: {% if project.difficulty_level == 'beginner' %}#4ade80{% elif project.difficulty_level == 'intermediate' %}#ffd93d{% elif project.difficulty_level == 'advanced' %}#ff8e53{% else %}#ff6b6b{% endif %}; padding: 8px 16px;">
+                                {{ project.get_difficulty_level_display }}
+                            </span>
+                            <span class="text-muted">
+                                <i class="fas fa-calendar me-2"></i> {{ project.published_date|date:"F d, Y" }}
+                            </span>
+                            <span class="text-muted">
+                                <i class="fas fa-eye me-2"></i> {{ project.view_count }} views
+                            </span>
+                            <span class="text-muted" id="like-count">
+                                <i class="fas fa-heart me-2" style="color: #ff6b6b;"></i> <span id="like-count-value">{{ like_count }}</span> likes
+                            </span>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-3 flex-wrap">
+                            {% if project.github_url %}
+                            <a href="{{ project.github_url }}" target="_blank" class="crystal-btn">
+                                <i class="fab fa-github me-2"></i>View Code
+                            </a>
+                            {% endif %}
+                            {% if project.live_demo_url %}
+                            <a href="{{ project.live_demo_url }}" target="_blank" class="gradient-btn">
+                                <i class="fas fa-external-link-alt me-2"></i>Live Demo
+                            </a>
+                            {% endif %}
+                            {% if project.documentation_url %}
+                            <a href="{{ project.documentation_url }}" target="_blank" class="crystal-btn">
+                                <i class="fas fa-book me-2"></i>Documentation
+                            </a>
+                            {% endif %}
+                            <button class="crystal-btn" id="like-button" data-liked="{{ user_liked|lower }}" data-slug="{{ project.slug }}">
+                                <i class="fas fa-heart me-2" id="like-icon" style="color: {% if user_liked %}#ff6b6b{% endif %};"></i>
+                                <span id="like-text">{% if user_liked %}Liked{% else %}Like{% endif %}</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Score -->
+                    {% if project.performance_score %}
+                    <div class="text-center">
+                        <div class="stat-card" style="min-width: 120px;">
+                            <div class="display-4 fw-bold" style="color: #9d4edd;">{{ project.performance_score }}%</div>
+                            <span class="small text-uppercase">Performance</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="row g-4">
+        <!-- Left Column - Main Content -->
+        <div class="col-lg-8" data-aos="fade-right">
+            <!-- Thumbnail -->
+            {% if project.thumbnail %}
+            <div class="glass-card p-4 mb-4">
+                <div class="rounded-3 overflow-hidden">
+                    <img src="{{ project.thumbnail.url }}" class="w-100" alt="{{ project.title }}" style="max-height: 400px; object-fit: cover;">
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Description -->
+            <div class="glass-card p-4 mb-4">
+                <h2 class="h4 mb-3" style="color: #9d4edd;">Description</h2>
+                <p>{{ project.description|linebreaks }}</p>
+            </div>
+            
+            <!-- Problem Statement -->
+            {% if project.problem_statement %}
+            <div class="glass-card p-4 mb-4">
+                <h2 class="h4 mb-3" style="color: #9d4edd;">The Problem</h2>
+                <p>{{ project.problem_statement|linebreaks }}</p>
+            </div>
+            {% endif %}
+            
+            <!-- Solution -->
+            {% if project.solution %}
+            <div class="glass-card p-4 mb-4">
+                <h2 class="h4 mb-3" style="color: #9d4edd;">The Solution</h2>
+                <p>{{ project.solution|linebreaks }}</p>
+            </div>
+            {% endif %}
+            
+            <!-- Technical Stack Details -->
+            <div class="glass-card p-4 mb-4">
+                <h2 class="h4 mb-3" style="color: #9d4edd;">Technical Stack</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3 class="h6 mb-2">Languages & Frameworks</h3>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            {% for tech in project.technical_stack %}
+                            <span class="badge" style="background: rgba(107,140,255,0.2); padding: 8px 16px;">{{ tech }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if project.api_integrations %}
+                    <div class="col-md-6">
+                        <h3 class="h6 mb-2">API Integrations</h3>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for api in project.api_integrations %}
+                            <span class="badge" style="background: rgba(157,78,221,0.2); padding: 8px 16px;">{{ api }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Tags -->
+            {% if project.tags %}
+            <div class="glass-card p-4 mb-4">
+                <h2 class="h4 mb-3" style="color: #9d4edd;">Tags</h2>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for tag in project.tag_list %}
+                    <span class="badge" style="background: rgba(255,255,255,0.1); padding: 8px 16px;">#{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Comments Section -->
+            <div class="glass-card p-4" id="comments">
+                <h2 class="h4 mb-4" style="color: #9d4edd;">Comments ({{ comments|length }})</h2>
+                
+                <!-- Comment Form -->
+                <form method="post" action="{% url 'projects:add_comment' project.slug %}" class="mb-4" id="comment-form">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <input type="text" name="name" class="glass-input w-100" placeholder="Your name *" required>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="email" name="email" class="glass-input w-100" placeholder="Your email *" required>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="url" name="website" class="glass-input w-100" placeholder="Website (optional)">
+                        </div>
+                        <div class="col-12">
+                            <textarea name="content" class="glass-input w-100" rows="4" placeholder="Your comment *" required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="crystal-btn">
+                                <i class="fas fa-paper-plane me-2"></i>Post Comment
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <!-- Comments List -->
+                <div id="comments-list">
+                    {% for comment in comments %}
+                    <div class="mb-4 p-3" style="background: rgba(255,255,255,0.05); border-radius: 10px;">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: linear-gradient(135deg, #6b8cff, #9d4edd);">
+                                <span class="fw-bold">{{ comment.name|first }}</span>
+                            </div>
+                            <div>
+                                <h3 class="h6 mb-0">{{ comment.name }}</h3>
+                                <span class="small text-muted">{{ comment.created_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                        <p class="mb-2">{{ comment.content }}</p>
+                        
+                        <!-- Reply Button -->
+                        <button class="btn btn-sm reply-btn" style="color: #9d4edd;" onclick="showReplyForm({{ comment.id }})">
+                            <i class="fas fa-reply me-1"></i>Reply
+                        </button>
+                        
+                        <!-- Reply Form (Hidden) -->
+                        <div id="reply-form-{{ comment.id }}" style="display: none;" class="mt-3">
+                            <form method="post" action="{% url 'projects:add_comment' project.slug %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <input type="text" name="name" class="glass-input w-100" placeholder="Your name *" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="email" name="email" class="glass-input w-100" placeholder="Your email *" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="url" name="website" class="glass-input w-100" placeholder="Website">
+                                    </div>
+                                    <div class="col-12">
+                                        <textarea name="content" class="glass-input w-100" rows="2" placeholder="Your reply *" required></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="crystal-btn btn-sm">Post Reply</button>
+                                        <button type="button" class="btn btn-sm" style="color: #ff6b6b;" onclick="hideReplyForm({{ comment.id }})">Cancel</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Replies -->
+                        {% for reply in comment.replies.all %}
+                            {% if reply.is_approved %}
+                            <div class="ms-4 mt-3 p-2" style="background: rgba(255,255,255,0.03); border-radius: 8px;">
+                                <div class="d-flex align-items-center mb-1">
+                                    <div class="rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; background: linear-gradient(135deg, #9d4edd, #6b8cff);">
+                                        <span class="small fw-bold">{{ reply.name|first }}</span>
+                                    </div>
+                                    <span class="small fw-bold">{{ reply.name }}</span>
+                                    <span class="small text-muted ms-2">{{ reply.created_at|date:"M d, Y" }}</span>
+                                </div>
+                                <p class="small mb-0">{{ reply.content }}</p>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-muted">No comments yet. Be the first to share your thoughts!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column - Sidebar -->
+        <div class="col-lg-4" data-aos="fade-left">
+            <!-- GitHub Stats -->
+            <div class="glass-card p-4 mb-4">
+                <h3 class="h5 mb-3" style="color: #9d4edd;">GitHub Stats</h3>
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="fas fa-star me-2" style="color: #ffd93d;"></i> Stars</span>
+                    <span class="fw-bold">{{ project.stars_count }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="fas fa-code-branch me-2" style="color: #6b8cff;"></i> Forks</span>
+                    <span class="fw-bold">{{ project.forks_count }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="fas fa-exclamation-circle me-2" style="color: #ff6b6b;"></i> Open Issues</span>
+                    <span class="fw-bold">{{ project.open_issues_count|default:"0" }}</span>
+                </div>
+                {% if project.last_github_sync %}
+                <div class="small text-muted mt-2">
+                    Last synced: {{ project.last_github_sync|date:"M d, Y" }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Categories -->
+            {% if project.categories.all %}
+            <div class="glass-card p-4 mb-4">
+                <h3 class="h5 mb-3" style="color: #9d4edd;">Categories</h3>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for category in project.categories.all %}
+                    <a href="{% url 'categories:detail' category.slug %}" class="badge text-decoration-none" style="background: rgba(107,140,255,0.2); padding: 8px 16px;">
+                        {{ category.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Related Projects -->
+            {% if related_projects %}
+            <div class="glass-card p-4 mb-4">
+                <h3 class="h5 mb-3" style="color: #9d4edd;">Related Projects</h3>
+                <div class="d-flex flex-column gap-3">
+                    {% for related in related_projects %}
+                    <a href="{{ related.get_absolute_url }}" class="text-decoration-none">
+                        <div class="d-flex align-items-center">
+                            {% if related.thumbnail %}
+                            <img src="{{ related.thumbnail.url }}" class="rounded-3 me-3" width="50" height="50" style="object-fit: cover;">
+                            {% else %}
+                            <div class="rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: rgba(255,255,255,0.1);">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h4 class="h6 mb-1 text-white">{{ related.title }}</h4>
+                                <span class="small text-muted">{{ related.stars_count }} stars</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- License -->
+            <div class="glass-card p-4">
+                <h3 class="h5 mb-3" style="color: #9d4edd;">License</h3>
+                <p class="small mb-0">{{ project.copyright_notice }}</p>
+                <p class="small text-muted">{{ project.get_license_display }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="row mt-5">
+        <div class="col-6">
+            {% if prev_project %}
+            <a href="{{ prev_project.get_absolute_url }}" class="text-decoration-none">
+                <div class="glass-card p-3">
+                    <span class="small text-muted"><i class="fas fa-arrow-left me-2"></i>Previous</span>
+                    <h5 class="h6 mb-0">{{ prev_project.title }}</h5>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+        <div class="col-6 text-end">
+            {% if next_project %}
+            <a href="{{ next_project.get_absolute_url }}" class="text-decoration-none">
+                <div class="glass-card p-3">
+                    <span class="small text-muted">Next<i class="fas fa-arrow-right ms-2"></i></span>
+                    <h5 class="h6 mb-0">{{ next_project.title }}</h5>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function showReplyForm(commentId) {
+        document.getElementById('reply-form-' + commentId).style.display = 'block';
+    }
+    
+    function hideReplyForm(commentId) {
+        document.getElementById('reply-form-' + commentId).style.display = 'none';
+    }
+    
+    // Like button functionality
+    document.getElementById('like-button').addEventListener('click', function() {
+        const button = this;
+        const slug = button.dataset.slug;
+        const liked = button.dataset.liked === 'true';
+        const icon = document.getElementById('like-icon');
+        const text = document.getElementById('like-text');
+        const countSpan = document.getElementById('like-count-value');
+        
+        fetch(`/projects/${slug}/like/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                button.dataset.liked = data.liked;
+                icon.style.color = data.liked ? '#ff6b6b' : '';
+                text.textContent = data.liked ? 'Liked' : 'Like';
+                countSpan.textContent = data.like_count;
+            }
+        });
+    });
+</script>
+{% endblock %}

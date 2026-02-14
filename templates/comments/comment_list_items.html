@@ -1,0 +1,66 @@
+{% for comment in comments %}
+<div class="mb-4 p-3" style="background: rgba(255,255,255,0.05); border-radius: 10px;">
+    <div class="d-flex align-items-center mb-2">
+        <div class="rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: linear-gradient(135deg, #6b8cff, #9d4edd);">
+            <span class="fw-bold">{{ comment.name|first }}</span>
+        </div>
+        <div>
+            <h3 class="h6 mb-0">{{ comment.name }}</h3>
+            <span class="small text-muted">{{ comment.created_at|date:"M d, Y" }}</span>
+        </div>
+        {% if comment.is_featured %}
+        <span class="ms-2 badge" style="background: linear-gradient(135deg, #ffd93d, #ff8e53);">
+            <i class="fas fa-star me-1"></i>Featured
+        </span>
+        {% endif %}
+    </div>
+    <p class="mb-2">{{ comment.content }}</p>
+    
+    <!-- Reply Button -->
+    <button class="btn btn-sm reply-btn" style="color: #9d4edd;" onclick="showReplyForm({{ comment.id }})">
+        <i class="fas fa-reply me-1"></i>Reply
+    </button>
+    
+    <!-- Reply Form (Hidden) -->
+    <div id="reply-form-{{ comment.id }}" style="display: none;" class="mt-3">
+        <form method="post" action="{% url 'projects:add_comment' comment.project.slug %}">
+            {% csrf_token %}
+            <input type="hidden" name="parent_id" value="{{ comment.id }}">
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <input type="text" name="name" class="glass-input w-100" placeholder="Your name *" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="email" name="email" class="glass-input w-100" placeholder="Your email *" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="url" name="website" class="glass-input w-100" placeholder="Website">
+                </div>
+                <div class="col-12">
+                    <textarea name="content" class="glass-input w-100" rows="2" placeholder="Your reply *" required></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="crystal-btn btn-sm">Post Reply</button>
+                    <button type="button" class="btn btn-sm" style="color: #ff6b6b;" onclick="hideReplyForm({{ comment.id }})">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Replies -->
+    {% for reply in comment.replies.all %}
+        {% if reply.is_approved %}
+        <div class="ms-4 mt-3 p-2" style="background: rgba(255,255,255,0.03); border-radius: 8px;">
+            <div class="d-flex align-items-center mb-1">
+                <div class="rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; background: linear-gradient(135deg, #9d4edd, #6b8cff);">
+                    <span class="small fw-bold">{{ reply.name|first }}</span>
+                </div>
+                <span class="small fw-bold">{{ reply.name }}</span>
+                <span class="small text-muted ms-2">{{ reply.created_at|date:"M d, Y" }}</span>
+            </div>
+            <p class="small mb-0">{{ reply.content }}</p>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endfor %}

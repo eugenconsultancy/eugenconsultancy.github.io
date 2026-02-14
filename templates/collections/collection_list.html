@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Collections - DevPort{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-4 fw-bold mb-4" style="background: linear-gradient(135deg, #fff, #9d4edd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Collections
+            </h1>
+            <p class="lead">Curated series and projects that tell a story.</p>
+        </div>
+    </div>
+    
+    <!-- Featured Collections -->
+    {% if featured_collections %}
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-12">
+            <h2 class="section-title">Featured Collections</h2>
+        </div>
+        {% for collection in featured_collections %}
+        <div class="col-lg-4">
+            <div class="glass-card h-100 p-4 collection-card featured">
+                {% if collection.cover_image %}
+                <div class="rounded-3 overflow-hidden mb-3" style="height: 200px;">
+                    <img src="{{ collection.cover_image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ collection.title }}">
+                </div>
+                {% endif %}
+                
+                <span class="badge mb-2" style="background: linear-gradient(135deg, #ffd93d, #ff8e53);">
+                    <i class="fas fa-star me-1"></i> Featured
+                </span>
+                
+                <h2 class="h4 mb-2 text-white">{{ collection.title }}</h2>
+                <p class="small text-muted mb-3">{{ collection.description|truncatechars:100 }}</p>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge" style="background: rgba(107,140,255,0.2);">
+                        <i class="fas fa-layer-group me-1"></i> {{ collection.collectionitem_set.count }} items
+                    </span>
+                    <span class="badge" style="background: rgba(157,78,221,0.2);">
+                        {{ collection.get_collection_type_display }}
+                    </span>
+                </div>
+                
+                <a href="{{ collection.get_absolute_url }}" class="crystal-btn w-100 text-center">
+                    Explore Collection <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Filter by Type -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="glass-card p-3">
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <a href="{% url 'collections:list' %}" class="btn {% if not request.GET.type %}gradient-btn{% else %}crystal-btn{% endif %} btn-sm">
+                        All
+                    </a>
+                    {% for type_value, type_label in collection_types %}
+                    <a href="?type={{ type_value }}" class="btn {% if request.GET.type == type_value %}gradient-btn{% else %}crystal-btn{% endif %} btn-sm">
+                        {{ type_label }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Collections Grid -->
+    <div class="row g-4">
+        {% for collection in collections %}
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:'100' }}">
+            <div class="glass-card h-100 p-4 collection-card">
+                {% if collection.cover_image %}
+                <div class="rounded-3 overflow-hidden mb-3" style="height: 180px;">
+                    <img src="{{ collection.cover_image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ collection.title }}">
+                </div>
+                {% else %}
+                <div class="rounded-3 overflow-hidden mb-3 d-flex align-items-center justify-content-center" style="height: 180px; background: linear-gradient(135deg, rgba(107,140,255,0.2), rgba(157,78,221,0.2));">
+                    <i class="fas fa-layer-group fa-4x" style="color: #9d4edd;"></i>
+                </div>
+                {% endif %}
+                
+                <h2 class="h5 mb-2 text-white">{{ collection.title }}</h2>
+                <p class="small text-muted mb-3">{{ collection.description|truncatechars:80 }}</p>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge" style="background: rgba(107,140,255,0.2);">
+                        <i class="fas fa-images me-1"></i> {{ collection.collectionitem_set.count }}
+                    </span>
+                    <span class="small text-muted">
+                        <i class="fas fa-calendar me-1"></i> {{ collection.published_date|date:"M Y" }}
+                    </span>
+                </div>
+                
+                <div class="mb-2">
+                    <span class="badge" style="background: rgba(157,78,221,0.2);">
+                        {{ collection.get_collection_type_display }}
+                    </span>
+                    {% if collection.layout %}
+                    <span class="badge" style="background: rgba(107,140,255,0.2);">
+                        <i class="fas fa-th me-1"></i> {{ collection.get_layout_display }}
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <a href="{{ collection.get_absolute_url }}" class="crystal-btn w-100 text-center mt-2">
+                    View Collection
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="glass-card p-5">
+                <i class="fas fa-layer-group fa-4x mb-3" style="color: rgba(255,255,255,0.3);"></i>
+                <h3>No collections yet</h3>
+                <p class="text-muted">Check back soon for curated collections!</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="row mt-5" data-aos="fade-up">
+        <div class="col-12">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link glass-card" href="?page={{ page_obj.previous_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link glass-card" style="background: linear-gradient(135deg, #6b8cff, #9d4edd); border: none;">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link glass-card" href="?page={{ num }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link glass-card" href="?page={{ page_obj.next_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .collection-card {
+        transition: all 0.3s ease;
+    }
+    .collection-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(106, 76, 156, 0.3);
+    }
+    .collection-card.featured {
+        border: 2px solid linear-gradient(135deg, #ffd93d, #ff8e53);
+        position: relative;
+        overflow: hidden;
+    }
+    .collection-card.featured::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #ffd93d, #ff8e53);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,281 @@
+{% load static %}
+
+{% for comment in comments %}
+<div class="comment-thread mb-4" id="comment-{{ comment.id }}" data-comment-id="{{ comment.id }}">
+    <div class="glass-card p-4 comment-card" style="margin-left: {% if depth %}{{ depth }}px{% else %}0{% endif %};">
+        <!-- Comment Header -->
+        <div class="d-flex align-items-center mb-3">
+            <div class="comment-avatar me-3">
+                {% if comment.email %}
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: linear-gradient(135deg, #6b8cff, #9d4edd);">
+                    <span class="fw-bold fs-5">{{ comment.name|first|upper }}</span>
+                </div>
+                {% else %}
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: linear-gradient(135deg, #ff8e53, #ff6b6b);">
+                    <i class="fas fa-user"></i>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="h6 mb-1 fw-bold">{{ comment.name }}</h4>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="small text-muted">
+                                <i class="far fa-clock me-1"></i> {{ comment.created_at|date:"F j, Y" }}
+                            </span>
+                            {% if comment.website %}
+                            <a href="{{ comment.website }}" target="_blank" class="small text-decoration-none" style="color: #9d4edd;">
+                                <i class="fas fa-globe me-1"></i> Website
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Badges -->
+                    <div>
+                        {% if comment.is_featured %}
+                        <span class="badge me-2" style="background: linear-gradient(135deg, #ffd93d, #ff8e53);">
+                            <i class="fas fa-star me-1"></i> Featured
+                        </span>
+                        {% endif %}
+                        
+                        {% if comment.is_approved %}
+                        <span class="badge" style="background: rgba(74, 222, 128, 0.2); color: #4ade80;">
+                            <i class="fas fa-check-circle me-1"></i> Approved
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Comment Content -->
+        <div class="comment-content mb-3">
+            <p class="mb-0">{{ comment.content|linebreaks }}</p>
+        </div>
+        
+        <!-- Comment Actions -->
+        <div class="comment-actions d-flex gap-3">
+            <button class="btn btn-sm crystal-btn reply-btn" onclick="showReplyForm({{ comment.id }})">
+                <i class="fas fa-reply me-1"></i> Reply
+            </button>
+            
+            {% if user.is_staff %}
+            <!-- Moderation Actions (Admin Only) -->
+            <div class="dropdown">
+                <button class="btn btn-sm crystal-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-shield-alt me-1"></i> Moderate
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" style="background: rgba(26, 26, 46, 0.95); backdrop-filter: blur(10px);">
+                    {% if not comment.is_approved %}
+                    <li>
+                        <button class="dropdown-item text-success" onclick="moderateComment({{ comment.id }}, 'approve')">
+                            <i class="fas fa-check-circle me-2"></i> Approve
+                        </button>
+                    </li>
+                    {% endif %}
+                    <li>
+                        <button class="dropdown-item text-danger" onclick="moderateComment({{ comment.id }}, 'spam')">
+                            <i class="fas fa-ban me-2"></i> Mark as Spam
+                        </button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item text-warning" onclick="moderateComment({{ comment.id }}, 'feature')">
+                            <i class="fas fa-star me-2"></i> Feature
+                        </button>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <button class="dropdown-item text-danger" onclick="moderateComment({{ comment.id }}, 'delete')">
+                            <i class="fas fa-trash me-2"></i> Delete
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Reply Form (Hidden Initially) -->
+        <div id="reply-form-{{ comment.id }}" class="reply-form mt-3" style="display: none;">
+            <div class="glass-card p-3">
+                <form method="post" action="{% url 'comments:add' comment.media_item.id %}" class="reply-form-ajax">
+                    {% csrf_token %}
+                    <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <input type="text" name="name" class="glass-input w-100" placeholder="Your name *" required>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="email" name="email" class="glass-input w-100" placeholder="Your email *" required>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="url" name="website" class="glass-input w-100" placeholder="Website (optional)">
+                        </div>
+                        <div class="col-12">
+                            <textarea name="content" class="glass-input w-100" rows="3" placeholder="Your reply *" required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="can_use_as_testimonial" id="reply-testimonial-{{ comment.id }}">
+                                <label class="form-check-label small" for="reply-testimonial-{{ comment.id }}">
+                                    I'm okay with this reply being featured as a testimonial
+                                </label>
+                            </div>
+                            <button type="submit" class="gradient-btn btn-sm">
+                                <i class="fas fa-paper-plane me-2"></i>Post Reply
+                            </button>
+                            <button type="button" class="crystal-btn btn-sm" onclick="hideReplyForm({{ comment.id }})">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Nested Replies -->
+        {% if comment.replies.exists %}
+        <div class="nested-replies mt-3" id="replies-{{ comment.id }}">
+            {% with depth=depth|default:0|add:30 %}
+                {% include "comments/comment_tree.html" with comments=comment.replies.all depth=depth %}
+            {% endwith %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function showReplyForm(commentId) {
+    document.getElementById('reply-form-' + commentId).style.display = 'block';
+}
+
+function hideReplyForm(commentId) {
+    document.getElementById('reply-form-' + commentId).style.display = 'none';
+}
+
+function moderateComment(commentId, action) {
+    if (!confirm(`Are you sure you want to ${action} this comment?`)) {
+        return;
+    }
+    
+    fetch(`/comments/moderate/${commentId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token|default:"" }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `action=${action}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reload or update UI
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+}
+
+// Handle AJAX reply form submissions
+document.querySelectorAll('.reply-form-ajax').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show mt-3';
+                alert.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                `;
+                this.parentNode.appendChild(alert);
+                
+                // Clear form
+                this.reset();
+                
+                // Hide reply form after 2 seconds
+                setTimeout(() => {
+                    const commentId = this.querySelector('[name="parent_id"]').value;
+                    hideReplyForm(commentId);
+                }, 2000);
+            } else {
+                alert('Error posting reply');
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.comment-thread {
+    transition: all 0.3s ease;
+}
+
+.comment-card {
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.comment-card:hover {
+    border-left-color: #9d4edd;
+    transform: translateX(5px);
+}
+
+.nested-replies {
+    position: relative;
+}
+
+.nested-replies::before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #6b8cff, #9d4edd);
+    opacity: 0.3;
+}
+
+.comment-avatar {
+    transition: transform 0.3s ease;
+}
+
+.comment-card:hover .comment-avatar {
+    transform: scale(1.1);
+}
+
+.dropdown-menu-dark {
+    background: rgba(26, 26, 46, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-item {
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background: rgba(157, 78, 221, 0.2);
+    color: white;
+    transform: translateX(5px);
+}
+</style>

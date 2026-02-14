@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Projects - DevPort{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-4 fw-bold mb-4" style="background: linear-gradient(135deg, #fff, #9d4edd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                My Projects
+            </h1>
+            <p class="lead">A collection of my work—from full-stack applications to design systems and everything in between.</p>
+        </div>
+    </div>
+    
+    <!-- Filter Bar -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Search</label>
+                        <input type="text" name="search" class="glass-input w-100" placeholder="Search projects..." value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Difficulty</label>
+                        <select name="difficulty" class="glass-input w-100">
+                            <option value="">All Levels</option>
+                            {% for value, label in filter_form.fields.difficulty.choices %}
+                                {% if value %}
+                                <option value="{{ value }}" {% if request.GET.difficulty == value %}selected{% endif %}>{{ label }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Category</label>
+                        <select name="category" class="glass-input w-100">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"i" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Sort By</label>
+                        <select name="sort" class="glass-input w-100">
+                            <option value="-published_date" {% if request.GET.sort == '-published_date' %}selected{% endif %}>Newest First</option>
+                            <option value="published_date" {% if request.GET.sort == 'published_date' %}selected{% endif %}>Oldest First</option>
+                            <option value="-stars_count" {% if request.GET.sort == '-stars_count' %}selected{% endif %}>Most Stars</option>
+                            <option value="-performance_score" {% if request.GET.sort == '-performance_score' %}selected{% endif %}>Highest Performance</option>
+                            <option value="title" {% if request.GET.sort == 'title' %}selected{% endif %}>Title A-Z</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="featured_only" id="featuredOnly" {% if request.GET.featured_only %}checked{% endif %}>
+                            <label class="form-check-label" for="featuredOnly">
+                                Featured Only
+                            </label>
+                        </div>
+                        <button type="submit" class="crystal-btn w-100">
+                            <i class="fas fa-filter me-2"></i>Apply
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Difficulty Quick Filters -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="glass-card p-3">
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <a href="{% url 'projects:list' %}" class="btn {% if not request.GET.difficulty %}gradient-btn{% else %}crystal-btn{% endif %} btn-sm">
+                        All ({{ projects.paginator.count }})
+                    </a>
+                    {% for level, count in difficulty_counts.items %}
+                    <a href="?difficulty={{ level }}" class="btn {% if request.GET.difficulty == level %}gradient-btn{% else %}crystal-btn{% endif %} btn-sm">
+                        {{ level|title }} ({{ count }})
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Projects Grid -->
+    <div class="row g-4">
+        {% for project in projects %}
+        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:'100' }}">
+            <div class="glass-card h-100 p-4 project-card">
+                {% if project.thumbnail %}
+                <div class="mb-3 rounded-3 overflow-hidden position-relative" style="height: 200px;">
+                    <img src="{{ project.thumbnail.url }}" class="w-100 h-100 object-fit-cover" alt="{{ project.title }}">
+                    {% if project.is_featured %}
+                    <span class="position-absolute top-0 end-0 m-2 badge" style="background: linear-gradient(135deg, #ffd93d, #ff8e53);">
+                        <i class="fas fa-star me-1"></i>Featured
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <h3 class="h5 mb-2">{{ project.title }}</h3>
+                <p class="small text-muted mb-3">{{ project.short_summary|truncatechars:100 }}</p>
+                
+                <!-- Tech Stack -->
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                    {% for tech in project.technical_stack|slice:":4" %}
+                    <span class="badge" style="background: rgba(107,140,255,0.2);">{{ tech }}</span>
+                    {% endfor %}
+                    {% if project.technical_stack|length > 4 %}
+                    <span class="badge" style="background: rgba(255,255,255,0.1);">+{{ project.technical_stack|length|add:"-4" }}</span>
+                    {% endif %}
+                </div>
+                
+                <!-- Stats -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="small me-3">
+                            <i class="fas fa-star" style="color: #ffd93d;"></i> {{ project.stars_count }}
+                        </span>
+                        <span class="small">
+                            <i class="fas fa-code-branch" style="color: #6b8cff;"></i> {{ project.forks_count }}
+                        </span>
+                    </div>
+                    <span class="badge" style="background: {% if project.difficulty_level == 'beginner' %}#4ade80{% elif project.difficulty_level == 'intermediate' %}#ffd93d{% elif project.difficulty_level == 'advanced' %}#ff8e53{% else %}#ff6b6b{% endif %};">
+                        {{ project.get_difficulty_level_display }}
+                    </span>
+                </div>
+                
+                <!-- Performance Score -->
+                {% if project.performance_score %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Performance</span>
+                        <span>{{ project.performance_score }}%</span>
+                    </div>
+                    <div class="progress" style="height: 4px; background: rgba(255,255,255,0.1);">
+                        <div class="progress-bar" style="width: {{ project.performance_score }}%; background: linear-gradient(90deg, #6b8cff, #9d4edd);"></div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Categories -->
+                {% if project.categories.all %}
+                <div class="mb-3">
+                    {% for category in project.categories.all|slice:":2" %}
+                    <span class="badge me-1" style="background: rgba(157,78,221,0.2);">{{ category.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2 mt-auto">
+                    <a href="{{ project.get_absolute_url }}" class="crystal-btn flex-grow-1 text-center">
+                        View Details
+                    </a>
+                    {% if project.github_url %}
+                    <a href="{{ project.github_url }}" target="_blank" class="crystal-btn" style="padding: 12px 20px;">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="glass-card p-5">
+                <i class="fas fa-code fa-4x mb-3" style="color: rgba(255,255,255,0.3);"></i>
+                <h3>No projects found</h3>
+                <p class="text-muted">Try adjusting your filters or check back later.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="row mt-5" data-aos="fade-up">
+        <div class="col-12">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link glass-card" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link glass-card" style="background: linear-gradient(135deg, #6b8cff, #9d4edd); border: none;">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link glass-card" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link glass-card" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .project-card {
+        transition: all 0.3s ease;
+    }
+    .project-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(106, 76, 156, 0.3);
+    }
+    .page-link {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: white;
+        margin: 0 5px;
+        border-radius: 10px;
+    }
+    .page-link:hover {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #6b8cff, #9d4edd);
+        border: none;
+    }
+</style>
+{% endblock %}

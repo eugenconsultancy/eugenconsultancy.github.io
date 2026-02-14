@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Featured Projects - DevPort{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-4 fw-bold mb-4" style="background: linear-gradient(135deg, #fff, #ffd93d, #ff8e53); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Featured Projects
+            </h1>
+            <p class="lead">My best work—projects that showcase the pinnacle of my skills and creativity.</p>
+        </div>
+    </div>
+    
+    <!-- Featured Projects Grid -->
+    <div class="row g-4">
+        {% for project in projects %}
+        <div class="col-lg-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:'100' }}">
+            <div class="glass-card h-100 p-4 featured-project">
+                <div class="row g-0">
+                    <div class="col-md-6">
+                        {% if project.thumbnail %}
+                        <div class="rounded-3 overflow-hidden h-100" style="min-height: 200px;">
+                            <img src="{{ project.thumbnail.url }}" class="w-100 h-100 object-fit-cover" alt="{{ project.title }}">
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge me-2" style="background: linear-gradient(135deg, #ffd93d, #ff8e53);">
+                                    <i class="fas fa-star me-1"></i> Featured
+                                </span>
+                                <span class="badge" style="background: {% if project.difficulty_level == 'beginner' %}#4ade80{% elif project.difficulty_level == 'intermediate' %}#ffd93d{% elif project.difficulty_level == 'advanced' %}#ff8e53{% else %}#ff6b6b{% endif %};">
+                                    {{ project.get_difficulty_level_display }}
+                                </span>
+                            </div>
+                            
+                            <h2 class="h4 mb-2 text-white">{{ project.title }}</h2>
+                            <p class="small text-muted mb-3">{{ project.short_summary }}</p>
+                            
+                            <div class="d-flex gap-2 mb-3">
+                                {% for tech in project.technical_stack|slice:":3" %}
+                                <span class="badge" style="background: rgba(107,140,255,0.2);">{{ tech }}</span>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-flex gap-3 mb-3">
+                                <span><i class="fas fa-star me-1" style="color: #ffd93d;"></i> {{ project.stars_count }}</span>
+                                <span><i class="fas fa-code-branch me-1" style="color: #6b8cff;"></i> {{ project.forks_count }}</span>
+                                {% if project.performance_score %}
+                                <span><i class="fas fa-tachometer-alt me-1" style="color: #4ade80;"></i> {{ project.performance_score }}%</span>
+                                {% endif %}
+                            </div>
+                            
+                            <a href="{{ project.get_absolute_url }}" class="crystal-btn w-100 text-center">
+                                View Project <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="glass-card p-5">
+                <i class="fas fa-star fa-4x mb-3" style="color: rgba(255,255,255,0.3);"></i>
+                <h3>No featured projects yet</h3>
+                <p class="text-muted">Check back soon for highlighted work!</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="row mt-5" data-aos="fade-up">
+        <div class="col-12">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link glass-card" href="?page={{ page_obj.previous_page_number }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link glass-card" style="background: linear-gradient(135deg, #ffd93d, #ff8e53); border: none;">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link glass-card" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link glass-card" href="?page={{ page_obj.next_page_number }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .featured-project {
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        background: linear-gradient(135deg, rgba(255,217,61,0.1), rgba(255,142,83,0.1));
+        backdrop-filter: blur(10px);
+    }
+    .featured-project:hover {
+        transform: translateY(-10px);
+        border-color: linear-gradient(135deg, #ffd93d, #ff8e53);
+        box-shadow: 0 20px 40px rgba(255,142,83,0.3);
+    }
+</style>
+{% endblock %}

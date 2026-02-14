@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Comments - DevPort{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row py-5">
+        <div class="col-lg-10 mx-auto">
+            <!-- Header -->
+            <div class="glass-card p-5 mb-5" data-aos="fade-up">
+                <h1 class="display-4 fw-bold mb-4 text-center" style="background: linear-gradient(135deg, #fff, #9d4edd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Comments & Feedback
+                </h1>
+                <p class="lead text-center">Thoughts and discussions from the community</p>
+                
+                <!-- Filter Tabs -->
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <a href="?filter=all" class="btn {% if request.GET.filter == 'all' or not request.GET.filter %}gradient-btn{% else %}crystal-btn{% endif %}">
+                        All Comments
+                    </a>
+                    <a href="?filter=featured" class="btn {% if request.GET.filter == 'featured' %}gradient-btn{% else %}crystal-btn{% endif %}">
+                        <i class="fas fa-star me-2" style="color: #ffd93d;"></i> Featured
+                    </a>
+                    <a href="?filter=recent" class="btn {% if request.GET.filter == 'recent' %}gradient-btn{% else %}crystal-btn{% endif %}">
+                        <i class="fas fa-clock me-2"></i> Most Recent
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Comments Section -->
+            <div class="row">
+                <div class="col-12">
+                    {% if comments %}
+                        <!-- Comment Form (for new comment) -->
+                        <div class="glass-card p-4 mb-5" data-aos="fade-up">
+                            <h2 class="h4 mb-4" style="color: #9d4edd;">Leave a Comment</h2>
+                            
+                            <form method="post" action="{% url 'comments:add' media_item.id %}" class="comment-form">
+                                {% csrf_token %}
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <input type="text" name="name" class="glass-input w-100" placeholder="Your name *" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="email" name="email" class="glass-input w-100" placeholder="Your email *" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="url" name="website" class="glass-input w-100" placeholder="Website (optional)">
+                                    </div>
+                                    <div class="col-12">
+                                        <textarea name="content" class="glass-input w-100" rows="5" placeholder="Share your thoughts... *" required></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" name="can_use_as_testimonial" id="canUseAsTestimonial">
+                                            <label class="form-check-label" for="canUseAsTestimonial">
+                                                I'm okay with this comment being featured as a testimonial
+                                            </label>
+                                        </div>
+                                        
+                                        <button type="submit" class="gradient-btn">
+                                            <i class="fas fa-paper-plane me-2"></i>Post Comment
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Comments Thread -->
+                        <div class="comments-thread" data-aos="fade-up">
+                            <h2 class="section-title mb-4">
+                                Discussion ({{ total_comments }})
+                            </h2>
+                            
+                            {% include "comments/comment_tree.html" with comments=comments depth=0 %}
+                            
+                            <!-- Load More Button -->
+                            {% if has_more %}
+                            <div class="text-center mt-4">
+                                <button class="crystal-btn" onclick="loadMoreComments()" id="load-more-btn">
+                                    <i class="fas fa-sync-alt me-2"></i> Load More Comments
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <!-- No Comments Yet -->
+                        <div class="glass-card p-5 text-center" data-aos="fade-up">
+                            <div class="mb-4">
+                                <i class="fas fa-comments fa-4x" style="color: rgba(255,255,255,0.3);"></i>
+                            </div>
+                            <h3 class="h4 mb-3">No Comments Yet</h3>
+                            <p class="text-muted mb-4">Be the first to share your thoughts on this project!</p>
+                            
+                            <!-- Comment Form (when no comments) -->
+                            <div class="col-lg-8 mx-auto">
+                                <form method="post" action="{% url 'comments:add' media_item.id %}" class="comment-form">
+                                    {% csrf_token %}
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <input type="text" name="name" class="glass-input w-100" placeholder="Your name *" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="email" name="email" class="glass-input w-100" placeholder="Your email *" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="url" name="website" class="glass-input w-100" placeholder="Website (optional)">
+                                        </div>
+                                        <div class="col-12">
+                                            <textarea name="content" class="glass-input w-100" rows="4" placeholder="Your comment *" required></textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <button type="submit" class="gradient-btn">
+                                                <i class="fas fa-paper-plane me-2"></i>Post Comment
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentPage = 1;
+const mediaId = {{ media_item.id }};
+
+function loadMoreComments() {
+    const btn = document.getElementById('load-more-btn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Loading...';
+    btn.disabled = true;
+    
+    fetch(`/comments/load/${mediaId}/?page=${currentPage + 1}`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const thread = document.querySelector('.comments-thread');
+            thread.insertAdjacentHTML('beforeend', data.html);
+            
+            currentPage++;
+            
+            if (!data.has_next) {
+                btn.style.display = 'none';
+            } else {
+                btn.innerHTML = '<i class="fas fa-sync-alt me-2"></i> Load More Comments';
+                btn.disabled = false;
+            }
+        }
+    });
+}
+
+// Handle comment form submission with AJAX
+document.querySelectorAll('.comment-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show mt-3';
+                alert.innerHTML = `
+                    <i class="fas fa-check-circle me-2"></i>
+                    ${data.message}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                `;
+                this.parentNode.insertBefore(alert, this);
+                
+                // Clear form
+                this.reset();
+            } else {
+                // Show error messages
+                let errors = '';
+                for (let field in data.errors) {
+                    errors += `<li>${field}: ${data.errors[field]}</li>`;
+                }
+                
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show mt-3';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Error:</strong>
+                    <ul>${errors}</ul>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                `;
+                this.parentNode.insertBefore(alert, this);
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.comments-thread {
+    position: relative;
+}
+
+.comment-form {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+}
+
+.alert-success {
+    background: rgba(74, 222, 128, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    color: white;
+}
+
+.alert-danger {
+    background: rgba(255, 107, 107, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    color: white;
+}
+
+.alert ul {
+    margin-top: 5px;
+    margin-bottom: 0;
+    padding-left: 20px;
+}
+</style>
+{% endblock %}

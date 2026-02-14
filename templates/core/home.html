@@ -1,0 +1,404 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eugen Gachie - Web Development Consultancy{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section - Based on screenshot -->
+    <div class="row min-vh-75 align-items-center py-5" data-aos="fade-up">
+        <div class="col-lg-8">
+            <div class="glass-card p-5" style="background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+                <p class="text-uppercase mb-2" style="color: #ff6b6b; letter-spacing: 3px; font-size: 16px; font-weight: 700; font-family: 'Gravitas One', cursive;">Hey there! I'm</p>
+                
+                <h1 style="font-family: 'Gravitas One', cursive; font-size: 56px !important; color: #0a1a2a; margin-bottom: 15px; text-shadow: 3px 3px 0 rgba(255, 107, 107, 0.2);">
+                    Eugen Gachie
+                </h1>
+                
+                <h2 style="font-family: 'Noto Sans', sans-serif; font-size: 28px !important; font-weight: 700; color: #4a6fa5; margin-bottom: 25px; border-left: 5px solid #ff8e53; padding-left: 20px;">
+                    I'm a <span style="color: #ff6b6b; font-weight: 800; background: linear-gradient(135deg, #ff6b6b, #ff8e53); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Tech Enthusiast!</span>
+                </h2>
+                
+                <p style="font-size: 18px !important; line-height: 1.8; color: #2c3e50; font-weight: 500; margin-bottom: 30px; max-width: 650px; font-family: 'Noto Sans', sans-serif;">
+                    Creating stunning, accessible, and high-performance web experiences that bring your ideas to life. 
+                    Specialized in modern frameworks, data analysis, and cutting-edge technologies.
+                </p>
+                
+                <!-- Tech Stack Tags - Vivid Contrasting Colors -->
+                <div class="d-flex flex-wrap gap-2 mb-5">
+                    <!-- HTML5 - Orange/Red Theme -->
+                    <span class="badge py-2 px-3" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53); color: white; border: none; box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3); font-weight: 600; letter-spacing: 0.5px; font-size: 14px;">
+                        <i class="fab fa-html5 me-1"></i> HTML5
+                    </span>
+                    
+                    <!-- CSS3 - Blue Theme -->
+                    <span class="badge py-2 px-3" style="background: linear-gradient(135deg, #4a6fa5, #6b8cff); color: white; border: none; box-shadow: 0 4px 10px rgba(75, 111, 165, 0.3); font-weight: 600; letter-spacing: 0.5px; font-size: 14px;">
+                        <i class="fab fa-css3-alt me-1"></i> CSS3
+                    </span>
+                    
+                    <!-- JavaScript - Yellow Theme -->
+                    <span class="badge py-2 px-3" style="background: linear-gradient(135deg, #f7d44a, #f9b84a); color: #1a2a3a; border: none; box-shadow: 0 4px 10px rgba(247, 212, 74, 0.4); font-weight: 700; letter-spacing: 0.5px; font-size: 14px;">
+                        <i class="fab fa-js me-1"></i> JavaScript
+                    </span>
+                    
+                    <!-- Tailwind - Teal Theme -->
+                    <span class="badge py-2 px-3" style="background: linear-gradient(135deg, #38b2ac, #319795); color: white; border: none; box-shadow: 0 4px 10px rgba(56, 178, 172, 0.3); font-weight: 600; letter-spacing: 0.5px; font-size: 14px;">
+                        <i class="fab fa-tailwindcss me-1"></i> Tailwind
+                    </span>
+                    
+                    <!-- React - Cyan Theme -->
+                    <span class="badge py-2 px-3" style="background: linear-gradient(135deg, #61dafb, #2c7da0); color: #0a1a2a; border: none; box-shadow: 0 4px 10px rgba(97, 218, 251, 0.4); font-weight: 700; letter-spacing: 0.5px; font-size: 14px;">
+                        <i class="fab fa-react me-1"></i> React
+                    </span>
+                    
+                    <!-- Node.js - Green Theme -->
+                    <span class="badge py-2 px-3" style="background: linear-gradient(135deg, #68a063, #3c873a); color: white; border: none; box-shadow: 0 4px 10px rgba(104, 160, 99, 0.3); font-weight: 600; letter-spacing: 0.5px; font-size: 14px;">
+                        <i class="fab fa-node-js me-1"></i> Node.js
+                    </span>
+                    
+                    <!-- Python - Blue/Purple Theme -->
+                    <span class="badge py-2 px-3" style="background: linear-gradient(135deg, #4b8bbe, #306998); color: white; border: none; box-shadow: 0 4px 10px rgba(75, 139, 190, 0.3); font-weight: 600; letter-spacing: 0.5px; font-size: 14px;">
+                        <i class="fab fa-python me-1"></i> Python
+                    </span>
+                    
+                    <!-- Django - Dark Green Theme -->
+                    <span class="badge py-2 px-3" style="background: linear-gradient(135deg, #0c4b33, #092e20); color: white; border: none; box-shadow: 0 4px 10px rgba(12, 75, 51, 0.4); font-weight: 600; letter-spacing: 0.5px; font-size: 14px;">
+                        <i class="fab fa-django me-1"></i> Django
+                    </span>
+                    
+                    <!-- Data Analysis - Purple Theme -->
+                    <span class="badge py-2 px-3" style="background: linear-gradient(135deg, #9d4edd, #6b4c9c); color: white; border: none; box-shadow: 0 4px 10px rgba(157, 78, 221, 0.3); font-weight: 600; letter-spacing: 0.5px; font-size: 14px;">
+                        <i class="fas fa-chart-line me-1"></i> Data Analysis
+                    </span>
+                    
+                    <!-- SEO - Orange/Red Theme -->
+                    <span class="badge py-2 px-3" style="background: linear-gradient(135deg, #ff8e53, #ff6b6b); color: white; border: none; box-shadow: 0 4px 10px rgba(255, 142, 83, 0.3); font-weight: 600; letter-spacing: 0.5px; font-size: 14px;">
+                        <i class="fas fa-search me-1"></i> SEO
+                    </span>
+                </div>
+                
+                <!-- CTA Buttons - Enhanced -->
+                <div class="d-flex gap-3">
+                    <a href="{% url 'projects:list' %}" class="btn" style="background: linear-gradient(135deg, #0b2b40, #1a3f5a); color: white; font-weight: 700; padding: 14px 32px; border-radius: 50px; font-size: 16px; box-shadow: 0 8px 20px rgba(11, 43, 64, 0.3); border: 2px solid #4ecdc4; transition: all 0.3s ease;">
+                        <i class="fas fa-eye me-2"></i>View My Work
+                    </a>
+                    <a href="{% url 'inquiries:contact' %}" class="btn" style="background: linear-gradient(135deg, #4ecdc4, #38b2ac); color: #0a1a2a; font-weight: 700; padding: 14px 32px; border-radius: 50px; font-size: 16px; box-shadow: 0 8px 20px rgba(78, 205, 196, 0.3); border: 2px solid white; transition: all 0.3s ease;">
+                        <i class="fas fa-paper-plane me-2"></i>Let's Talk
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Sidebar with Vivid Colors & High Contrast Text -->
+        <div class="col-lg-4" data-aos="fade-left" data-aos-delay="200">
+            <!-- Projects Stat - Orange/Red Theme with White Text -->
+            <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53); border-left: 5px solid white; backdrop-filter: blur(10px); box-shadow: 0 15px 30px rgba(255, 107, 107, 0.3);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-uppercase fw-bold" style="color: white; letter-spacing: 1.5px; font-size: 16px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
+                        <i class="fas fa-code-branch me-2"></i>Projects
+                    </span>
+                    <span class="stat-number" data-value="{{ total_projects|default:'50' }}" style="font-size: 36px !important; color: white; font-weight: 800; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">0</span>
+                </div>
+                <div class="progress mt-2" style="height: 8px; background: rgba(255, 255, 255, 0.3); border-radius: 4px;">
+                    <div class="progress-bar" style="width: 100%; background: white; border-radius: 4px;"></div>
+                </div>
+                <p class="small mt-2 mb-0" style="color: white; font-size: 14px; font-weight: 600;">
+                    <i class="fas fa-check-circle me-1"></i> 50+ Completed Projects
+                </p>
+            </div>
+            
+            <!-- Experience Stat - Blue Theme with White Text -->
+            <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #4a6fa5, #6b8cff); border-left: 5px solid white; backdrop-filter: blur(10px); box-shadow: 0 15px 30px rgba(74, 111, 165, 0.3);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-uppercase fw-bold" style="color: white; letter-spacing: 1.5px; font-size: 16px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
+                        <i class="fas fa-clock me-2"></i>Experience
+                    </span>
+                    <span class="stat-number" data-value="5" style="font-size: 36px !important; color: white; font-weight: 800; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">0</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge me-2" style="background: white; color: #4a6fa5; font-size: 16px; font-weight: 700; padding: 4px 12px;">+ Years</span>
+                    <span style="color: white; font-size: 14px;">Since 2021</span>
+                </div>
+                <div class="progress mt-2" style="height: 8px; background: rgba(255, 255, 255, 0.3); border-radius: 4px;">
+                    <div class="progress-bar" style="width: 100%; background: white; border-radius: 4px;"></div>
+                </div>
+            </div>
+            
+            <!-- Data Analysis Stat - Purple Theme with White Text -->
+            <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #9d4edd, #6b4c9c); border-left: 5px solid white; backdrop-filter: blur(10px); box-shadow: 0 15px 30px rgba(157, 78, 221, 0.3);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-uppercase fw-bold" style="color: white; letter-spacing: 1.5px; font-size: 16px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
+                        <i class="fas fa-chart-line me-2"></i>Data Analysis
+                    </span>
+                    <span class="stat-number" data-value="25" style="font-size: 36px !important; color: white; font-weight: 800; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">0</span>
+                </div>
+                <span class="badge mb-2" style="background: white; color: #9d4edd; font-size: 14px; font-weight: 700; padding: 4px 12px;">Projects</span>
+                <div class="progress mt-2" style="height: 8px; background: rgba(255, 255, 255, 0.3); border-radius: 4px;">
+                    <div class="progress-bar" style="width: 100%; background: white; border-radius: 4px;"></div>
+                </div>
+                <div class="d-flex flex-wrap gap-1 mt-3">
+                    <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(255,255,255,0.3);">Python</span>
+                    <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(255,255,255,0.3);">Pandas</span>
+                    <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(255,255,255,0.3);">Tableau</span>
+                    <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(255,255,255,0.3);">NumPy</span>
+                </div>
+            </div>
+            
+            <!-- SEO Stat - Teal Theme with White Text -->
+            <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #38b2ac, #2c7da0); border-left: 5px solid white; backdrop-filter: blur(10px); box-shadow: 0 15px 30px rgba(56, 178, 172, 0.3);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-uppercase fw-bold" style="color: white; letter-spacing: 1.5px; font-size: 16px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">
+                        <i class="fas fa-search me-2"></i>SEO Optimization
+                    </span>
+                    <span class="stat-number" data-value="40" style="font-size: 36px !important; color: white; font-weight: 800; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">0</span>
+                </div>
+                <span class="badge mb-2" style="background: white; color: #38b2ac; font-size: 14px; font-weight: 700; padding: 4px 12px;">Websites</span>
+                <div class="progress mt-2" style="height: 8px; background: rgba(255, 255, 255, 0.3); border-radius: 4px;">
+                    <div class="progress-bar" style="width: 100%; background: white; border-radius: 4px;"></div>
+                </div>
+                <div class="d-flex flex-wrap gap-1 mt-3">
+                    <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(255,255,255,0.3);">Analytics</span>
+                    <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(255,255,255,0.3);">Keywords</span>
+                    <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(255,255,255,0.3);">Page Speed</span>
+                    <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(255,255,255,0.3);">Meta Tags</span>
+                </div>
+            </div>
+            
+            <!-- Quick Contact - Navy/Cyan Theme with White Text -->
+            <div class="glass-card p-4" style="background: linear-gradient(135deg, #0b2b40, #1a3f5a); border: 3px solid #4ecdc4; backdrop-filter: blur(10px); box-shadow: 0 20px 30px rgba(11, 43, 64, 0.3);">
+                <h3 class="h5 mb-3" style="color: white; font-size: 20px !important; display: flex; align-items: center; font-family: 'Gravitas One', cursive;">
+                    <span style="background: #4ecdc4; width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 12px; box-shadow: 0 0 15px #4ecdc4;"></span>
+                    Let's Connect
+                </h3>
+                
+                <div class="mb-3">
+                    <div class="d-flex align-items-center p-2 mb-2" style="background: rgba(78, 205, 196, 0.15); border-radius: 10px; border: 1px solid rgba(78, 205, 196, 0.3);">
+                        <i class="fas fa-envelope me-3" style="color: #4ecdc4; font-size: 18px;"></i>
+                        <span style="color: white; font-size: 15px; font-weight: 500;">eugen.gachie@devconsultancy.com</span>
+                    </div>
+                    <div class="d-flex align-items-center p-2" style="background: rgba(78, 205, 196, 0.15); border-radius: 10px; border: 1px solid rgba(78, 205, 196, 0.3);">
+                        <i class="fas fa-phone-alt me-3" style="color: #4ecdc4; font-size: 18px;"></i>
+                        <span style="color: white; font-size: 15px; font-weight: 500;">+1 (555) 234-5678</span>
+                    </div>
+                </div>
+                
+                <p class="small mb-4" style="color: #4ecdc4; font-size: 15px; font-weight: 600; text-align: center; background: rgba(78, 205, 196, 0.1); padding: 10px; border-radius: 30px;">
+                    <i class="fas fa-circle me-2" style="color: #4ade80; font-size: 12px;"></i> Available for freelance work
+                </p>
+                
+                <div class="d-flex gap-3">
+                    <button class="btn flex-grow-1" style="background: #4ecdc4; color: #0a1a2a; font-weight: 700; padding: 14px; border-radius: 12px; font-size: 15px; border: 2px solid white; transition: all 0.3s ease;" 
+                            onmouseover="this.style.background='#3aa7a0'; this.style.transform='translateY(-2px)'" 
+                            onmouseout="this.style.background='#4ecdc4'; this.style.transform='translateY(0)'">
+                        <i class="fas fa-comment me-2"></i>Chat
+                    </button>
+                    <button class="btn flex-grow-1" style="background: transparent; color: white; font-weight: 700; padding: 14px; border-radius: 12px; font-size: 15px; border: 2px solid #4ecdc4; transition: all 0.3s ease;"
+                            onmouseover="this.style.background='#4ecdc4'; this.style.color='#0a1a2a'; this.style.transform='translateY(-2px)'" 
+                            onmouseout="this.style.background='transparent'; this.style.color='white'; this.style.transform='translateY(0)'">
+                        <i class="fas fa-share-alt me-2"></i>Publish
+                    </button>
+                </div>
+                
+                <!-- Availability Badge -->
+                <div class="mt-3 text-center">
+                    <span class="badge" style="background: rgba(78, 205, 196, 0.2); color: #4ecdc4; padding: 8px 16px; border-radius: 30px; font-size: 13px; border: 1px solid #4ecdc4;">
+                        <i class="fas fa-circle me-1" style="color: #4ade80; font-size: 10px;"></i> Available Now - Let's Talk!
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Featured Projects Section -->
+    {% if featured_projects %}
+    <section class="py-5" data-aos="fade-up">
+        <h2 class="section-title" style="color: #0b2b40; font-size: 24px !important; border-bottom: 4px solid #ff6b6b; padding-bottom: 10px;">Featured Projects</h2>
+        <div class="row g-4">
+            {% for project in featured_projects %}
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card h-100 p-4" style="background: white; border-top: 5px solid #4a6fa5; transition: all 0.3s ease;">
+                    {% if project.thumbnail %}
+                    <div class="mb-3 rounded-3 overflow-hidden" style="height: 200px; border: 3px solid #f0f0f0;">
+                        <img src="{{ project.thumbnail.url }}" class="w-100 h-100 object-fit-cover" alt="{{ project.title }}">
+                    </div>
+                    {% endif %}
+                    <h3 class="h5 mb-2" style="color: #0b2b40; font-size: 18px !important; font-weight: 700;">{{ project.title }}</h3>
+                    <p class="small mb-3" style="color: #2c3e50; font-size: 14px;">{{ project.short_summary|truncatechars:100 }}</p>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        {% for tech in project.technical_stack|slice:":3" %}
+                        <span class="badge" style="background: #4ecdc4; color: #0a1a2a; font-size: 12px;">{{ tech }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small" style="color: #ff6b6b; font-size: 14px; font-weight: 600;">
+                            <i class="fas fa-star me-1" style="color: #f7d44a;"></i> {{ project.stars_count }} stars
+                        </span>
+                        <a href="{{ project.get_absolute_url }}" class="btn" style="background: #0b2b40; color: white; font-size: 13px; padding: 8px 20px; border-radius: 30px;">
+                            View Project <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Recent Media Section -->
+    {% if recent_media %}
+    <section class="py-5" data-aos="fade-up">
+        <h2 class="section-title" style="color: #0b2b40; font-size: 24px !important; border-bottom: 4px solid #4a6fa5; padding-bottom: 10px;">Recent Work</h2>
+        <div class="row g-4">
+            {% for media in recent_media %}
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="{{ media.get_absolute_url }}" class="text-decoration-none">
+                    <div class="glass-card p-3 h-100" style="background: white; border-bottom: 4px solid #38b2ac;">
+                        {% if media.media_type == 'image' %}
+                        <div class="rounded-3 overflow-hidden mb-2" style="height: 150px;">
+                            <img src="{{ media.file.url }}" class="w-100 h-100 object-fit-cover" alt="{{ media.title }}">
+                        </div>
+                        {% else %}
+                        <div class="rounded-3 overflow-hidden mb-2" style="height: 150px; background: linear-gradient(135deg, #4a6fa5, #6b8cff); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-play-circle fa-3x" style="color: white;"></i>
+                        </div>
+                        {% endif %}
+                        <h4 class="h6 mb-1" style="color: #0b2b40; font-size: 14px !important; font-weight: 700;">{{ media.title }}</h4>
+                        <p class="small mb-0" style="color: #ff6b6b; font-size: 12px;">
+                            <i class="fas fa-eye me-1"></i> {{ media.view_count }} views
+                        </p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Testimonials Section -->
+    {% if testimonials %}
+    <section class="py-5" data-aos="fade-up">
+        <h2 class="section-title" style="color: #0b2b40; font-size: 24px !important; border-bottom: 4px solid #9d4edd; padding-bottom: 10px;">What People Say</h2>
+        <div class="row g-4">
+            {% for testimonial in testimonials %}
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100" style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if testimonial.photo %}
+                        <img src="{{ testimonial.photo.url }}" class="rounded-circle me-3" width="60" height="60" style="object-fit: cover; border: 3px solid #4ecdc4;">
+                        {% else %}
+                        <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background: linear-gradient(135deg, #ff6b6b, #ff8e53); border: 3px solid white;">
+                            <span class="fw-bold text-white" style="font-size: 24px;">{{ testimonial.name|first }}</span>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h4 class="h6 mb-0" style="color: #0b2b40; font-size: 16px !important; font-weight: 700;">{{ testimonial.name }}</h4>
+                            <p class="small mb-0" style="color: #4a6fa5;">{{ testimonial.title }}</p>
+                        </div>
+                    </div>
+                    <p class="mb-3" style="font-style: italic; color: #2c3e50; font-size: 14px;">"{{ testimonial.content|truncatechars:150 }}"</p>
+                    <div style="color: #f7d44a;">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= testimonial.rating %}
+                            <i class="fas fa-star"></i>
+                            {% else %}
+                            <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Categories Section -->
+    {% if categories %}
+    <section class="py-5" data-aos="fade-up">
+        <h2 class="section-title" style="color: #0b2b40; font-size: 24px !important; border-bottom: 4px solid #ff8e53; padding-bottom: 10px;">Explore by Category</h2>
+        <div class="row g-4">
+            {% for category in categories %}
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="{% url 'categories:detail' category.slug %}" class="text-decoration-none">
+                    <div class="glass-card p-4 text-center" style="background: white; border: 2px solid #4ecdc4; transition: all 0.3s ease;">
+                        {% if category.icon %}
+                        <i class="fas {{ category.icon }} fa-3x mb-3" style="color: #ff6b6b;"></i>
+                        {% else %}
+                        <i class="fas fa-folder fa-3x mb-3" style="color: #4a6fa5;"></i>
+                        {% endif %}
+                        <h3 class="h6 mb-1" style="color: #0b2b40; font-size: 16px !important; font-weight: 700;">{{ category.name }}</h3>
+                        <p class="small mb-0" style="color: #38b2ac; font-size: 13px;">{{ category.media_count }} items</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    
+    <!-- Blog Posts Section -->
+    {% if blog_posts %}
+    <section class="py-5" data-aos="fade-up">
+        <h2 class="section-title" style="color: #0b2b40; font-size: 24px !important; border-bottom: 4px solid #9d4edd; padding-bottom: 10px;">Latest Blog Posts</h2>
+        <div class="row g-4">
+            {% for post in blog_posts %}
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100" style="background: white; border-left: 5px solid #ff6b6b;">
+                    {% if post.cover_image %}
+                    <div class="mb-3 rounded-3 overflow-hidden" style="height: 150px;">
+                        <img src="{{ post.cover_image }}" class="w-100 h-100 object-fit-cover" alt="{{ post.title }}">
+                    </div>
+                    {% endif %}
+                    <h3 class="h5 mb-2" style="color: #0b2b40; font-size: 18px !important; font-weight: 700;">{{ post.title }}</h3>
+                    <p class="small mb-3" style="color: #2c3e50;">{{ post.excerpt|truncatechars:100 }}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small" style="color: #4a6fa5;">
+                            <i class="fas fa-calendar me-1"></i> {{ post.published_at|date:"M d, Y" }}
+                        </span>
+                        <span class="small" style="color: #38b2ac;">
+                            <i class="fas fa-clock me-1"></i> {{ post.read_time_minutes }} min
+                        </span>
+                    </div>
+                    <div class="mt-2">
+                        <span class="badge me-2" style="background: #ff6b6b; color: white;"><i class="fas fa-heart me-1"></i> {{ post.reactions_count }}</span>
+                        <span class="badge" style="background: #4a6fa5; color: white;"><i class="fas fa-comment me-1"></i> {{ post.comments_count }}</span>
+                    </div>
+                    <a href="{{ post.external_url }}" target="_blank" class="stretched-link"></a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<!-- Typed.js for animated text -->
+<script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+<script>
+    var typed = new Typed('.typed-text', {
+        strings: ['Tech Enthusiast', 'Data Analyst', 'SEO Expert', 'Problem Solver', 'Web Developer'],
+        typeSpeed: 50,
+        backSpeed: 30,
+        loop: true
+    });
+</script>
+
+<style>
+    /* Additional hover effects */
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    
+    .section-title {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}

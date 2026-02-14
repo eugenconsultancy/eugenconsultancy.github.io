@@ -1,0 +1,72 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg py-3 sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'core:home' %}">
+            EUGEN <span style="color: var(--cyan);">WEB DEVELOPMENT CONSULTANCY</span>
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" style="background: var(--cyan);">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:home' %}">
+                        <i class="fas fa-home me-1" style="color: var(--cyan);"></i>Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'projects:list' %}">
+                        <i class="fas fa-code me-1" style="color: var(--cyan);"></i>Projects
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'media:list' %}">
+                        <i class="fas fa-image me-1" style="color: var(--cyan);"></i>Media
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'collections:list' %}">
+                        <i class="fas fa-layer-group me-1" style="color: var(--cyan);"></i>Collections
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'blog:list' %}">
+                        <i class="fas fa-blog me-1" style="color: var(--cyan);"></i>Blog
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:about' %}">
+                        <i class="fas fa-user me-1" style="color: var(--cyan);"></i>About
+                    </a>
+                </li>
+                <li class="nav-item ms-3">
+                    <a href="{% url 'inquiries:contact' %}" class="cyan-btn">
+                        <i class="fas fa-paper-plane me-2"></i>Let's Talk
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Status Bar -->
+<div class="status-bar py-2" style="background: rgba(6, 33, 46, 0.9); border-bottom: 2px solid var(--cyan);">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-circle me-2" style="color: var(--cyan); font-size: 0.6rem;"></i>
+            <span style="color: white;">Available for freelance work</span>
+            <span class="badge bg-cyan ms-3" style="background: var(--cyan); color: var(--navy-dark);">Connect developer →</span>
+        </div>
+        <div class="d-flex align-items-center">
+            <i class="fas fa-volume-up me-2" style="color: var(--cyan);"></i>
+            <span style="color: white;" class="me-3">Speakers (2 - High Definition Audio Device)</span>
+            <i class="fas fa-battery-three-quarters me-2" style="color: var(--cyan);"></i>
+            <span style="color: white;" class="me-2">8:22 PM</span>
+            <span style="color: white;" class="me-2">Saturday</span>
+            <span style="color: white;">2/14/2026</span>
+            <span class="ms-2 badge" style="background: var(--cyan); color: var(--navy-dark);">98</span>
+        </div>
+    </div>
+</div>

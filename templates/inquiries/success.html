@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Message Sent - DevPort{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row min-vh-75 align-items-center py-5">
+        <div class="col-lg-6 mx-auto text-center" data-aos="fade-up">
+            <div class="glass-card p-5">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle fa-5x" style="color: #4ade80;"></i>
+                </div>
+                <h1 class="display-4 fw-bold mb-4" style="background: linear-gradient(135deg, #fff, #9d4edd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Message Sent!
+                </h1>
+                <p class="lead mb-4">Thank you for reaching out. I'll get back to you within 24 hours.</p>
+                <p class="text-muted mb-5">In the meantime, feel free to check out my work or read my latest blog posts.</p>
+                
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="{% url 'projects:list' %}" class="crystal-btn">
+                        <i class="fas fa-code me-2"></i>View Projects
+                    </a>
+                    <a href="{% url 'core:home' %}" class="gradient-btn">
+                        <i class="fas fa-home me-2"></i>Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

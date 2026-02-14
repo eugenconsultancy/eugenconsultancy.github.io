@@ -1,0 +1,20 @@
+# Core Django
+Django==4.2.7
+gunicorn==21.2.0
+whitenoise==6.6.0
+dj-database-url==2.1.0
+python-dotenv==1.0.0
+
+# Database
+psycopg2-binary==2.9.9
+
+# Media/Image Processing - Updated for Python 3.11
+Pillow==10.4.0
+django-cleanup==8.1.0
+
+# Admin Interface
+django-jazzmin==2.6.0
+
+# Cloud Storage
+django-storages==1.14.2
+boto3==1.34.0

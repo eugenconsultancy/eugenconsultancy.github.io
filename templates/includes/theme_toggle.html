@@ -1,0 +1,67 @@
+<div class="theme-toggle position-fixed bottom-0 end-0 m-4" onclick="toggleTheme()" style="z-index: 9999;">
+    <i class="fas fa-sun" id="light-icon" style="display: none;"></i>
+    <i class="fas fa-moon" id="dark-icon" style="display: none;"></i>
+    <i class="fas fa-desktop" id="system-icon"></i>
+</div>
+
+<script>
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        const lightIcon = document.getElementById('light-icon');
+        const darkIcon = document.getElementById('dark-icon');
+        const systemIcon = document.getElementById('system-icon');
+        
+        let newTheme;
+        if (currentTheme === 'light') {
+            newTheme = 'dark';
+            lightIcon.style.display = 'none';
+            darkIcon.style.display = 'block';
+            systemIcon.style.display = 'none';
+        } else if (currentTheme === 'dark') {
+            newTheme = 'system';
+            lightIcon.style.display = 'none';
+            darkIcon.style.display = 'none';
+            systemIcon.style.display = 'block';
+        } else {
+            newTheme = 'light';
+            lightIcon.style.display = 'block';
+            darkIcon.style.display = 'none';
+            systemIcon.style.display = 'none';
+        }
+        
+        html.setAttribute('data-theme', newTheme);
+        
+        // Save to server
+        fetch('/set-theme/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: 'theme=' + newTheme
+        });
+    }
+    
+    // Set initial icons
+    (function() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        const lightIcon = document.getElementById('light-icon');
+        const darkIcon = document.getElementById('dark-icon');
+        const systemIcon = document.getElementById('system-icon');
+        
+        if (theme === 'light') {
+            lightIcon.style.display = 'block';
+            darkIcon.style.display = 'none';
+            systemIcon.style.display = 'none';
+        } else if (theme === 'dark') {
+            lightIcon.style.display = 'none';
+            darkIcon.style.display = 'block';
+            systemIcon.style.display = 'none';
+        } else {
+            lightIcon.style.display = 'none';
+            darkIcon.style.display = 'none';
+            systemIcon.style.display = 'block';
+        }
+    })();
+</script>

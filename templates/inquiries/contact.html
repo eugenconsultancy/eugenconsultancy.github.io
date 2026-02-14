@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact - DevPort{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row py-5">
+        <div class="col-lg-8 mx-auto" data-aos="fade-up">
+            <div class="glass-card p-5">
+                <h1 class="display-4 fw-bold mb-4 text-center" style="background: linear-gradient(135deg, #fff, #9d4edd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Let's Work Together
+                </h1>
+                <p class="lead text-center mb-5">Have a project in mind? I'd love to hear about it. Fill out the form below and I'll get back to you within 24 hours.</p>
+                
+                <form method="post" class="row g-4">
+                    {% csrf_token %}
+                    
+                    <!-- Inquiry Type -->
+                    <div class="col-12">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Inquiry Type *</label>
+                        <select name="inquiry_type" class="glass-input w-100" required>
+                            {% for value, label in form.inquiry_type.field.choices %}
+                                {% if value %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        {% if form.inquiry_type.errors %}
+                        <div class="text-danger small mt-1">{{ form.inquiry_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Media Item (optional) -->
+                    <div class="col-12">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Related Media (Optional)</label>
+                        <select name="media_item" class="glass-input w-100">
+                            <option value="">Select a specific piece...</option>
+                            {% for media in form.media_item.field.queryset %}
+                            <option value="{{ media.id }}">{{ media.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Name -->
+                    <div class="col-md-6">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Your Name *</label>
+                        <input type="text" name="name" class="glass-input w-100" placeholder="John Doe" value="{{ form.name.value|default:'' }}" required>
+                        {% if form.name.errors %}
+                        <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="col-md-6">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Email Address *</label>
+                        <input type="email" name="email" class="glass-input w-100" placeholder="john@example.com" value="{{ form.email.value|default:'' }}" required>
+                        {% if form.email.errors %}
+                        <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Phone -->
+                    <div class="col-md-6">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Phone Number</label>
+                        <input type="tel" name="phone" class="glass-input w-100" placeholder="+1 234 567 8900" value="{{ form.phone.value|default:'' }}">
+                    </div>
+                    
+                    <!-- Company -->
+                    <div class="col-md-6">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Company/Organization</label>
+                        <input type="text" name="company" class="glass-input w-100" placeholder="Company Name" value="{{ form.company.value|default:'' }}">
+                    </div>
+                    
+                    <!-- Subject -->
+                    <div class="col-12">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Subject *</label>
+                        <input type="text" name="subject" class="glass-input w-100" placeholder="What is this regarding?" value="{{ form.subject.value|default:'' }}" required>
+                        {% if form.subject.errors %}
+                        <div class="text-danger small mt-1">{{ form.subject.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Message -->
+                    <div class="col-12">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Message *</label>
+                        <textarea name="message" class="glass-input w-100" rows="6" placeholder="Tell me about your project..." required>{{ form.message.value|default:'' }}</textarea>
+                        {% if form.message.errors %}
+                        <div class="text-danger small mt-1">{{ form.message.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Additional fields based on inquiry type -->
+                    <div class="col-md-6 conditional-field" data-type="license,print">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Usage Type</label>
+                        <input type="text" name="usage_type" class="glass-input w-100" placeholder="e.g., Website, Print, Exhibition" value="{{ form.usage_type.value|default:'' }}">
+                    </div>
+                    
+                    <div class="col-md-6 conditional-field" data-type="commission">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Budget Range</label>
+                        <input type="text" name="budget_range" class="glass-input w-100" placeholder="e.g., $500-$1000" value="{{ form.budget_range.value|default:'' }}">
+                    </div>
+                    
+                    <div class="col-md-6 conditional-field" data-type="commission">
+                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Deadline</label>
+                        <input type="date" name="deadline" class="glass-input w-100" value="{{ form.deadline.value|default:'' }}">
+                    </div>
+                    
+                    <!-- Legal Checkboxes -->
+                    <div class="col-12">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="accepted_terms" id="acceptedTerms" required>
+                            <label class="form-check-label" for="acceptedTerms">
+                                I agree to the <a href="#" class="text-decoration-none" style="color: #9d4edd;">Terms and Conditions</a> *
+                            </label>
+                        </div>
+                        {% if form.accepted_terms.errors %}
+                        <div class="text-danger small mt-1">{{ form.accepted_terms.errors }}</div>
+                        {% endif %}
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="accepted_privacy" id="acceptedPrivacy" required>
+                            <label class="form-check-label" for="acceptedPrivacy">
+                                I agree to the <a href="#" class="text-decoration-none" style="color: #9d4edd;">Privacy Policy</a> *
+                            </label>
+                        </div>
+                        {% if form.accepted_privacy.errors %}
+                        <div class="text-danger small mt-1">{{ form.accepted_privacy.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="col-12 text-center mt-4">
+                        <button type="submit" class="gradient-btn btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i>Send Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Show/hide conditional fields based on inquiry type
+    const inquiryTypeSelect = document.querySelector('select[name="inquiry_type"]');
+    const conditionalFields = document.querySelectorAll('.conditional-field');
+    
+    function updateConditionalFields() {
+        const selectedType = inquiryTypeSelect.value;
+        
+        conditionalFields.forEach(field => {
+            const types = field.dataset.type.split(',');
+            if (types.includes(selectedType)) {
+                field.style.display = 'block';
+            } else {
+                field.style.display = 'none';
+            }
+        });
+    }
+    
+    inquiryTypeSelect.addEventListener('change', updateConditionalFields);
+    updateConditionalFields();
+</script>
+{% endblock %}

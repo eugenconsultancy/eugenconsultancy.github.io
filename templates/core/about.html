@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About - DevPort{% endblock %}
+
+{% block content %}
+<style>
+    /* Increase base font size to 16px and set extra bold text */
+    body {
+        font-size: 16px !important;
+    }
+    
+    .glass-card, p, h1, h2, h3, h4, h5, h6, span, div, a {
+        font-weight: 800 !important;  /* Extra bold for all text */
+    }
+    
+    /* Override for specific elements that might need different weights */
+    .text-muted, .small {
+        font-weight: 700 !important;  /* Slightly less bold but still heavy */
+    }
+    
+    .fw-light, .fw-normal {
+        font-weight: 800 !important;  /* Override any lighter weights */
+    }
+    
+    .stat-number {
+        font-weight: 900 !important;  /* Ultra bold for stats */
+        font-size: 2.5rem;
+    }
+    
+    .lead {
+        font-weight: 800 !important;
+        font-size: 1.35rem;
+    }
+    
+    /* Ensure all text elements use extra bold */
+    p, li, span, div:not(.fa):not(.fas):not(.far) {
+        font-weight: 800 !important;
+    }
+    
+    /* Keep icons normal weight */
+    .fas, .far, .fab {
+        font-weight: 400 !important;
+    }
+</style>
+
+<div class="container">
+    <div class="row py-5">
+        <div class="col-lg-8 mx-auto" data-aos="fade-up">
+            <div class="glass-card p-5">
+                <h1 class="display-4 fw-black mb-4" style="font-weight: 900 !important; background: linear-gradient(135deg, #fff, #9d4edd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">About Me</h1>
+                
+                <div class="mb-5">
+                    <h2 class="h4 mb-3" style="color: #9d4edd; font-weight: 900 !important;">The Story</h2>
+                    <p class="lead mb-4" style="font-weight: 800 !important;">I'm Andrew Ryan, a passionate developer and designer with over 5 years of experience creating digital experiences that blend creativity with technical excellence.</p>
+                    <p class="mb-3" style="font-weight: 800 !important;">My journey into tech started when I built my first website at 15—a simple HTML page about my favorite games. That spark of creation never left me. Today, I specialize in building full-stack applications with modern frameworks, always focusing on performance, accessibility, and user experience.</p>
+                    <p class="mb-3" style="font-weight: 800 !important;">I believe that great software is more than just code—it's about solving real problems for real people. Every project I work on is an opportunity to make something that matters.</p>
+                </div>
+                
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 h-100">
+                            <i class="fas fa-code fa-3x mb-3" style="color: #6b8cff;"></i>
+                            <h3 class="h5 mb-3" style="font-weight: 900 !important;">Development</h3>
+                            <p class="small text-muted" style="font-weight: 700 !important;">Full-stack development with Python, Django, React, Node.js, and modern JavaScript. I build scalable, maintainable applications that perform.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 h-100">
+                            <i class="fas fa-paint-brush fa-3x mb-3" style="color: #9d4edd;"></i>
+                            <h3 class="h5 mb-3" style="font-weight: 900 !important;">Design</h3>
+                            <p class="small text-muted" style="font-weight: 700 !important;">Creating beautiful, intuitive interfaces with a focus on user experience. I design with accessibility and visual appeal in mind.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats from screenshot -->
+                <div class="stats-section row g-4 mb-5">
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card">
+                            <div class="stat-number" data-value="50" style="font-weight: 900 !important; font-size: 2.5rem;">0</div>
+                            <span class="text-uppercase small" style="font-weight: 800 !important;">Projects</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card">
+                            <div class="stat-number" data-value="5" style="font-weight: 900 !important; font-size: 2.5rem;">0</div>
+                            <span class="text-uppercase small" style="font-weight: 800 !important;">Years</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card">
+                            <div class="stat-number" data-value="30" style="font-weight: 900 !important; font-size: 2.5rem;">0</div>
+                            <span class="text-uppercase small" style="font-weight: 800 !important;">Clients</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card">
+                            <div class="stat-number" data-value="15" style="font-weight: 900 !important; font-size: 2.5rem;">0</div>
+                            <span class="text-uppercase small" style="font-weight: 800 !important;">Awards</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-5">
+                    <h2 class="h4 mb-3" style="color: #9d4edd; font-weight: 900 !important;">My Approach</h2>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-check-circle me-3 mt-1" style="color: #4ade80;"></i>
+                                <div>
+                                    <h4 class="h6 mb-1" style="font-weight: 900 !important;">User-Centered Design</h4>
+                                    <p class="small text-muted mb-0" style="font-weight: 700 !important;">Every decision starts with the user. I build experiences that are intuitive, accessible, and delightful.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-check-circle me-3 mt-1" style="color: #4ade80;"></i>
+                                <div>
+                                    <h4 class="h6 mb-1" style="font-weight: 900 !important;">Performance First</h4>
+                                    <p class="small text-muted mb-0" style="font-weight: 700 !important;">Fast load times and smooth interactions aren't optional—they're essential for modern web experiences.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-check-circle me-3 mt-1" style="color: #4ade80;"></i>
+                                <div>
+                                    <h4 class="h6 mb-1" style="font-weight: 900 !important;">Clean Code</h4>
+                                    <p class="small text-muted mb-0" style="font-weight: 700 !important;">I write maintainable, well-documented code that's a pleasure to work with and easy to scale.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Featured Work -->
+                {% if featured_work %}
+                <div class="mb-5">
+                    <h2 class="h4 mb-3" style="color: #9d4edd; font-weight: 900 !important;">Featured Work</h2>
+                    <div class="row g-3">
+                        {% for item in featured_work|slice:":3" %}
+                        <div class="col-md-4">
+                            <a href="{{ item.get_absolute_url }}" class="text-decoration-none">
+                                <div class="glass-card p-3">
+                                    {% if item.thumbnail %}
+                                    <img src="{{ item.thumbnail.url }}" class="w-100 rounded-3 mb-2" style="height: 100px; object-fit: cover;" alt="">
+                                    {% endif %}
+                                    <h5 class="h6 mb-0 text-white" style="font-weight: 900 !important;">{{ item.title }}</h5>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- CTA -->
+                <div class="text-center">
+                    <h2 class="h4 mb-4" style="font-weight: 900 !important;">Ready to work together?</h2>
+                    <a href="{% url 'inquiries:contact' %}" class="gradient-btn btn-lg" style="font-weight: 800 !important;">
+                        <i class="fas fa-paper-plane me-2"></i>Let's Talk
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

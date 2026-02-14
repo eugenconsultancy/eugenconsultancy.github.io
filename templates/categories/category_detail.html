@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} - DevPort{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Category Header -->
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-lg-8 mx-auto text-center">
+            {% if category.cover_image %}
+            <div class="mb-4 rounded-3 overflow-hidden" style="max-height: 300px;">
+                <img src="{{ category.cover_image.url }}" class="w-100" alt="{{ category.name }}">
+            </div>
+            {% endif %}
+            
+            <h1 class="display-4 fw-bold mb-3" style="background: linear-gradient(135deg, #fff, #9d4edd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                {{ category.name }}
+            </h1>
+            
+            <div class="d-flex justify-content-center gap-3 mb-4">
+                <span class="badge" style="background: rgba(107,140,255,0.2); padding: 8px 16px;">
+                    <i class="fas fa-tag me-1"></i> {{ category.get_category_type_display }}
+                </span>
+                <span class="badge" style="background: rgba(157,78,221,0.2); padding: 8px 16px;">
+                    <i class="fas fa-images me-1"></i> {{ category.media_count }} items
+                </span>
+            </div>
+            
+            {% if category.description %}
+            <p class="lead">{{ category.description }}</p>
+            {% endif %}
+            
+            {% if category.parent %}
+            <p class="text-muted mt-3">
+                Parent Category: 
+                <a href="{% url 'categories:detail' category.parent.slug %}" class="text-decoration-none" style="color: #9d4edd;">
+                    {{ category.parent.name }}
+                </a>
+            </p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Subcategories -->
+    {% if category.children.all %}
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-12">
+            <h2 class="section-title">Subcategories</h2>
+        </div>
+        {% for subcategory in category.children.all %}
+        <div class="col-lg-3 col-md-4 col-6">
+            <a href="{% url 'categories:detail' subcategory.slug %}" class="text-decoration-none">
+                <div class="glass-card p-3 text-center">
+                    {% if subcategory.icon %}
+                    <i class="fas {{ subcategory.icon }} fa-2x mb-2" style="color: #9d4edd;"></i>
+                    {% endif %}
+                    <h3 class="h6 mb-1 text-white">{{ subcategory.name }}</h3>
+                    <span class="small text-muted">{{ subcategory.media_count }} items</span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Media Items -->
+    <div class="row g-4">
+        {% for item in media_items %}
+        <div class="col-lg-3 col-md-4 col-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:'50' }}">
+            <div class="glass-card h-100 p-2">
+                <a href="{{ item.get_absolute_url }}" class="text-decoration-none">
+                    {% if item.media_type == 'image' %}
+                    <div class="rounded-3 overflow-hidden mb-2" style="height: 150px;">
+                        <img src="{{ item.file.url }}" class="w-100 h-100 object-fit-cover" alt="{{ item.title }}">
+                    </div>
+                    {% else %}
+                    <div class="rounded-3 overflow-hidden mb-2 position-relative" style="height: 150px; background: rgba(0,0,0,0.3);">
+                        {% if item.thumbnail %}
+                        <img src="{{ item.thumbnail.url }}" class="w-100 h-100 object-fit-cover" alt="{{ item.title }}">
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <i class="fas fa-play-circle fa-3x" style="color: #9d4edd;"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <h4 class="small fw-bold mb-1 text-white">{{ item.title }}</h4>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-muted">
+                            <i class="fas fa-eye"></i> {{ item.view_count }}
+                        </span>
+                        {% if item.date_taken %}
+                        <span class="small text-muted">
+                            {{ item.date_taken|date:"Y" }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="glass-card p-5">
+                <i class="fas fa-images fa-4x mb-3" style="color: rgba(255,255,255,0.3);"></i>
+                <h3>No media in this category</h3>
+                <p class="text-muted">Check back later for new additions!</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="row mt-5" data-aos="fade-up">
+        <div class="col-12">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if media_items.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link glass-card" href="?page={{ media_items.previous_page_number }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in media_items.paginator.page_range %}
+                        {% if media_items.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link glass-card" style="background: linear-gradient(135deg, #6b8cff, #9d4edd); border: none;">{{ num }}</span>
+                        </li>
+                        {% elif num > media_items.number|add:'-3' and num < media_items.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link glass-card" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if media_items.has_next %}
+                    <li class="page-item">
+                        <a class="page-link glass-card" href="?page={{ media_items.next_page_number }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
