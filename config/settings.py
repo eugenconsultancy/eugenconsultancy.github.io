@@ -4,6 +4,7 @@ Django settings for media portfolio project.
 
 from pathlib import Path
 import os
+import sys  # IMPORTANT: Added sys import for path manipulation
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -11,6 +12,24 @@ load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ============================================================
+# CRITICAL FIX: Add project paths to Python's module search path
+# ============================================================
+# Add the project root directory
+PROJECT_ROOT = str(BASE_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+# Add the media_portfolio directory (where your apps are)
+MEDIA_PORTFOLIO_ROOT = str(BASE_DIR / 'media_portfolio')
+if MEDIA_PORTFOLIO_ROOT not in sys.path:
+    sys.path.insert(0, MEDIA_PORTFOLIO_ROOT)
+
+# Print paths for debugging (visible in logs)
+print(f"Python path: {sys.path}")
+print(f"BASE_DIR: {BASE_DIR}")
+print(f"MEDIA_PORTFOLIO_ROOT: {MEDIA_PORTFOLIO_ROOT}")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-change-me')
@@ -37,16 +56,16 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_celery_results',
     
-    # Local apps
+    # Local apps - Using full paths (they will be found due to sys.path additions)
     'media_portfolio.core',
     'media_portfolio.media',
     'media_portfolio.categories',
     'media_portfolio.comments',
     'media_portfolio.inquiries',
     'media_portfolio.collections',
-    'media_portfolio.projects',  # Add this
-    'media_portfolio.blog',       # Add this
-    'media_portfolio.github',     # Add this
+    'media_portfolio.projects',
+    'media_portfolio.blog',
+    'media_portfolio.github',
 ]
 
 MIDDLEWARE = [
@@ -213,7 +232,7 @@ JAZZMIN_SETTINGS = {
     "site_title": "Media Portfolio Admin",
     "site_header": "Media Portfolio",
     "site_brand": "MP Admin",
-    "site_logo": None,  # Add path to your logo if available
+    "site_logo": None,
     "login_logo": None,
     "login_logo_dark": None,
     "site_icon": None,
@@ -309,50 +328,31 @@ JAZZMIN_SETTINGS = {
 # ============================================================================
 
 JAZZMIN_UI_TWEAKS = {
-    # Theme: Choose from available themes
-    "theme": "darkly",  # Dark theme with high contrast
-    
-    # Color scheme
-    "navbar": "navbar-dark",  # Options: navbar-dark, navbar-light
+    "theme": "darkly",
+    "navbar": "navbar-dark",
     "navbar_fixed": True,
-    "navbar_color": "#1a1a2e",  # Deep midnight blue/purple
-    
-    # Sidebar
+    "navbar_color": "#1a1a2e",
     "sidebar": "sidebar-dark-primary",
     "sidebar_fixed": True,
-    "sidebar_color": "#16213e",  # Rich dark blue with purple undertones
-    
-    # Brand/text colors
-    "brand_color": "#ffffff",  # White brand text
+    "sidebar_color": "#16213e",
+    "brand_color": "#ffffff",
     "brand_small_text": False,
-    "text_color": "#e9ecef",  # Light gray text
-    "text_muted_color": "#adb5bd",  # Muted text color
-    
-    # Links - Purple/Blue gradient effect
-    "link_color": "#9d4edd",  # Vibrant purple
-    "link_hover_color": "#c77dff",  # Light purple on hover
-    
-    # Primary accent color (buttons, active items)
-    "primary": "#6a4c9c",  # Royal purple
-    "primary_hover": "#7d5fb0",  # Lighter purple on hover
-    
-    # Secondary accent
-    "secondary": "#4a6fa5",  # Steel blue
-    "secondary_hover": "#5d82b8",  # Lighter blue
-    
-    # Info/Success/Warning/Danger colors
-    "info": "#3b8ea5",  # Teal blue
-    "success": "#2a9d8f",  # Green-blue
-    "warning": "#e9c46a",  # Warm yellow
-    "danger": "#e76f51",  # Coral
-    
-    # Custom accent colors for specific elements
-    "accent_blue": "#4361ee",  # Bright blue
-    "accent_purple": "#9d4edd",  # Purple
-    "accent_violet": "#7209b7",  # Deep violet
-    "accent_indigo": "#3a0ca3",  # Indigo
-    
-    # Buttons
+    "text_color": "#e9ecef",
+    "text_muted_color": "#adb5bd",
+    "link_color": "#9d4edd",
+    "link_hover_color": "#c77dff",
+    "primary": "#6a4c9c",
+    "primary_hover": "#7d5fb0",
+    "secondary": "#4a6fa5",
+    "secondary_hover": "#5d82b8",
+    "info": "#3b8ea5",
+    "success": "#2a9d8f",
+    "warning": "#e9c46a",
+    "danger": "#e76f51",
+    "accent_blue": "#4361ee",
+    "accent_purple": "#9d4edd",
+    "accent_violet": "#7209b7",
+    "accent_indigo": "#3a0ca3",
     "button_classes": {
         "primary": "btn-primary",
         "secondary": "btn-secondary",
@@ -361,125 +361,74 @@ JAZZMIN_UI_TWEAKS = {
         "danger": "btn-danger",
         "success": "btn-success",
     },
-    
-    # Tables
     "table_classes": "table table-striped table-hover",
     "table_striped": True,
     "table_hover": True,
     "table_bordered": False,
     "table_condensed": False,
-    
-    # Cards
     "card_border_radius": "8px",
-    "card_shadow": "0 4px 12px rgba(106, 76, 156, 0.15)",  # Purple-tinted shadow
-    "card_highlight": "#6a4c9c",  # Purple highlight for cards
-    
-    # Input fields
+    "card_shadow": "0 4px 12px rgba(106, 76, 156, 0.15)",
+    "card_highlight": "#6a4c9c",
     "input_border_radius": "6px",
     "input_shadow": "inset 0 1px 3px rgba(0,0,0,0.1)",
-    "input_focus_border": "#9d4edd",  # Purple focus border
-    "input_focus_shadow": "0 0 0 3px rgba(157, 78, 221, 0.25)",  # Purple focus glow
-    
-    # Alerts
+    "input_focus_border": "#9d4edd",
+    "input_focus_shadow": "0 0 0 3px rgba(157, 78, 221, 0.25)",
     "alert_border_radius": "8px",
     "alert_shadow": "0 2px 6px rgba(0,0,0,0.1)",
-    
-    # Dropdowns
     "dropdown_border_radius": "6px",
     "dropdown_shadow": "0 4px 12px rgba(0,0,0,0.2)",
-    "dropdown_item_hover": "#6a4c9c",  # Purple hover for dropdown items
-    "dropdown_item_hover_color": "#ffffff",  # White text on hover
-    
-    # Badges
+    "dropdown_item_hover": "#6a4c9c",
+    "dropdown_item_hover_color": "#ffffff",
     "badge_border_radius": "4px",
-    "badge_primary_bg": "#6a4c9c",  # Purple badge background
-    "badge_secondary_bg": "#4a6fa5",  # Blue badge background
-    
-    # Progress bars
-    "progress_bar_primary": "#6a4c9c",  # Purple progress bar
-    
-    # List groups
-    "list_group_active_bg": "#6a4c9c",  # Purple active list item
-    "list_group_active_color": "#ffffff",  # White text on active
-    
-    # Action buttons
+    "badge_primary_bg": "#6a4c9c",
+    "badge_secondary_bg": "#4a6fa5",
+    "progress_bar_primary": "#6a4c9c",
+    "list_group_active_bg": "#6a4c9c",
+    "list_group_active_color": "#ffffff",
     "actions_sticky_top": True,
-    
-    # Dark mode toggle
-    "dark_mode_theme": "cyborg",  # Optional dark mode theme
-    
-    # Custom CSS classes for specific elements
+    "dark_mode_theme": "cyborg",
     "custom_css": """
-        /* Custom purple/blue gradient for headers */
         .main-header {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
         }
-        
-        /* Purple glow for active menu items */
         .nav-sidebar .nav-item .nav-link.active {
             background: linear-gradient(90deg, #6a4c9c 0%, #4a6fa5 100%) !important;
             box-shadow: 0 2px 10px rgba(106, 76, 156, 0.3);
         }
-        
-        /* Blue hover effect for menu items */
         .nav-sidebar .nav-item .nav-link:hover {
             background: rgba(74, 111, 165, 0.2) !important;
         }
-        
-        /* Purple borders for cards */
         .card {
             border-top: 3px solid #6a4c9c !important;
         }
-        
-        /* Blue buttons */
         .btn-primary {
             background: linear-gradient(135deg, #6a4c9c 0%, #4a6fa5 100%) !important;
             border: none !important;
         }
-        
         .btn-primary:hover {
             background: linear-gradient(135deg, #7d5fb0 0%, #5d82b8 100%) !important;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(106, 76, 156, 0.3);
         }
-        
-        /* Purple badges */
         .badge-primary {
             background: linear-gradient(135deg, #9d4edd 0%, #6a4c9c 100%) !important;
         }
-        
-        /* Blue badges */
         .badge-info {
             background: linear-gradient(135deg, #3a86ff 0%, #4a6fa5 100%) !important;
         }
-        
-        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        
         ::-webkit-scrollbar-track {
             background: #1a1a2e;
         }
-        
         ::-webkit-scrollbar-thumb {
             background: #6a4c9c;
             border-radius: 4px;
         }
-        
         ::-webkit-scrollbar-thumb:hover {
             background: #9d4edd;
         }
     """,
 }
-    
-# Alternative HIGH CONTRAST themes you can try by changing "theme" above:
-# "theme": "cyborg"     # High contrast dark theme with neon accents
-# "theme": "darkly"     # Professional dark theme (current)
-# "theme": "slate"      # Blue-gray dark theme
-# "theme": "superhero"  # Navy blue theme with orange accents
-# "theme": "materia"    # Material design with good contrast
-
-# Remove or comment out the old SUIT_CONFIG since we're using Jazzmin now
-# SUIT_CONFIG = { ... }

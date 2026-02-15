@@ -4,6 +4,19 @@ Production settings for Leapcell deployment
 from .settings import *
 import dj_database_url
 import os
+import sys  # Add sys import
+
+# ============================================================
+# CRITICAL FIX: Ensure paths are set (inherited from settings.py)
+# ============================================================
+# Double-check paths are in sys.path (in case settings.py didn't set them)
+PROJECT_ROOT = str(BASE_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+MEDIA_PORTFOLIO_ROOT = str(BASE_DIR / 'media_portfolio')
+if MEDIA_PORTFOLIO_ROOT not in sys.path:
+    sys.path.insert(0, MEDIA_PORTFOLIO_ROOT)
 
 # Security settings for production
 DEBUG = False
@@ -11,7 +24,6 @@ SECRET_KEY = os.environ.get('SECRET_KEY', SECRET_KEY)
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '.leapcell.dev,localhost,127.0.0.1').split(',')
 
 # Database - Use PostgreSQL on Leapcell
-# DATABASE_URL will be provided by Leapcell
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
@@ -33,10 +45,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Add Whitenoise middleware (must be after SecurityMiddleware)
-MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+# Check if it's already in MIDDLEWARE to avoid duplicates
+if 'whitenoise.middleware.WhiteNoiseMiddleware' not in MIDDLEWARE:
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 # Media files - Use local storage (will be ephemeral)
-# For production, configure cloud storage or Leapcell volumes
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -73,7 +86,7 @@ if os.environ.get('REDIS_URL'):
                 'PICKLE_VERSION': -1,
             },
             'KEY_PREFIX': 'media_portfolio',
-            'TIMEOUT': 60 * 60 * 24,  # 24 hours
+            'TIMEOUT': 60 * 60 * 24,
         }
     }
 
@@ -90,7 +103,7 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+CELERY_TASK_TIME_LIMIT = 30 * 60
 
 # Email settings for production
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
