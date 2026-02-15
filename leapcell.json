@@ -1,0 +1,22 @@
+{
+  "name": "media-portfolio",
+  "runtime": "python3.12",
+  "buildCommand": "pip install -r requirements.txt && python manage.py collectstatic --noinput",
+  "startCommand": "gunicorn config.wsgi:application --bind 0.0.0.0:8080",
+  "port": 8080,
+  "env": {
+    "DJANGO_SETTINGS_MODULE": "config.settings_production"
+  },
+  "healthCheck": {
+    "path": "/",
+    "interval": 30,
+    "timeout": 5,
+    "healthyThreshold": 2,
+    "unhealthyThreshold": 3
+  },
+  "autoscaling": {
+    "minInstances": 1,
+    "maxInstances": 5,
+    "targetCPUUtilization": 70
+  }
+}

@@ -1,234 +1,318 @@
 {% load static %}
-<footer class="mt-5 py-5" style="background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%); border-top: 3px solid var(--cyan); position: relative; overflow: hidden;">
+<footer class="mt-5 py-5" style="background: linear-gradient(135deg, #0b2b40 0%, #1a3f5a 100%); border-top: 4px solid #4ecdc4; position: relative; overflow: hidden;">
     
     <!-- Animated Background Elements -->
     <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 0;">
-        <div style="position: absolute; width: 300px; height: 300px; background: var(--cyan); border-radius: 50%; opacity: 0.05; top: -150px; right: -150px; animation: float 20s infinite ease-in-out;"></div>
-        <div style="position: absolute; width: 200px; height: 200px; background: var(--mint); border-radius: 50%; opacity: 0.05; bottom: -100px; left: -100px; animation: float 15s infinite ease-in-out reverse;"></div>
-        <div style="position: absolute; width: 150px; height: 150px; background: white; border-radius: 50%; opacity: 0.03; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: pulse 8s infinite ease-in-out;"></div>
+        <div style="position: absolute; width: 300px; height: 300px; background: #4ecdc4; border-radius: 50%; opacity: 0.08; top: -150px; right: -150px; animation: float 20s infinite ease-in-out;"></div>
+        <div style="position: absolute; width: 200px; height: 200px; background: #ff6b6b; border-radius: 50%; opacity: 0.05; bottom: -100px; left: -100px; animation: float 15s infinite ease-in-out reverse;"></div>
+        <div style="position: absolute; width: 150px; height: 150px; background: #9d4edd; border-radius: 50%; opacity: 0.05; top: 30%; right: 20%; animation: pulse 8s infinite ease-in-out;"></div>
+        <div style="position: absolute; width: 100px; height: 100px; background: #f7d44a; border-radius: 50%; opacity: 0.05; bottom: 20%; left: 10%; animation: float 12s infinite ease-in-out;"></div>
     </div>
     
     <div class="container position-relative" style="z-index: 1;">
         <!-- Main Footer Content -->
         <div class="row g-4">
-            <!-- Brand Column - Enhanced -->
+            <!-- Brand Column - Enhanced with colored icons -->
             <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
-                <div class="glass-card p-4 h-100" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(78, 205, 196, 0.2); transition: all 0.3s ease;">
+                <div class="glass-card p-4 h-100" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(78, 205, 196, 0.3); transition: all 0.3s ease; border-radius: 16px;">
                     <div class="d-flex align-items-center mb-3">
-                        <div style="width: 50px; height: 50px; background: var(--cyan); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px; transform: rotate(45deg); transition: all 0.3s ease;">
-                            <i class="fas fa-code" style="color: var(--navy-dark); font-size: 24px; transform: rotate(-45deg);"></i>
+                        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #4ecdc4, #38b2ac); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-right: 15px; transform: rotate(45deg); transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(78, 205, 196, 0.3);">
+                            <i class="fas fa-code" style="color: #0b2b40; font-size: 28px; transform: rotate(-45deg);"></i>
                         </div>
-                        <h3 class="h4 mb-0" style="color: white; font-family: 'Gravitas One', cursive; font-size: 18px !important;">EUGEN</h3>
+                        <div>
+                            <h3 class="h4 mb-0" style="color: white; font-family: 'Gravitas One', cursive; font-size: 20px !important;">EUGEN</h3>
+                            <span style="color: #4ecdc4; font-size: 12px;">Web Development Consultancy</span>
+                        </div>
                     </div>
                     
-                    <p style="color: rgba(255,255,255,0.8); font-size: 14px; line-height: 1.7; margin-bottom: 20px;">
+                    <p style="color: rgba(255,255,255,0.9); font-size: 15px; line-height: 1.7; margin-bottom: 20px;">
                         Creating stunning, accessible, and high-performance web experiences that bring your ideas to life. Specialized in modern frameworks, data analysis, and SEO optimization.
                     </p>
                     
-                    <!-- Social Media Icons with Enhanced Hover Effects -->
+                    <!-- Social Media Icons with Brand Colors - Enhanced -->
                     <div class="d-flex gap-3 mt-3">
-                        <a href="#" class="social-icon" style="width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; border: 1px solid rgba(78, 205, 196, 0.3);">
-                            <i class="fab fa-github"></i>
+                        <!-- GitHub - Dark theme -->
+                        <a href="#" class="social-icon" style="width: 45px; height: 45px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; box-shadow: 0 5px 10px rgba(0,0,0,0.2);" 
+                           onmouseover="this.style.background='#6e5494'; this.style.transform='translateY(-5px) scale(1.1)'" 
+                           onmouseout="this.style.background='#333'; this.style.transform='translateY(0) scale(1)'">
+                            <i class="fab fa-github fa-lg"></i>
                         </a>
-                        <a href="#" class="social-icon" style="width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; border: 1px solid rgba(78, 205, 196, 0.3);">
-                            <i class="fab fa-linkedin-in"></i>
+                        
+                        <!-- LinkedIn - Blue theme -->
+                        <a href="#" class="social-icon" style="width: 45px; height: 45px; background: #0077b5; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; box-shadow: 0 5px 10px rgba(0,119,181,0.3);" 
+                           onmouseover="this.style.background='#00a0dc'; this.style.transform='translateY(-5px) scale(1.1)'" 
+                           onmouseout="this.style.background='#0077b5'; this.style.transform='translateY(0) scale(1)'">
+                            <i class="fab fa-linkedin-in fa-lg"></i>
                         </a>
-                        <a href="#" class="social-icon" style="width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; border: 1px solid rgba(78, 205, 196, 0.3);">
-                            <i class="fab fa-twitter"></i>
+                        
+                        <!-- Twitter - Sky Blue -->
+                        <a href="#" class="social-icon" style="width: 45px; height: 45px; background: #1da1f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; box-shadow: 0 5px 10px rgba(29,161,242,0.3);" 
+                           onmouseover="this.style.background='#1a91da'; this.style.transform='translateY(-5px) scale(1.1)'" 
+                           onmouseout="this.style.background='#1da1f2'; this.style.transform='translateY(0) scale(1)'">
+                            <i class="fab fa-twitter fa-lg"></i>
                         </a>
-                        <a href="#" class="social-icon" style="width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; border: 1px solid rgba(78, 205, 196, 0.3);">
-                            <i class="fab fa-behance"></i>
+                        
+                        <!-- Behance - Blue theme -->
+                        <a href="#" class="social-icon" style="width: 45px; height: 45px; background: #1769ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; box-shadow: 0 5px 10px rgba(23,105,255,0.3);" 
+                           onmouseover="this.style.background='#0057ff'; this.style.transform='translateY(-5px) scale(1.1)'" 
+                           onmouseout="this.style.background='#1769ff'; this.style.transform='translateY(0) scale(1)'">
+                            <i class="fab fa-behance fa-lg"></i>
                         </a>
-                        <a href="#" class="social-icon" style="width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; border: 1px solid rgba(78, 205, 196, 0.3);">
-                            <i class="fab fa-instagram"></i>
+                        
+                        <!-- Instagram - Purple/Pink gradient -->
+                        <a href="#" class="social-icon" style="background: linear-gradient(45deg, #f09433, #d62976, #962fbf, #4f5bd5); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; box-shadow: 0 5px 10px rgba(214,41,118,0.3);" 
+                           onmouseover="this.style.transform='translateY(-5px) scale(1.1)'; this.style.boxShadow='0 10px 20px rgba(214,41,118,0.4)'" 
+                           onmouseout="this.style.transform='translateY(0) scale(1)'">
+                            <i class="fab fa-instagram fa-lg"></i>
+                        </a>
+                        
+                        <!-- YouTube - Red -->
+                        <a href="#" class="social-icon" style="width: 45px; height: 45px; background: #ff0000; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.3s ease; box-shadow: 0 5px 10px rgba(255,0,0,0.3);" 
+                           onmouseover="this.style.background='#cc0000'; this.style.transform='translateY(-5px) scale(1.1)'" 
+                           onmouseout="this.style.background='#ff0000'; this.style.transform='translateY(0) scale(1)'">
+                            <i class="fab fa-youtube fa-lg"></i>
                         </a>
                     </div>
                     
-                    <!-- Trust Badges -->
-                    <div class="d-flex gap-2 mt-4">
-                        <span class="badge" style="background: rgba(78, 205, 196, 0.2); color: var(--cyan); padding: 8px 12px; border-radius: 20px; font-size: 12px;">
+                    <!-- Trust Badges - Enhanced with colors -->
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <span class="badge" style="background: rgba(78, 205, 196, 0.15); color: #4ecdc4; padding: 8px 14px; border-radius: 30px; font-size: 13px; border: 1px solid #4ecdc4;">
                             <i class="fas fa-shield-alt me-1"></i> SSL Secure
                         </span>
-                        <span class="badge" style="background: rgba(78, 205, 196, 0.2); color: var(--cyan); padding: 8px 12px; border-radius: 20px; font-size: 12px;">
+                        <span class="badge" style="background: rgba(255, 107, 107, 0.15); color: #ff6b6b; padding: 8px 14px; border-radius: 30px; font-size: 13px; border: 1px solid #ff6b6b;">
                             <i class="fas fa-lock me-1"></i> Privacy Protected
                         </span>
+                        <span class="badge" style="background: rgba(157, 78, 221, 0.15); color: #9d4edd; padding: 8px 14px; border-radius: 30px; font-size: 13px; border: 1px solid #9d4edd;">
+                            <i class="fas fa-check-circle me-1"></i> Verified
+                        </span>
+                    </div>
+                    
+                    <!-- Awards/Recognition -->
+                    <div class="d-flex align-items-center mt-3">
+                        <i class="fas fa-trophy me-2" style="color: #f7d44a;"></i>
+                        <span style="color: rgba(255,255,255,0.7); font-size: 13px;">Top Rated Developer 2026</span>
                     </div>
                 </div>
             </div>
             
-            <!-- Quick Links - Enhanced -->
+            <!-- Quick Links - Enhanced with colored icons -->
             <div class="col-lg-2" data-aos="fade-up" data-aos-delay="200">
-                <div class="glass-card p-4 h-100" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(78, 205, 196, 0.2);">
-                    <h4 class="h6 mb-4 text-uppercase" style="color: var(--cyan); font-size: 14px !important; letter-spacing: 2px; position: relative; padding-bottom: 10px;">
-                        Quick Links
-                        <span style="position: absolute; bottom: 0; left: 0; width: 30px; height: 2px; background: var(--cyan);"></span>
+                <div class="glass-card p-4 h-100" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(78, 205, 196, 0.3); border-radius: 16px;">
+                    <h4 class="h6 mb-4 text-uppercase" style="color: #ff6b6b; font-size: 16px !important; letter-spacing: 2px; position: relative; padding-bottom: 10px; font-weight: 700;">
+                        <i class="fas fa-link me-2"></i>Quick Links
+                        <span style="position: absolute; bottom: 0; left: 0; width: 40px; height: 3px; background: #ff6b6b;"></span>
                     </h4>
                     <ul class="list-unstyled">
-                        <li class="mb-3"><a href="{% url 'core:home' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.8); font-size: 14px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: var(--cyan); font-size: 12px;"></i>Home</a></li>
-                        <li class="mb-3"><a href="{% url 'projects:list' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.8); font-size: 14px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: var(--cyan); font-size: 12px;"></i>Projects</a></li>
-                        <li class="mb-3"><a href="{% url 'media:list' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.8); font-size: 14px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: var(--cyan); font-size: 12px;"></i>Media Gallery</a></li>
-                        <li class="mb-3"><a href="{% url 'collections:list' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.8); font-size: 14px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: var(--cyan); font-size: 12px;"></i>Collections</a></li>
-                        <li class="mb-3"><a href="{% url 'blog:list' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.8); font-size: 14px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: var(--cyan); font-size: 12px;"></i>Blog</a></li>
-                        <li class="mb-3"><a href="{% url 'core:about' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.8); font-size: 14px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: var(--cyan); font-size: 12px;"></i>About</a></li>
+                        <li class="mb-3"><a href="{% url 'core:home' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.9); font-size: 15px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: #4ecdc4; font-size: 12px;"></i>Home</a></li>
+                        <li class="mb-3"><a href="{% url 'projects:list' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.9); font-size: 15px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: #ff6b6b; font-size: 12px;"></i>Projects</a></li>
+                        <li class="mb-3"><a href="{% url 'media:list' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.9); font-size: 15px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: #9d4edd; font-size: 12px;"></i>Media Gallery</a></li>
+                        <li class="mb-3"><a href="{% url 'collections:list' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.9); font-size: 15px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: #38b2ac; font-size: 12px;"></i>Collections</a></li>
+                        <li class="mb-3"><a href="{% url 'blog:list' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.9); font-size: 15px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: #f7d44a; font-size: 12px;"></i>Blog</a></li>
+                        <li class="mb-3"><a href="{% url 'core:about' %}" class="text-decoration-none" style="color: rgba(255,255,255,0.9); font-size: 15px; transition: all 0.3s ease; display: inline-block;"><i class="fas fa-chevron-right me-2" style="color: #ff8e53; font-size: 12px;"></i>About</a></li>
                     </ul>
                     
-                    <!-- Skills Tags -->
-                    <div class="mt-3">
-                        <span class="badge me-1 mb-1" style="background: rgba(255,255,255,0.1); color: white; font-size: 11px;">React</span>
-                        <span class="badge me-1 mb-1" style="background: rgba(255,255,255,0.1); color: white; font-size: 11px;">Python</span>
-                        <span class="badge me-1 mb-1" style="background: rgba(255,255,255,0.1); color: white; font-size: 11px;">Django</span>
-                        <span class="badge me-1 mb-1" style="background: rgba(255,255,255,0.1); color: white; font-size: 11px;">SEO</span>
+                    <!-- Skills Tags - Enhanced with colors -->
+                    <div class="mt-4">
+                        <h5 class="small text-uppercase mb-2" style="color: #4ecdc4; font-size: 12px;">Tech Stack</h5>
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="badge" style="background: rgba(78, 205, 196, 0.15); color: #4ecdc4; padding: 5px 10px; border-radius: 20px; font-size: 11px; border: 1px solid #4ecdc4;">React</span>
+                            <span class="badge" style="background: rgba(255, 107, 107, 0.15); color: #ff6b6b; padding: 5px 10px; border-radius: 20px; font-size: 11px; border: 1px solid #ff6b6b;">Python</span>
+                            <span class="badge" style="background: rgba(157, 78, 221, 0.15); color: #9d4edd; padding: 5px 10px; border-radius: 20px; font-size: 11px; border: 1px solid #9d4edd;">Django</span>
+                            <span class="badge" style="background: rgba(247, 212, 74, 0.15); color: #f7d44a; padding: 5px 10px; border-radius: 20px; font-size: 11px; border: 1px solid #f7d44a;">SEO</span>
+                            <span class="badge" style="background: rgba(56, 178, 172, 0.15); color: #38b2ac; padding: 5px 10px; border-radius: 20px; font-size: 11px; border: 1px solid #38b2ac;">Node.js</span>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Contact Column - Enhanced -->
+            <!-- Contact Column - Enhanced with colored icons -->
             <div class="col-lg-3" data-aos="fade-up" data-aos-delay="300">
-                <div class="glass-card p-4 h-100" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(78, 205, 196, 0.2);">
-                    <h4 class="h6 mb-4 text-uppercase" style="color: var(--cyan); font-size: 14px !important; letter-spacing: 2px; position: relative; padding-bottom: 10px;">
-                        Contact Info
-                        <span style="position: absolute; bottom: 0; left: 0; width: 30px; height: 2px; background: var(--cyan);"></span>
+                <div class="glass-card p-4 h-100" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(78, 205, 196, 0.3); border-radius: 16px;">
+                    <h4 class="h6 mb-4 text-uppercase" style="color: #9d4edd; font-size: 16px !important; letter-spacing: 2px; position: relative; padding-bottom: 10px; font-weight: 700;">
+                        <i class="fas fa-address-card me-2"></i>Contact Info
+                        <span style="position: absolute; bottom: 0; left: 0; width: 40px; height: 3px; background: #9d4edd;"></span>
                     </h4>
                     
                     <ul class="list-unstyled">
                         <li class="mb-3 d-flex align-items-start">
-                            <div style="width: 35px; height: 35px; background: rgba(78, 205, 196, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                                <i class="fas fa-envelope" style="color: var(--cyan);"></i>
+                            <div style="width: 40px; height: 40px; background: rgba(78, 205, 196, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; border: 1px solid #4ecdc4;">
+                                <i class="fas fa-envelope" style="color: #4ecdc4; font-size: 18px;"></i>
                             </div>
                             <div>
                                 <span style="color: rgba(255,255,255,0.6); font-size: 12px;">Email</span>
-                                <div style="color: white; font-size: 14px;">eugen@devconsultancy.com</div>
+                                <div style="color: white; font-size: 15px; font-weight: 500;">eugen@devconsultancy.com</div>
                             </div>
                         </li>
                         <li class="mb-3 d-flex align-items-start">
-                            <div style="width: 35px; height: 35px; background: rgba(78, 205, 196, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                                <i class="fas fa-phone-alt" style="color: var(--cyan);"></i>
+                            <div style="width: 40px; height: 40px; background: rgba(255, 107, 107, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; border: 1px solid #ff6b6b;">
+                                <i class="fas fa-phone-alt" style="color: #ff6b6b; font-size: 18px;"></i>
                             </div>
                             <div>
                                 <span style="color: rgba(255,255,255,0.6); font-size: 12px;">Phone</span>
-                                <div style="color: white; font-size: 14px;">+1 (555) 987-6543</div>
+                                <div style="color: white; font-size: 15px; font-weight: 500;">+1 (555) 987-6543</div>
                             </div>
                         </li>
                         <li class="mb-3 d-flex align-items-start">
-                            <div style="width: 35px; height: 35px; background: rgba(78, 205, 196, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                                <i class="fas fa-map-marker-alt" style="color: var(--cyan);"></i>
+                            <div style="width: 40px; height: 40px; background: rgba(157, 78, 221, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; border: 1px solid #9d4edd;">
+                                <i class="fas fa-map-marker-alt" style="color: #9d4edd; font-size: 18px;"></i>
                             </div>
                             <div>
                                 <span style="color: rgba(255,255,255,0.6); font-size: 12px;">Location</span>
-                                <div style="color: white; font-size: 14px;">San Francisco, CA</div>
+                                <div style="color: white; font-size: 15px; font-weight: 500;">San Francisco, CA</div>
+                            </div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start">
+                            <div style="width: 40px; height: 40px; background: rgba(247, 212, 74, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; border: 1px solid #f7d44a;">
+                                <i class="fas fa-clock" style="color: #f7d44a; font-size: 18px;"></i>
+                            </div>
+                            <div>
+                                <span style="color: rgba(255,255,255,0.6); font-size: 12px;">Response Time</span>
+                                <div style="color: white; font-size: 15px; font-weight: 500;">Within 24 hours</div>
                             </div>
                         </li>
                     </ul>
                     
-                    <!-- Business Hours -->
-                    <div class="mt-3 p-3" style="background: rgba(78, 205, 196, 0.1); border-radius: 8px;">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span style="color: white; font-size: 13px;">Mon - Fri</span>
-                            <span style="color: var(--cyan); font-size: 13px;">9:00 - 18:00</span>
+                    <!-- Business Hours - Enhanced -->
+                    <div class="mt-3 p-3" style="background: linear-gradient(135deg, rgba(78, 205, 196, 0.1), rgba(56, 178, 172, 0.1)); border-radius: 12px; border-left: 4px solid #4ecdc4;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span style="color: white; font-size: 14px;"><i class="fas fa-calendar-check me-2" style="color: #4ecdc4;"></i>Mon - Fri</span>
+                            <span style="color: #4ecdc4; font-size: 14px; font-weight: 600;">9:00 - 18:00</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span style="color: white; font-size: 13px;">Weekend</span>
-                            <span style="color: rgba(255,255,255,0.6); font-size: 13px;">Closed</span>
+                            <span style="color: white; font-size: 14px;"><i class="fas fa-calendar-times me-2" style="color: #ff6b6b;"></i>Weekend</span>
+                            <span style="color: rgba(255,255,255,0.6); font-size: 14px;">Closed</span>
                         </div>
                     </div>
                     
-                    <a href="{% url 'inquiries:contact' %}" class="cyan-btn w-100 text-center mt-4" style="padding: 12px; font-size: 14px; border-radius: 8px;">
+                    <a href="{% url 'inquiries:contact' %}" class="btn w-100 text-center mt-4" style="background: linear-gradient(135deg, #9d4edd, #6b4c9c); color: white; font-weight: 700; padding: 14px; border-radius: 12px; font-size: 15px; border: 2px solid white; transition: all 0.3s ease;"
+                       onmouseover="this.style.background='linear-gradient(135deg, #b15eff, #7d5fb0)'; this.style.transform='translateY(-2px)'"
+                       onmouseout="this.style.background='linear-gradient(135deg, #9d4edd, #6b4c9c)'; this.style.transform='translateY(0)'">
                         <i class="fas fa-paper-plane me-2"></i>Send Message
                     </a>
                 </div>
             </div>
             
-            <!-- Newsletter Column - Enhanced -->
+            <!-- Newsletter Column - Enhanced with colored icons -->
             <div class="col-lg-3" data-aos="fade-up" data-aos-delay="400">
-                <div class="glass-card p-4 h-100" style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(78, 205, 196, 0.2);">
-                    <h4 class="h6 mb-4 text-uppercase" style="color: var(--cyan); font-size: 14px !important; letter-spacing: 2px; position: relative; padding-bottom: 10px;">
-                        Stay Updated
-                        <span style="position: absolute; bottom: 0; left: 0; width: 30px; height: 2px; background: var(--cyan);"></span>
+                <div class="glass-card p-4 h-100" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(78, 205, 196, 0.3); border-radius: 16px;">
+                    <h4 class="h6 mb-4 text-uppercase" style="color: #ff8e53; font-size: 16px !important; letter-spacing: 2px; position: relative; padding-bottom: 10px; font-weight: 700;">
+                        <i class="fas fa-newspaper me-2"></i>Stay Updated
+                        <span style="position: absolute; bottom: 0; left: 0; width: 40px; height: 3px; background: #ff8e53;"></span>
                     </h4>
                     
-                    <p style="color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 20px;">
+                    <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin-bottom: 20px;">
                         Subscribe to my newsletter for the latest projects, blog posts, and tech insights.
                     </p>
                     
                     <form>
                         <div class="mb-3">
                             <div class="input-group">
-                                <input type="email" class="form-control" placeholder="Your email address" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(78, 205, 196, 0.3); color: white; padding: 12px; border-radius: 8px 0 0 8px;">
-                                <button class="btn" type="submit" style="background: var(--cyan); color: var(--navy-dark); padding: 12px 20px; border-radius: 0 8px 8px 0; font-weight: 600;">
+                                <input type="email" class="form-control" placeholder="Your email address" style="background: rgba(255,255,255,0.1); border: 2px solid #4ecdc4; color: white; padding: 14px; border-radius: 12px 0 0 12px; font-size: 14px;">
+                                <button class="btn" type="submit" style="background: #ff8e53; color: white; padding: 14px 20px; border-radius: 0 12px 12px 0; font-weight: 700; border: 2px solid #ff8e53; transition: all 0.3s ease;"
+                                        onmouseover="this.style.background='#ff6b6b'; this.style.borderColor='#ff6b6b'"
+                                        onmouseout="this.style.background='#ff8e53'; this.style.borderColor='#ff8e53'">
                                     <i class="fas fa-paper-plane"></i>
                                 </button>
                             </div>
                         </div>
                         
-                        <!-- Newsletter Benefits -->
-                        <div class="d-flex flex-column gap-2 mt-3">
+                        <!-- Newsletter Benefits with colored icons -->
+                        <div class="d-flex flex-column gap-3 mt-4">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-check-circle me-2" style="color: var(--cyan); font-size: 14px;"></i>
-                                <span style="color: rgba(255,255,255,0.7); font-size: 13px;">Monthly tech insights</span>
+                                <div style="width: 30px; height: 30px; background: rgba(78, 205, 196, 0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px; border: 1px solid #4ecdc4;">
+                                    <i class="fas fa-chart-line" style="color: #4ecdc4; font-size: 14px;"></i>
+                                </div>
+                                <span style="color: rgba(255,255,255,0.9); font-size: 14px;">Monthly tech insights</span>
                             </div>
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-check-circle me-2" style="color: var(--cyan); font-size: 14px;"></i>
-                                <span style="color: rgba(255,255,255,0.7); font-size: 13px;">Exclusive project updates</span>
+                                <div style="width: 30px; height: 30px; background: rgba(255, 107, 107, 0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px; border: 1px solid #ff6b6b;">
+                                    <i class="fas fa-code-branch" style="color: #ff6b6b; font-size: 14px;"></i>
+                                </div>
+                                <span style="color: rgba(255,255,255,0.9); font-size: 14px;">Exclusive project updates</span>
                             </div>
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-check-circle me-2" style="color: var(--cyan); font-size: 14px;"></i>
-                                <span style="color: rgba(255,255,255,0.7); font-size: 13px;">No spam, unsubscribe anytime</span>
+                                <div style="width: 30px; height: 30px; background: rgba(157, 78, 221, 0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px; border: 1px solid #9d4edd;">
+                                    <i class="fas fa-shield-alt" style="color: #9d4edd; font-size: 14px;"></i>
+                                </div>
+                                <span style="color: rgba(255,255,255,0.9); font-size: 14px;">No spam, unsubscribe anytime</span>
                             </div>
                         </div>
                         
-                        <!-- Privacy Notice -->
-                        <p class="small mt-3" style="color: rgba(255,255,255,0.5); font-size: 11px;">
-                            By subscribing, you agree to my <a href="#" style="color: var(--cyan); text-decoration: none;">Privacy Policy</a>.
+                        <!-- Privacy Notice - Enhanced -->
+                        <p class="small mt-4" style="color: rgba(255,255,255,0.5); font-size: 12px; border-top: 1px solid rgba(78, 205, 196, 0.2); padding-top: 15px;">
+                            <i class="fas fa-lock me-1" style="color: #4ecdc4;"></i> By subscribing, you agree to my 
+                            <a href="#" style="color: #4ecdc4; text-decoration: none; font-weight: 600;">Privacy Policy</a>.
                         </p>
                     </form>
+                    
+                    <!-- Social Proof -->
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="d-flex me-3">
+                            <i class="fas fa-user-circle" style="color: #4ecdc4; font-size: 20px; margin-right: -8px;"></i>
+                            <i class="fas fa-user-circle" style="color: #ff6b6b; font-size: 20px; margin-right: -8px;"></i>
+                            <i class="fas fa-user-circle" style="color: #9d4edd; font-size: 20px;"></i>
+                        </div>
+                        <span style="color: rgba(255,255,255,0.6); font-size: 13px;">500+ subscribers</span>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Divider with Icon -->
+        <!-- Divider with Icon - Enhanced -->
         <div class="position-relative my-5">
-            <hr style="border-color: rgba(78, 205, 196, 0.2);">
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--navy); padding: 10px 20px; border-radius: 30px; border: 1px solid var(--cyan);">
-                <i class="fas fa-code" style="color: var(--cyan);"></i>
+            <hr style="border-color: rgba(78, 205, 196, 0.3); border-width: 2px;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, #0b2b40, #1a3f5a); padding: 15px 25px; border-radius: 40px; border: 2px solid #4ecdc4; box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);">
+                <i class="fas fa-code" style="color: #4ecdc4; font-size: 20px;"></i>
+                <i class="fas fa-heart mx-2" style="color: #ff6b6b; font-size: 16px;"></i>
+                <i class="fas fa-bolt" style="color: #f7d44a; font-size: 16px;"></i>
             </div>
         </div>
         
-        <!-- Bottom Footer -->
+        <!-- Bottom Footer - Enhanced -->
         <div class="row align-items-center">
             <div class="col-md-4 mb-3 mb-md-0">
-                <p class="small mb-0" style="color: rgba(255,255,255,0.6); font-size: 13px;">
-                    &copy; 2026 Eugen Web Development Consultancy. All rights reserved.
+                <p class="small mb-0" style="color: rgba(255,255,255,0.7); font-size: 14px;">
+                    <i class="far fa-copyright me-1" style="color: #4ecdc4;"></i> 2026 Eugen Web Development Consultancy. All rights reserved.
                 </p>
             </div>
             
             <div class="col-md-4 text-center mb-3 mb-md-0">
                 <div class="d-flex justify-content-center gap-3">
-                    <a href="#" class="text-decoration-none" style="color: rgba(255,255,255,0.6); font-size: 13px; transition: color 0.3s;">Privacy</a>
-                    <span style="color: var(--cyan);">|</span>
-                    <a href="#" class="text-decoration-none" style="color: rgba(255,255,255,0.6); font-size: 13px; transition: color 0.3s;">Terms</a>
-                    <span style="color: var(--cyan);">|</span>
-                    <a href="#" class="text-decoration-none" style="color: rgba(255,255,255,0.6); font-size: 13px; transition: color 0.3s;">Sitemap</a>
-                    <span style="color: var(--cyan);">|</span>
-                    <a href="#" class="text-decoration-none" style="color: rgba(255,255,255,0.6); font-size: 13px; transition: color 0.3s;">Cookies</a>
+                    <a href="#" class="text-decoration-none" style="color: rgba(255,255,255,0.7); font-size: 14px; transition: color 0.3s;" 
+                       onmouseover="this.style.color='#4ecdc4'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Privacy</a>
+                    <span style="color: #4ecdc4;">|</span>
+                    <a href="#" class="text-decoration-none" style="color: rgba(255,255,255,0.7); font-size: 14px; transition: color 0.3s;"
+                       onmouseover="this.style.color='#ff6b6b'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Terms</a>
+                    <span style="color: #ff6b6b;">|</span>
+                    <a href="#" class="text-decoration-none" style="color: rgba(255,255,255,0.7); font-size: 14px; transition: color 0.3s;"
+                       onmouseover="this.style.color='#9d4edd'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Sitemap</a>
+                    <span style="color: #9d4edd;">|</span>
+                    <a href="#" class="text-decoration-none" style="color: rgba(255,255,255,0.7); font-size: 14px; transition: color 0.3s;"
+                       onmouseover="this.style.color='#38b2ac'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Cookies</a>
                 </div>
             </div>
             
             <div class="col-md-4 text-md-end">
                 <div class="d-flex justify-content-md-end gap-2">
-                    <span class="badge" style="background: rgba(78, 205, 196, 0.1); color: var(--cyan); padding: 5px 10px; border-radius: 20px; font-size: 11px;">
+                    <span class="badge" style="background: rgba(78, 205, 196, 0.15); color: #4ecdc4; padding: 6px 12px; border-radius: 30px; font-size: 12px; border: 1px solid #4ecdc4;">
                         <i class="fas fa-globe me-1"></i> EN
                     </span>
-                    <span class="badge" style="background: rgba(78, 205, 196, 0.1); color: var(--cyan); padding: 5px 10px; border-radius: 20px; font-size: 11px;">
+                    <span class="badge" style="background: rgba(255, 107, 107, 0.15); color: #ff6b6b; padding: 6px 12px; border-radius: 30px; font-size: 12px; border: 1px solid #ff6b6b;">
                         <i class="fas fa-dollar-sign me-1"></i> USD
+                    </span>
+                    <span class="badge" style="background: rgba(157, 78, 221, 0.15); color: #9d4edd; padding: 6px 12px; border-radius: 30px; font-size: 12px; border: 1px solid #9d4edd;">
+                        <i class="fas fa-clock me-1"></i> 24/7
                     </span>
                 </div>
             </div>
         </div>
         
-        <!-- Back to Top Button -->
+        <!-- Back to Top Button - Enhanced -->
         <div class="position-absolute bottom-0 end-0 mb-4 me-4">
-            <a href="#" class="back-to-top" style="width: 50px; height: 50px; background: var(--cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--navy-dark); box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3); transition: all 0.3s ease;">
-                <i class="fas fa-arrow-up"></i>
+            <a href="#" class="back-to-top" style="width: 55px; height: 55px; background: linear-gradient(135deg, #4ecdc4, #38b2ac); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0b2b40; box-shadow: 0 5px 20px rgba(78, 205, 196, 0.4); transition: all 0.3s ease; border: 2px solid white;"
+               onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 10px 30px rgba(78, 205, 196, 0.6)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 5px 20px rgba(78, 205, 196, 0.4)'">
+                <i class="fas fa-arrow-up fa-lg"></i>
             </a>
         </div>
     </div>
@@ -236,51 +320,51 @@
 
 <style>
     /* Hover Effects */
-    .social-icon:hover {
-        background: var(--cyan) !important;
-        color: var(--navy-dark) !important;
-        transform: translateY(-5px) rotate(360deg);
-        border-color: transparent !important;
+    .social-icon {
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
     }
     
-    .quick-links a:hover {
-        color: var(--cyan) !important;
-        transform: translateX(5px);
+    .glass-card {
+        transition: all 0.3s ease;
     }
     
-    .back-to-top:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(78, 205, 196, 0.5);
+    .glass-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(78, 205, 196, 0.25);
+        border-color: rgba(78, 205, 196, 0.5) !important;
     }
     
     /* Animations */
     @keyframes float {
         0%, 100% { transform: translateY(0) rotate(0deg); }
-        50% { transform: translateY(-20px) rotate(180deg); }
+        50% { transform: translateY(-25px) rotate(10deg); }
     }
     
     @keyframes pulse {
-        0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.03; }
-        50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.05; }
-    }
-    
-    /* Glass Card Hover */
-    .glass-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(78, 205, 196, 0.2);
-        border-color: var(--cyan) !important;
+        0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.05; }
+        50% { transform: translate(-50%, -50%) scale(1.8); opacity: 0.08; }
     }
     
     /* Form Input Focus */
     .form-control:focus {
-        background: rgba(255, 255, 255, 0.15) !important;
-        border-color: var(--cyan) !important;
-        box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.25) !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-color: #ff8e53 !important;
+        box-shadow: 0 0 0 3px rgba(255, 142, 83, 0.25) !important;
         outline: none;
         color: white !important;
     }
     
     .form-control::placeholder {
-        color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 13px;
+    }
+    
+    /* Link Hover Effects */
+    a {
+        position: relative;
+    }
+    
+    a:not(.btn):hover {
+        padding-left: 5px;
     }
 </style>

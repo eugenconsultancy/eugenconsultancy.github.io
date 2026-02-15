@@ -61,7 +61,7 @@ class Category(BaseModel):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-    @property
-    def media_count(self):
+    # Rename this method to avoid conflict with annotated field
+    def get_media_count(self):
         """Get count of media items in this category"""
         return self.media_items.count()

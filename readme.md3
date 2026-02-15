@@ -427,4 +427,232 @@ Under Python > Analysis: Extra Paths, click Add Item.
 
 Paste this exact string: ./media_portfolio
 
-Restart the Language Server: Press Ctrl + Shift + P, type "Python: Restart Language Server", and hit Enter.
+Restart the Language Server: Press Ctrl + Shift + P, type "Python: Restart Language Server", 
+
+and hit Enter.
+
+
+
+
+
+
+Yes! **Leapcell is an excellent alternative to PythonAnywhere** and is actually **faster and more generous** on the free tier. Let me guide you through the complete deployment process.
+
+## Why Leapcell is Better Than PythonAnywhere
+
+| Feature | Leapcell | PythonAnywhere |
+|---------|----------|----------------|
+| **Free Projects** | 20 projects | 1 project |
+| **Free Database** | PostgreSQL included | MySQL/PostgreSQL included |
+| **Pricing Model** | Pay only for requests (idle = free) | Always running = always counted |
+| **Cold Start** | <250ms | N/A |
+| **Auto-scaling** | Up to 1000+ instances | Manual scaling only |
+| **Serverless** | Yes | No (traditional hosting) |
+| **CI/CD** | Automatic on git push | Manual |
+| **Custom Domain** | Yes (free SSL) | Yes (paid plan) |
+| **vCPU per project** | Up to 3 vCPUs (free) | 1 core  |
+
+## Step-by-Step Deployment Guide to Leapcell
+
+### Prerequisites
+- A GitHub account
+- Your Django project ready (with the modifications we made earlier)
+
+### Step 1: Prepare Your Django Project
+
+Before deploying, ensure your project has these requirements:
+
+1. **Add gunicorn to requirements.txt** (Leapcell uses Gunicorn) :
+```bash
+echo "gunicorn==21.2.0" >> requirements.txt
+```
+
+2. **Update your `config/settings.py`** with production settings:
+```python
+import os
+
+# Add your Leapcell domain when you get it
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.leapcell.dev']
+
+# Static files configuration
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Security (important for production!)
+DEBUG = False  # Set to False for deployment
+
+# Database - will be configured in Leapcell dashboard
+# Leave as SQLite for now, we'll update later
+```
+
+3. **Push your code to GitHub**:
+```bash
+git add .
+git commit -m "Prepare for Leapcell deployment"
+git push
+```
+
+### Step 2: Create Leapcell Account
+
+1. Go to [leapcell.io](https://leapcell.io) 
+2. Click "Sign Up" and authenticate with GitHub (required) 
+3. You'll be redirected to the Leapcell Dashboard
+
+### Step 3: Create a New Service
+
+1. In the Leapcell Dashboard, click the **"New Service"** button 
+2. Connect Leapcell to your GitHub account (if not already connected)
+3. Select your Django project repository from the list 
+
+### Step 4: Configure Your Django Service
+
+When creating the service, enter these values :
+
+| Field | Value |
+|-------|-------|
+| **Runtime** | Python 3.10 (or your version) |
+| **Build Command** | `pip install -r requirements.txt && python manage.py collectstatic --noinput` |
+| **Start Command** | `gunicorn config.wsgi --bind 0.0.0.0:8080` |
+| **Port** | `8080` |
+
+**Important**: Make sure your `config.wsgi` matches your project structure. If your settings module is `config.settings`, the WSGI path is `config.wsgi`.
+
+### Step 5: Set Up PostgreSQL Database (Free)
+
+1. In the Leapcell Dashboard, go to **"Databases"** tab
+2. Click **"Create Database"** → Select **PostgreSQL** 
+3. Choose the free tier
+4. Once created, you'll get connection details:
+   - Host
+   - Port
+   - Database name
+   - Username
+   - Password
+
+5. Update your `settings.py` with the PostgreSQL configuration:
+```python
+import dj_database_url
+
+# At the bottom of settings.py, add:
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgresql://username:password@host:port/dbname',
+        conn_max_age=600
+    )
+}
+```
+
+Install the required package:
+```bash
+pip install dj-database-url psycopg2-binary
+```
+
+### Step 6: Configure Environment Variables
+
+1. In your service settings, go to **"Environment Variables"**
+2. Add any sensitive data (SECRET_KEY, database URLs, API keys)
+3. Recommended variables:
+```
+DJANGO_SECRET_KEY=your-secret-key
+DEBUG=False
+ALLOWED_HOSTS=.leapcell.dev
+```
+
+### Step 7: Deploy!
+
+1. Click **"Create Service"** 
+2. Leapcell will automatically:
+   - Clone your repository
+   - Run the build command
+   - Start your Django app
+   - Provide a URL like `your-service-name.leapcell.dev` 
+
+3. Wait 1-2 minutes for the initial build
+4. Click the provided URL to see your live site! 🎉
+
+### Step 8: Run Migrations
+
+After deployment, you need to run migrations:
+
+1. In the Leapcell Dashboard, go to your service
+2. Click **"Console"** or **"Terminal"**
+3. Run:
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+### Step 9: Set Up Continuous Deployment
+
+The best part - **every push to your GitHub repository automatically triggers a redeploy**! 
+
+Just:
+```bash
+git push
+```
+Leapcell handles the rest automatically.
+
+## Post-Deployment Checklist
+
+- [ ] Visit `your-service.leapcell.dev` - site loads?
+- [ ] Admin panel works? `your-service.leapcell.dev/admin`
+- [ ] Static files loading? (CSS, JS, images)
+- [ ] Media uploads working?
+- [ ] Database connected?
+
+## Troubleshooting Common Issues
+
+### 500 Error After Deploy
+```bash
+# Check logs in Leapcell Dashboard
+# Go to your service → "Logs" tab
+```
+
+### Static Files Not Loading
+Make sure you added `collectstatic` to build command:
+```bash
+# Build command should be:
+pip install -r requirements.txt && python manage.py collectstatic --noinput
+```
+
+### Database Connection Issues
+- Verify PostgreSQL credentials in environment variables
+- Ensure `psycopg2-binary` is in requirements.txt
+
+## Free Tier Limits on Leapcell 
+
+| Resource | Free Tier Limit |
+|----------|-----------------|
+| **Projects** | 20 services |
+| **vCPU per project** | 3 vCPUs |
+| **RAM per project** | 4 GB |
+| **Database** | 1 free PostgreSQL |
+| **Custom domains** | Yes |
+| **SSL** | Automatic (Let's Encrypt) |
+| **Traffic** | Pay only for requests (no idle cost) |
+| **Regions** | US and Asia |
+
+## Comparison: Leapcell vs PythonAnywhere
+
+| Aspect | Leapcell | PythonAnywhere |
+|--------|----------|----------------|
+| **Free tier generosity** | 20 projects  | 1 project |
+| **Pricing model** | Pay per request (idle = free) | Always running = always counted |
+| **Architecture** | Serverless (auto-scaling) | Traditional VM |
+| **Cold starts** | <250ms  | N/A |
+| **Database** | Free PostgreSQL | Free MySQL |
+| **CI/CD** | Built-in | Manual |
+| **Best for** | Multiple side projects, microservices | Single Django app |
+
+## Final Tips
+
+1. **Start with free tier** - you can deploy up to 20 projects at no cost 
+2. **Use environment variables** for all secrets (never commit to GitHub)
+3. **Monitor usage** in Leapcell dashboard - you only pay when you get traffic
+4. **Switch to Persistent Server** if traffic grows - fixed monthly pricing 
+
+Your Django portfolio will be live in about 5-10 minutes with Leapcell! The platform is specifically designed to keep side projects alive without cost anxiety .

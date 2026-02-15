@@ -1,139 +1,428 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Contact - DevPort{% endblock %}
+{% block title %}Contact Eugen - Web Development Consultancy{% endblock %}
 
 {% block content %}
+<style>
+    /* Base font settings */
+    body {
+        font-size: 16px !important;
+        line-height: 1.7;
+    }
+    
+    /* All text elements - extra bold for maximum contrast */
+    .glass-card, p, h1, h2, h3, h4, h5, h6, span, div, a, li, label, input, select, textarea, button {
+        font-weight: 600 !important;
+    }
+    
+    /* Ultra bold for headings */
+    h1, h2, .display-4 {
+        font-weight: 900 !important;
+        letter-spacing: -0.02em;
+    }
+    
+    /* Form labels */
+    .form-label {
+        font-weight: 700 !important;
+        font-size: 14px !important;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+    
+    /* Form inputs */
+    .glass-input {
+        font-weight: 600 !important;
+        font-size: 15px !important;
+        background: white !important;
+        border: 2px solid #e0e0e0 !important;
+        color: #0b2b40 !important;
+        padding: 14px 18px !important;
+        border-radius: 12px !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .glass-input:focus {
+        border-color: #4ecdc4 !important;
+        box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.25) !important;
+        outline: none !important;
+        background: white !important;
+    }
+    
+    .glass-input::placeholder {
+        color: #a0a0a0 !important;
+        font-weight: 400 !important;
+    }
+    
+    /* Select dropdown */
+    select.glass-input {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234ecdc4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 18px center;
+        background-size: 16px;
+        padding-right: 50px !important;
+    }
+    
+    /* Checkbox styling */
+    .form-check-input {
+        width: 22px;
+        height: 22px;
+        margin-top: 0;
+        border: 2px solid #4ecdc4 !important;
+        cursor: pointer;
+    }
+    
+    .form-check-input:checked {
+        background-color: #4ecdc4 !important;
+        border-color: #4ecdc4 !important;
+    }
+    
+    .form-check-input:focus {
+        box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.25);
+        border-color: #4ecdc4;
+    }
+    
+    .form-check-label {
+        font-size: 15px !important;
+        color: #2c3e50 !important;
+        margin-left: 8px;
+        cursor: pointer;
+    }
+    
+    .form-check-label a {
+        color: #ff6b6b !important;
+        font-weight: 700 !important;
+        text-decoration: none;
+        border-bottom: 2px solid #ff6b6b;
+    }
+    
+    .form-check-label a:hover {
+        color: #ff8e53 !important;
+        border-bottom-color: #ff8e53;
+    }
+    
+    /* Submit button */
+    .submit-btn {
+        background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+        color: white;
+        font-weight: 800 !important;
+        padding: 16px 50px;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        border: 3px solid white;
+        box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        width: auto;
+        min-width: 250px;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 35px rgba(255, 107, 107, 0.4);
+        background: linear-gradient(135deg, #ff8e53, #ff6b6b);
+    }
+    
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+    
+    /* Error messages */
+    .text-danger {
+        color: #ff6b6b !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+        margin-top: 5px;
+    }
+    
+    /* Conditional fields */
+    .conditional-field {
+        transition: all 0.3s ease;
+    }
+    
+    /* Main card */
+    .contact-card {
+        background: white !important;
+        border: 3px solid #4ecdc4;
+        border-radius: 30px;
+        padding: 50px;
+        box-shadow: 0 30px 50px rgba(0,0,0,0.1);
+    }
+    
+    /* Gradient heading */
+    .gradient-heading {
+        background: linear-gradient(135deg, #0b2b40, #4a6fa5, #4ecdc4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 3.5rem !important;
+        font-weight: 900 !important;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Lead text */
+    .lead-text {
+        font-size: 1.2rem !important;
+        color: #2c3e50 !important;
+        max-width: 700px;
+        margin: 0 auto 40px;
+        font-weight: 600 !important;
+    }
+    
+    /* Icon in heading */
+    .heading-icon {
+        font-size: 2.5rem;
+        color: #4ecdc4;
+        margin-bottom: 15px;
+    }
+    
+    /* Form section divider */
+    .form-divider {
+        position: relative;
+        margin: 30px 0;
+        text-align: center;
+    }
+    
+    .form-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #4ecdc4, #ff6b6b, #4ecdc4, transparent);
+    }
+    
+    .form-divider span {
+        background: white;
+        padding: 0 20px;
+        color: #0b2b40;
+        font-weight: 800 !important;
+        position: relative;
+        font-size: 14px;
+        text-transform: uppercase;
+    }
+    
+    /* Required field indicator */
+    .required-indicator {
+        color: #ff6b6b;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+</style>
+
 <div class="container">
     <div class="row py-5">
-        <div class="col-lg-8 mx-auto" data-aos="fade-up">
-            <div class="glass-card p-5">
-                <h1 class="display-4 fw-bold mb-4 text-center" style="background: linear-gradient(135deg, #fff, #9d4edd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    Let's Work Together
-                </h1>
-                <p class="lead text-center mb-5">Have a project in mind? I'd love to hear about it. Fill out the form below and I'll get back to you within 24 hours.</p>
+        <div class="col-lg-10 mx-auto" data-aos="fade-up">
+            <div class="contact-card">
+                <!-- Header with icon -->
+                <div class="text-center">
+                    <i class="fas fa-paper-plane heading-icon"></i>
+                    <h1 class="gradient-heading">Let's Work Together</h1>
+                    <p class="lead-text">
+                        Have a project in mind? I'd love to hear about it. Fill out the form below and I'll get back to you within 24 hours.
+                    </p>
+                </div>
                 
+                <!-- Contact Info Summary -->
+                <div class="row g-3 mb-5">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center p-3" style="background: rgba(78, 205, 196, 0.1); border-radius: 16px; border-left: 4px solid #4ecdc4;">
+                            <div style="width: 45px; height: 45px; background: #4ecdc4; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                <i class="fas fa-envelope" style="color: white; font-size: 20px;"></i>
+                            </div>
+                            <div>
+                                <span style="color: #2c3e50; font-size: 12px;">Email</span>
+                                <div style="color: #0b2b40; font-weight: 800 !important; font-size: 15px;">eugen@devconsultancy.com</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center p-3" style="background: rgba(255, 107, 107, 0.1); border-radius: 16px; border-left: 4px solid #ff6b6b;">
+                            <div style="width: 45px; height: 45px; background: #ff6b6b; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                <i class="fas fa-phone-alt" style="color: white; font-size: 20px;"></i>
+                            </div>
+                            <div>
+                                <span style="color: #2c3e50; font-size: 12px;">Phone</span>
+                                <div style="color: #0b2b40; font-weight: 800 !important; font-size: 15px;">+1 (555) 234-5678</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center p-3" style="background: rgba(157, 78, 221, 0.1); border-radius: 16px; border-left: 4px solid #9d4edd;">
+                            <div style="width: 45px; height: 45px; background: #9d4edd; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                <i class="fas fa-clock" style="color: white; font-size: 20px;"></i>
+                            </div>
+                            <div>
+                                <span style="color: #2c3e50; font-size: 12px;">Response Time</span>
+                                <div style="color: #0b2b40; font-weight: 800 !important; font-size: 15px;">Within 24 Hours</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Divider -->
+                <div class="form-divider">
+                    <span><i class="fas fa-pencil-alt me-2"></i>Send a Message</span>
+                </div>
+                
+                <!-- Form -->
                 <form method="post" class="row g-4">
                     {% csrf_token %}
                     
                     <!-- Inquiry Type -->
                     <div class="col-12">
-                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Inquiry Type *</label>
+                        <label class="form-label" style="color: #ff6b6b;">
+                            <i class="fas fa-tag me-2"></i>Inquiry Type <span class="required-indicator">*</span>
+                        </label>
                         <select name="inquiry_type" class="glass-input w-100" required>
+                            <option value="" disabled selected>Select inquiry type</option>
                             {% for value, label in form.inquiry_type.field.choices %}
                                 {% if value %}
-                                <option value="{{ value }}">{{ label }}</option>
+                                <option value="{{ value }}" {% if form.inquiry_type.value == value %}selected{% endif %}>{{ label }}</option>
                                 {% endif %}
                             {% endfor %}
                         </select>
                         {% if form.inquiry_type.errors %}
-                        <div class="text-danger small mt-1">{{ form.inquiry_type.errors }}</div>
+                        <div class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>{{ form.inquiry_type.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
                     <!-- Media Item (optional) -->
                     <div class="col-12">
-                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Related Media (Optional)</label>
+                        <label class="form-label" style="color: #4ecdc4;">
+                            <i class="fas fa-image me-2"></i>Related Media
+                        </label>
                         <select name="media_item" class="glass-input w-100">
-                            <option value="">Select a specific piece...</option>
+                            <option value="">Select a specific piece (optional)</option>
                             {% for media in form.media_item.field.queryset %}
-                            <option value="{{ media.id }}">{{ media.title }}</option>
+                            <option value="{{ media.id }}" {% if form.media_item.value == media.id %}selected{% endif %}>{{ media.title }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     
-                    <!-- Name -->
+                    <!-- Name & Email Row -->
                     <div class="col-md-6">
-                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Your Name *</label>
+                        <label class="form-label" style="color: #0b2b40;">
+                            <i class="fas fa-user me-2" style="color: #4ecdc4;"></i>Your Name <span class="required-indicator">*</span>
+                        </label>
                         <input type="text" name="name" class="glass-input w-100" placeholder="John Doe" value="{{ form.name.value|default:'' }}" required>
                         {% if form.name.errors %}
-                        <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                        <div class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>{{ form.name.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
-                    <!-- Email -->
                     <div class="col-md-6">
-                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Email Address *</label>
+                        <label class="form-label" style="color: #0b2b40;">
+                            <i class="fas fa-envelope me-2" style="color: #ff6b6b;"></i>Email Address <span class="required-indicator">*</span>
+                        </label>
                         <input type="email" name="email" class="glass-input w-100" placeholder="john@example.com" value="{{ form.email.value|default:'' }}" required>
                         {% if form.email.errors %}
-                        <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                        <div class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>{{ form.email.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
-                    <!-- Phone -->
+                    <!-- Phone & Company Row -->
                     <div class="col-md-6">
-                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Phone Number</label>
+                        <label class="form-label" style="color: #0b2b40;">
+                            <i class="fas fa-phone me-2" style="color: #9d4edd;"></i>Phone Number
+                        </label>
                         <input type="tel" name="phone" class="glass-input w-100" placeholder="+1 234 567 8900" value="{{ form.phone.value|default:'' }}">
                     </div>
                     
-                    <!-- Company -->
                     <div class="col-md-6">
-                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Company/Organization</label>
+                        <label class="form-label" style="color: #0b2b40;">
+                            <i class="fas fa-building me-2" style="color: #38b2ac;"></i>Company/Organization
+                        </label>
                         <input type="text" name="company" class="glass-input w-100" placeholder="Company Name" value="{{ form.company.value|default:'' }}">
                     </div>
                     
                     <!-- Subject -->
                     <div class="col-12">
-                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Subject *</label>
+                        <label class="form-label" style="color: #0b2b40;">
+                            <i class="fas fa-heading me-2" style="color: #ff8e53;"></i>Subject <span class="required-indicator">*</span>
+                        </label>
                         <input type="text" name="subject" class="glass-input w-100" placeholder="What is this regarding?" value="{{ form.subject.value|default:'' }}" required>
                         {% if form.subject.errors %}
-                        <div class="text-danger small mt-1">{{ form.subject.errors }}</div>
+                        <div class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>{{ form.subject.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
                     <!-- Message -->
                     <div class="col-12">
-                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Message *</label>
+                        <label class="form-label" style="color: #0b2b40;">
+                            <i class="fas fa-comment me-2" style="color: #4ecdc4;"></i>Message <span class="required-indicator">*</span>
+                        </label>
                         <textarea name="message" class="glass-input w-100" rows="6" placeholder="Tell me about your project..." required>{{ form.message.value|default:'' }}</textarea>
                         {% if form.message.errors %}
-                        <div class="text-danger small mt-1">{{ form.message.errors }}</div>
+                        <div class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>{{ form.message.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
                     <!-- Additional fields based on inquiry type -->
-                    <div class="col-md-6 conditional-field" data-type="license,print">
-                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Usage Type</label>
+                    <div class="col-md-6 conditional-field" data-type="license,print" style="display: none;">
+                        <label class="form-label" style="color: #9d4edd;">
+                            <i class="fas fa-paint-brush me-2"></i>Usage Type
+                        </label>
                         <input type="text" name="usage_type" class="glass-input w-100" placeholder="e.g., Website, Print, Exhibition" value="{{ form.usage_type.value|default:'' }}">
                     </div>
                     
-                    <div class="col-md-6 conditional-field" data-type="commission">
-                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Budget Range</label>
+                    <div class="col-md-6 conditional-field" data-type="commission" style="display: none;">
+                        <label class="form-label" style="color: #ff8e53;">
+                            <i class="fas fa-dollar-sign me-2"></i>Budget Range
+                        </label>
                         <input type="text" name="budget_range" class="glass-input w-100" placeholder="e.g., $500-$1000" value="{{ form.budget_range.value|default:'' }}">
                     </div>
                     
-                    <div class="col-md-6 conditional-field" data-type="commission">
-                        <label class="form-label small text-uppercase" style="color: #9d4edd;">Deadline</label>
+                    <div class="col-md-6 conditional-field" data-type="commission" style="display: none;">
+                        <label class="form-label" style="color: #ff6b6b;">
+                            <i class="fas fa-calendar me-2"></i>Deadline
+                        </label>
                         <input type="date" name="deadline" class="glass-input w-100" value="{{ form.deadline.value|default:'' }}">
+                    </div>
+                    
+                    <!-- Form Divider for Legal -->
+                    <div class="col-12">
+                        <div class="form-divider">
+                            <span><i class="fas fa-gavel me-2"></i>Legal Agreements</span>
+                        </div>
                     </div>
                     
                     <!-- Legal Checkboxes -->
                     <div class="col-12">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="accepted_terms" id="acceptedTerms" required>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="accepted_terms" id="acceptedTerms" required {% if form.accepted_terms.value %}checked{% endif %}>
                             <label class="form-check-label" for="acceptedTerms">
-                                I agree to the <a href="#" class="text-decoration-none" style="color: #9d4edd;">Terms and Conditions</a> *
+                                I agree to the <a href="{% url 'core:terms' %}">Terms and Conditions</a> <span class="required-indicator">*</span>
                             </label>
                         </div>
                         {% if form.accepted_terms.errors %}
-                        <div class="text-danger small mt-1">{{ form.accepted_terms.errors }}</div>
+                        <div class="text-danger mb-2"><i class="fas fa-exclamation-circle me-1"></i>{{ form.accepted_terms.errors.0 }}</div>
                         {% endif %}
                         
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="accepted_privacy" id="acceptedPrivacy" required>
+                            <input class="form-check-input" type="checkbox" name="accepted_privacy" id="acceptedPrivacy" required {% if form.accepted_privacy.value %}checked{% endif %}>
                             <label class="form-check-label" for="acceptedPrivacy">
-                                I agree to the <a href="#" class="text-decoration-none" style="color: #9d4edd;">Privacy Policy</a> *
+                                I agree to the <a href="{% url 'core:privacy' %}">Privacy Policy</a> <span class="required-indicator">*</span>
                             </label>
                         </div>
                         {% if form.accepted_privacy.errors %}
-                        <div class="text-danger small mt-1">{{ form.accepted_privacy.errors }}</div>
+                        <div class="text-danger mt-2">{{ form.accepted_privacy.errors.0 }}</div>
                         {% endif %}
                     </div>
                     
                     <!-- Submit Button -->
-                    <div class="col-12 text-center mt-4">
-                        <button type="submit" class="gradient-btn btn-lg">
+                    <div class="col-12 text-center mt-5">
+                        <button type="submit" class="submit-btn">
                             <i class="fas fa-paper-plane me-2"></i>Send Message
                         </button>
+                        <p class="mt-3" style="color: #2c3e50; font-size: 13px;">
+                            <i class="fas fa-lock me-1" style="color: #4ecdc4;"></i>Your information is secure and encrypted
+                        </p>
                     </div>
                 </form>
             </div>
@@ -153,13 +442,47 @@
             const types = field.dataset.type.split(',');
             if (types.includes(selectedType)) {
                 field.style.display = 'block';
+                // Add animation
+                field.style.animation = 'fadeIn 0.5s ease';
             } else {
                 field.style.display = 'none';
             }
         });
     }
     
+    // Add fade animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    `;
+    document.head.appendChild(style);
+    
     inquiryTypeSelect.addEventListener('change', updateConditionalFields);
-    updateConditionalFields();
+    
+    // Initial update
+    setTimeout(updateConditionalFields, 100);
+    
+    // Form validation enhancement
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][required]');
+        let allChecked = true;
+        
+        checkboxes.forEach(cb => {
+            if (!cb.checked) {
+                allChecked = false;
+                cb.style.borderColor = '#ff6b6b';
+            } else {
+                cb.style.borderColor = '#4ecdc4';
+            }
+        });
+        
+        if (!allChecked) {
+            e.preventDefault();
+            alert('Please accept the Terms and Privacy Policy to continue.');
+        }
+    });
 </script>
 {% endblock %}
