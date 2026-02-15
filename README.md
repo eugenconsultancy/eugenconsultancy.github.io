@@ -1487,3 +1487,9 @@ python manage.py migrate
 ```
 
 Your admin interface will now have a stunning, modern appearance with all the Jazzmin enhancements while keeping all your existing functionality intact!
+
+
+
+
+# Run Django check
+python manage.py check
