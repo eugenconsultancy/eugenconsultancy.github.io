@@ -12,6 +12,7 @@ class BaseModel(models.Model):
     sort_order = models.IntegerField(default=0, help_text="Order for display")
 
     class Meta:
+        app_label = 'core'
         abstract = True
         ordering = ['sort_order', '-created_at']
 
@@ -50,6 +51,8 @@ class SiteSettings(models.Model):
     terms_of_service = models.TextField(blank=True)
     
     class Meta:
+        app_label = 'core'
+        app_label = "core"
         verbose_name = "Site Settings"
         verbose_name_plural = "Site Settings"
 

@@ -56,6 +56,7 @@ class Comment(BaseModel):
     )
 
     class Meta:
+        app_label = 'comments'
         verbose_name = "Comment"
         verbose_name_plural = "Comments"
         ordering = ['-created_at']
@@ -74,7 +75,7 @@ class Comment(BaseModel):
 
 class Testimonial(BaseModel):
     """
-    Featured testimonials (can be from comments or standalone)
+    Featured testimonials (can be from media_portfolio.comments or standalone)
     """
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=200, blank=True, help_text="e.g., Client, Art Director")
@@ -108,6 +109,7 @@ class Testimonial(BaseModel):
     featured = models.BooleanField(default=True)
 
     class Meta:
+        app_label = 'comments'
         verbose_name = "Testimonial"
         verbose_name_plural = "Testimonials"
 

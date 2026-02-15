@@ -48,6 +48,7 @@ class Category(BaseModel):
     )
 
     class Meta:
+        app_label = 'categories'
         verbose_name = "Category"
         verbose_name_plural = "Categories"
         ordering = ['category_type', 'sort_order', 'name']

@@ -157,6 +157,7 @@ class Project(BaseModel):
     )
 
     class Meta:
+        app_label = 'projects'
         verbose_name = "Project"
         verbose_name_plural = "Projects"
         ordering = ['-is_featured', '-performance_score', '-published_date']
@@ -214,6 +215,7 @@ class ProjectLike(BaseModel):
     user_agent = models.TextField(blank=True)
 
     class Meta:
+        app_label = 'projects'
         verbose_name = "Project Like"
         verbose_name_plural = "Project Likes"
         unique_together = ['project', 'session_key']
@@ -260,6 +262,7 @@ class ProjectComment(BaseModel):
     user_agent = models.TextField(blank=True)
 
     class Meta:
+        app_label = 'projects'
         verbose_name = "Project Comment"
         verbose_name_plural = "Project Comments"
         ordering = ['-created_at']

@@ -62,6 +62,7 @@ class Collection(BaseModel):
     featured = models.BooleanField(default=False)
     
     class Meta:
+        app_label = 'collections'
         verbose_name = "Collection"
         verbose_name_plural = "Collections"
         ordering = ['-featured', '-published_date']
@@ -90,6 +91,7 @@ class CollectionItem(models.Model):
     custom_caption = models.TextField(blank=True, help_text="Override the media item's caption for this collection")
     
     class Meta:
+        app_label = 'collections'
         ordering = ['order']
         unique_together = ['collection', 'media_item']
 

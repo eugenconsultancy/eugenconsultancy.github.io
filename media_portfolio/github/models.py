@@ -34,6 +34,7 @@ class GitHubRepo(BaseModel):
     last_synced = models.DateTimeField(auto_now=True)
 
     class Meta:
+        app_label = 'github'
         verbose_name = "GitHub Repository"
         verbose_name_plural = "GitHub Repositories"
         ordering = ['-stars_count']
@@ -53,6 +54,7 @@ class GitHubSyncLog(BaseModel):
     error_message = models.TextField(blank=True)
 
     class Meta:
+        app_label = 'github'
         verbose_name = "GitHub Sync Log"
         verbose_name_plural = "GitHub Sync Logs"
         ordering = ['-synced_at']

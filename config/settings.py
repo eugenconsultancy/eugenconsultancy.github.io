@@ -18,16 +18,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ============================================================
 # Add the project root directory
 PROJECT_ROOT = str(BASE_DIR)
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
+# if PROJECT_ROOT not in sys.path:
+#     sys.path.insert(0, PROJECT_ROOT)
 
 # Add the media_portfolio directory (where your apps are)
 MEDIA_PORTFOLIO_ROOT = str(BASE_DIR / 'media_portfolio')
-if MEDIA_PORTFOLIO_ROOT not in sys.path:
-    sys.path.insert(0, MEDIA_PORTFOLIO_ROOT)
+# if MEDIA_PORTFOLIO_ROOT not in sys.path:
+#     sys.path.insert(0, MEDIA_PORTFOLIO_ROOT)
 
 # Print paths for debugging (visible in logs)
-print(f"Python path: {sys.path}")
+# print(f"Python path: {sys.path}")
 print(f"BASE_DIR: {BASE_DIR}")
 print(f"MEDIA_PORTFOLIO_ROOT: {MEDIA_PORTFOLIO_ROOT}")
 

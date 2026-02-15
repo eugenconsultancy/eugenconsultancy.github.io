@@ -11,12 +11,12 @@ import sys  # Add sys import
 # ============================================================
 # Double-check paths are in sys.path (in case settings.py didn't set them)
 PROJECT_ROOT = str(BASE_DIR)
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
+# if PROJECT_ROOT not in sys.path:
+#     sys.path.insert(0, PROJECT_ROOT)
 
 MEDIA_PORTFOLIO_ROOT = str(BASE_DIR / 'media_portfolio')
-if MEDIA_PORTFOLIO_ROOT not in sys.path:
-    sys.path.insert(0, MEDIA_PORTFOLIO_ROOT)
+# if MEDIA_PORTFOLIO_ROOT not in sys.path:
+#     sys.path.insert(0, MEDIA_PORTFOLIO_ROOT)
 
 # Security settings for production
 DEBUG = False

@@ -8,7 +8,6 @@ class CollectionItemInline(admin.TabularInline):
     extra = 5
     ordering = ['order']
     fields = ['media_item', 'order', 'custom_caption']
-    autocomplete_fields = ['media_item']
 
 
 @admin.register(Collection)

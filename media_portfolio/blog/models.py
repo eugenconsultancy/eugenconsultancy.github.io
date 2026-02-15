@@ -41,6 +41,7 @@ class BlogPost(BaseModel):
     is_published = models.BooleanField(default=True)
 
     class Meta:
+        app_label = 'blog'
         verbose_name = "Blog Post"
         verbose_name_plural = "Blog Posts"
         ordering = ['-published_at']
@@ -68,6 +69,7 @@ class BlogSyncLog(BaseModel):
     error_message = models.TextField(blank=True)
 
     class Meta:
+        app_label = 'blog'
         verbose_name = "Blog Sync Log"
         verbose_name_plural = "Blog Sync Logs"
         ordering = ['-synced_at']

@@ -84,6 +84,7 @@ class Inquiry(BaseModel):
     accepted_privacy = models.BooleanField(default=False)
     
     class Meta:
+        app_label = 'inquiries'
         verbose_name = "Inquiry"
         verbose_name_plural = "Inquiries"
         ordering = ['-created_at']
