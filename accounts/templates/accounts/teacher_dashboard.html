@@ -1,0 +1,490 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 mb-2">Welcome back, {{ user.get_full_name|default:user.username }}! 👋</h1>
+                            <p class="mb-0">Manage your classes, students, and academic activities</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-chalkboard-teacher me-2"></i>
+                                Teacher Dashboard
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Row -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Assigned Subjects
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if user.teacher_profile.subjects %}
+                                {{ user.teacher_profile.subjects }}
+                                {% else %}
+                                Not assigned
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Assigned Classes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if user.teacher_profile.classes %}
+                                {{ user.teacher_profile.classes }}
+                                {% else %}
+                                Not assigned
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-school fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                My Students
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ student_count|default:"0" }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-graduate fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Unread Notifications
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ unread_count }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bell fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Performance Analytics Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center" 
+                     style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-chart-line me-2"></i>Performance Analytics
+                    </h6>
+                    <a href="{% url 'student_performance_analytics' %}" 
+                       class="btn btn-light btn-sm">
+                        View Analytics <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <p class="text-muted">Monitor student performance and track academic progress</p>
+                    </div>
+                    
+                    <!-- Quick Performance Stats -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-line fa-2x text-primary mb-3"></i>
+                                    <h5>Student Analytics</h5>
+                                    <p class="text-muted small">Track student performance trends</p>
+                                    <a href="{% url 'student_performance_analytics' %}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        View Analytics
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-balance-scale fa-2x text-info mb-3"></i>
+                                    <h5>Term Comparison</h5>
+                                    <p class="text-muted small">Compare performance across terms</p>
+                                    <a href="{% url 'term_comparison_analytics' %}" 
+                                       class="btn btn-outline-info btn-sm">
+                                        Compare Terms
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Student Password Access Section -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center" 
+                            style="background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);">
+                            <h6 class="m-0 font-weight-bold text-white">
+                                <i class="fas fa-key me-2"></i>Student Password Access
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle fa-2x"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="alert-heading mb-2">Password Viewing Access</h6>
+                                        <p class="mb-2">
+                                            As a teacher of the following classes: 
+                                            <strong>{{ user.teacher_profile.classes|default:"Not assigned" }}</strong>, 
+                                            you can view passwords for students in your assigned classes.
+                                        </p>
+                                        <p class="mb-0">
+                                            <strong>Note:</strong> All student passwords are auto-generated 8-character codes.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+        
+                            <div class="text-center">
+                                <a href="{% url 'teacher_student_list' %}" 
+                                class="btn btn-primary btn-lg px-5 py-3">
+                                    <i class="fas fa-key me-2"></i>
+                                    View Student Passwords
+                                    <small class="d-block mt-1">Access passwords for your students</small>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Call to Action -->
+                    <div class="alert alert-info border-0 shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-lightbulb fa-2x text-info"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="alert-heading">Analytics Insight</h6>
+                                <p class="mb-0">Use analytics tools to identify students needing attention, track class performance trends, and make data-driven teaching decisions.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Marks Management Section -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-clipboard-check me-2"></i>Marks Management
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="{% url 'mark_list' %}" 
+                               class="btn btn-primary btn-lg w-100 py-3 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-list fa-2x me-3"></i>
+                                <div class="text-start">
+                                    <div class="h5 mb-1">View All Marks</div>
+                                    <small class="opacity-75">Browse and manage student marks</small>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <a href="{% url 'mark_create' %}" 
+                               class="btn btn-success btn-lg w-100 py-3 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-plus-circle fa-2x me-3"></i>
+                                <div class="text-start">
+                                    <div class="h5 mb-1">Add New Marks</div>
+                                    <small class="opacity-75">Enter marks for students</small>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="alert alert-light border">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-2">Marks Management Features</h6>
+                                    <ul class="mb-0">
+                                        <li>Enter marks for students in your classes</li>
+                                        <li>Update marks for continuous assessment and exams</li>
+                                        <li>View all marks you have entered</li>
+                                        <li>Track student performance trends</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Teacher Information Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-user-tie me-2"></i>My Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-circle mb-3" 
+                             style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                    border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                            <span class="text-white h3">{{ user.get_full_name|first|upper|default:user.username|first|upper }}</span>
+                        </div>
+                        <h5 class="mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                        <p class="text-muted small">{{ user.email|default:"No email" }}</p>
+                    </div>
+                    
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-book text-primary me-2"></i>Subjects</span>
+                            <span class="badge bg-primary">
+                                {% if user.teacher_profile.subjects %}
+                                {{ user.teacher_profile.subjects }}
+                                {% else %}
+                                Not assigned
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-school text-success me-2"></i>Classes</span>
+                            <span class="text-success">
+                                {% if user.teacher_profile.classes %}
+                                {{ user.teacher_profile.classes }}
+                                {% else %}
+                                Not assigned
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        {% if user.teacher_profile.phone %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-phone text-info me-2"></i>Phone</span>
+                            <span>{{ user.teacher_profile.phone }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-dark text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'teacher_students' %}" 
+                           class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-graduate me-2"></i>My Students
+                        </a>
+                         <a href="{% url 'teacher_student_list' %}" 
+                            class="btn btn-danger btn-lg">
+                                <i class="fas fa-key me-2"></i>Student Passwords
+                            </a>
+                        <a href="{% url 'student_create' %}" 
+                           class="btn btn-success btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Add Student
+                        </a>
+                        
+                        <a href="{% url 'student_performance_analytics' %}" 
+                           class="btn btn-info btn-lg">
+                            <i class="fas fa-chart-line me-2"></i>Performance Analytics
+                        </a>
+                        
+                        <a href="{% url 'fee_summary' %}" 
+                           class="btn btn-warning btn-lg">
+                            <i class="fas fa-money-bill me-2"></i>Fee Summary
+                        </a>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="alert alert-light border">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-graduation-cap text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <small class="text-muted">
+                                        As a teacher, you can manage students, track performance, and monitor academic progress.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3" style="background: #2c3e50;">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-tasks me-2"></i>Teacher Responsibilities
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-user-graduate fa-2x text-primary mb-3"></i>
+                                <h6>Student Management</h6>
+                                <p class="text-muted small">View and manage students in your classes</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-chart-line fa-2x text-success mb-3"></i>
+                                <h6>Performance Analytics</h6>
+                                <p class="text-muted small">Track student performance trends</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-clipboard-check fa-2x text-info mb-3"></i>
+                                <h6>Marks Management</h6>
+                                <p class="text-muted small">Enter and update student marks</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-money-bill fa-2x text-warning mb-3"></i>
+                                <h6>Fee Monitoring</h6>
+                                <p class="text-muted small">Monitor student fee payments</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-secondary mt-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-circle fa-2x"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="alert-heading mb-1">Teacher Access</h6>
+                                <p class="mb-0">As a teacher, you have access to manage academic activities, track student performance, update student information, and monitor student progress in your assigned classes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 15px;
+        border: none;
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .border-left-primary {
+        border-left: 4px solid #4e73df !important;
+    }
+    
+    .border-left-success {
+        border-left: 4px solid #1cc88a !important;
+    }
+    
+    .border-left-info {
+        border-left: 4px solid #36b9cc !important;
+    }
+    
+    .border-left-warning {
+        border-left: 4px solid #f6c23e !important;
+    }
+    
+    .feature-card {
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        transform: scale(1.05);
+    }
+    
+    .avatar-circle {
+        border: 3px solid white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .btn-lg {
+        border-radius: 10px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}

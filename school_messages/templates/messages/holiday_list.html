@@ -1,0 +1,96 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>Holiday Notices</h2>
+
+<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+    <a href="{% url 'holiday_notice_create' %}" style="background-color: #4CAF50; color: white; padding: 10px 15px; text-decoration: none;">Create Holiday Notice</a>
+    <a href="{% url 'message_list' %}" style="background-color: #2196F3; color: white; padding: 10px 15px; text-decoration: none;">Back to Messages</a>
+</div>
+
+<!-- Current Holidays -->
+{% if current_holidays %}
+<h3>Current Holidays</h3>
+<div style="margin-bottom: 30px;">
+    {% for holiday in current_holidays %}
+    <div style="background-color: #fff8e1; border-left: 4px solid #FF9800; padding: 20px; margin-bottom: 15px; border-radius: 5px;">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+                <h4 style="margin-top: 0; color: #333;">{{ holiday.title }}</h4>
+                <p><strong>Duration:</strong> {{ holiday.start_date|date:"M d, Y" }} to {{ holiday.end_date|date:"M d, Y" }} ({{ holiday.duration_days }} days)</p>
+                <p><strong>School Reopens:</strong> {{ holiday.school_reopens|date:"M d, Y" }}</p>
+                <p>{{ holiday.description|truncatewords:50 }}</p>
+            </div>
+            <div>
+                <span style="background-color: #FF9800; color: white; padding: 5px 10px; border-radius: 3px;">Current</span>
+            </div>
+        </div>
+        <div style="margin-top: 15px;">
+            <a href="{% url 'holiday_notice_detail' holiday.pk %}" style="background-color: #2196F3; color: white; padding: 5px 10px; text-decoration: none;">View Details</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Upcoming Holidays -->
+{% if upcoming_holidays %}
+<h3>Upcoming Holidays</h3>
+<div style="margin-bottom: 30px;">
+    {% for holiday in upcoming_holidays %}
+    <div style="background-color: #e8f5e9; padding: 20px; margin-bottom: 15px; border-radius: 5px;">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+                <h4 style="margin-top: 0; color: #333;">{{ holiday.title }}</h4>
+                <p><strong>Starts:</strong> {{ holiday.start_date|date:"M d, Y" }}</p>
+                <p><strong>Duration:</strong> {{ holiday.duration_days }} days</p>
+                <p>{{ holiday.description|truncatewords:30 }}</p>
+            </div>
+            <div style="text-align: right;">
+                <span style="background-color: #4CAF50; color: white; padding: 5px 10px; border-radius: 3px;">Upcoming</span>
+                <p style="margin-top: 5px; color: #666;">
+                    {{ holiday.start_date|timeuntil }} from now
+                </p>
+            </div>
+        </div>
+        <div style="margin-top: 15px;">
+            <a href="{% url 'holiday_notice_detail' holiday.pk %}" style="background-color: #2196F3; color: white; padding: 5px 10px; text-decoration: none;">View Details</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Past Holidays -->
+{% if past_holidays %}
+<h3>Past Holidays</h3>
+<div>
+    {% for holiday in past_holidays %}
+    <div style="background-color: #f5f5f5; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h4 style="margin-top: 0; color: #666;">{{ holiday.title }}</h4>
+                <p style="color: #888; margin-bottom: 0;">
+                    {{ holiday.start_date|date:"M d, Y" }} to {{ holiday.end_date|date:"M d, Y" }}
+                </p>
+            </div>
+            <div>
+                <span style="background-color: #9E9E9E; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px;">Past</span>
+                <a href="{% url 'holiday_notice_detail' holiday.pk %}" style="color: #2196F3; text-decoration: none; margin-left: 10px;">View</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if not current_holidays and not upcoming_holidays and not past_holidays %}
+<div style="background-color: #f5f5f5; padding: 40px; text-align: center; border-radius: 5px;">
+    <h3>No Holiday Notices</h3>
+    <p>No holiday notices have been created yet.</p>
+    <a href="{% url 'holiday_notice_create' %}" style="background-color: #4CAF50; color: white; padding: 10px 15px; text-decoration: none; display: inline-block; margin-top: 10px;">
+        Create First Holiday Notice
+    </a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,352 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header Card -->
+            <div class="card shadow-lg border-0 mb-4" 
+                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 mb-2">
+                                <i class="fas fa-user-graduate me-2"></i>{{ title }} Student
+                            </h1>
+                            <p class="mb-0 opacity-75">
+                                {% if title == 'Add' %}
+                                Register a new student in the school system
+                                {% else %}
+                                Update student information and account details
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-light text-primary px-3 py-2 rounded-pill">
+                                <i class="fas fa-user-plus me-1"></i> {{ title }} Mode
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-0">
+                    <form method="post" enctype="multipart/form-data" class="p-4" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {% for error in form.non_field_errors %}
+                            {{ error }}
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Account Information Section -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-light border-0">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-user-circle text-primary me-2"></i>Account Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    {% for field in form %}
+                                        {% if field.name in 'username,email,first_name,last_name,password' %}
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                                    <i class="fas fa-{{ field.name|slice:'0:1'|lower }} me-1 text-primary"></i>
+                                                    {{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                </label>
+                                                {{ field }}
+                                                {% if field.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    <i class="fas fa-exclamation-circle me-1"></i>{{ field.errors }}
+                                                </div>
+                                                {% endif %}
+                                                {% if field.help_text %}
+                                                <div class="form-text">
+                                                    <i class="fas fa-info-circle me-1"></i>{{ field.help_text }}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    <!-- Password Note for Update -->
+                                    {% if title == 'Update' %}
+                                    <div class="col-md-12">
+                                        <div class="alert alert-info mt-2">
+                                            <i class="fas fa-key me-2"></i>
+                                            <small>Leave password fields empty to keep the current password unchanged.</small>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Student Information Section -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-light border-0">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-id-card text-success me-2"></i>Student Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    {% for field in form %}
+                                        {% if field.name not in 'username,email,first_name,last_name,password' %}
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                                    <i class="fas fa-{{ field.name|slice:'0:1'|lower }} me-1 text-success"></i>
+                                                    {{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                </label>
+                                                {{ field }}
+                                                {% if field.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    <i class="fas fa-exclamation-circle me-1"></i>{{ field.errors }}
+                                                </div>
+                                                {% endif %}
+                                                {% if field.help_text %}
+                                                <div class="form-text">
+                                                    <i class="fas fa-info-circle me-1"></i>{{ field.help_text }}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Important Notes -->
+                        <div class="alert alert-warning border-0 shadow-sm mb-4">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-triangle fa-lg text-warning"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="alert-heading mb-2">Important Information</h6>
+                                    <ul class="mb-0 small">
+                                        <li>All fields marked with <span class="text-danger">*</span> are required</li>
+                                        <li>Students will receive auto-generated 8-character passwords</li>
+                                        <li>Ensure all contact information is accurate for communication</li>
+                                        <li>Teachers will be able to view student passwords for their classes</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
+                            <div>
+                                <a href="{% url 'student_list' %}" class="btn btn-outline-secondary px-4">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Students
+                                </a>
+                                <button type="reset" class="btn btn-outline-warning ms-2">
+                                    <i class="fas fa-redo me-2"></i>Reset Form
+                                </button>
+                            </div>
+                            <div>
+                                <button type="submit" class="btn btn-success btn-lg px-5">
+                                    <i class="fas fa-save me-2"></i>Save Student
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Password Generation Info -->
+            {% if title == 'Add' %}
+            <div class="card border-0 shadow-sm mt-4" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-key fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-2">
+                                <i class="fas fa-shield-alt me-2"></i>Password Generation
+                            </h5>
+                            <p class="mb-0 opacity-75">
+                                Upon submission, the system will automatically generate a secure 8-character password 
+                                for the student. This password will be displayed to teachers of the student's classes 
+                                and can be viewed by administrators.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    select, input[type="text"], input[type="email"], input[type="password"], 
+    input[type="date"], input[type="tel"], textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        background-color: #f8fafc;
+        font-size: 14px;
+    }
+    
+    select:focus, input[type="text"]:focus, input[type="email"]:focus, 
+    input[type="password"]:focus, input[type="date"]:focus, 
+    input[type="tel"]:focus, textarea:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        background-color: white;
+        outline: none;
+    }
+    
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    .form-label {
+        color: #2d3748;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    
+    .form-text {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+    
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        background-color: #f8fafc !important;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(67, 233, 123, 0.4);
+    }
+    
+    .btn-outline-secondary {
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-weight: 500;
+    }
+    
+    .btn-outline-warning {
+        border-radius: 10px;
+        padding: 10px 25px;
+    }
+    
+    .alert {
+        border-radius: 10px;
+        border: none;
+    }
+    
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .alert-info {
+        background-color: #e0f2fe;
+        color: #0369a1;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .row.g-3 {
+            margin-left: 0;
+            margin-right: 0;
+        }
+        
+        .col-md-6 {
+            margin-bottom: 15px;
+        }
+        
+        .btn-lg {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+        
+        .d-flex.justify-content-between {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .d-flex.justify-content-between > div {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add form validation feedback
+    const formInputs = document.querySelectorAll('input, select, textarea');
+    
+    formInputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value.trim() === '' && this.hasAttribute('required')) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            } else if (this.value.trim() !== '') {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            }
+        });
+        
+        input.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid') && this.value.trim() !== '') {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    });
+    
+    // Date picker enhancement
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(input => {
+        if (!input.value) {
+            const today = new Date().toISOString().split('T')[0];
+            input.value = today;
+        }
+    });
+});
+</script>
+{% endblock %}

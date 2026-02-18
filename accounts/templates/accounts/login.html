@@ -1,0 +1,348 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Login - School Admin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="login-container animate__animated animate__fadeInUp">
+            <!-- Header with Icon -->
+            <div class="text-center mb-4">
+                <div class="login-icon-wrapper mx-auto mb-3">
+                    <i class="fas fa-graduation-cap fa-3x text-white"></i>
+                </div>
+                <h2 class="page-title text-center">Welcome Back</h2>
+                <p class="text-white-50">Sign in to access your dashboard</p>
+            </div>
+
+            <!-- Login Form -->
+            <form method="post" class="login-form">
+                {% csrf_token %}
+                
+                <!-- Username Field -->
+                <div class="form-group mb-4">
+                    <label for="id_username" class="form-label">
+                        <i class="fas fa-user me-2"></i>Username
+                    </label>
+                    <div class="input-wrapper">
+                        {{ form.username }}
+                        <i class="fas fa-user-circle field-icon"></i>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group mb-4">
+                    <label for="id_password" class="form-label">
+                        <i class="fas fa-lock me-2"></i>Password
+                    </label>
+                    <div class="input-wrapper">
+                        {{ form.password }}
+                        <i class="fas fa-lock field-icon"></i>
+                    </div>
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="remember">
+                        <label class="form-check-label text-white-50" for="remember">
+                            <small>Remember me</small>
+                        </label>
+                    </div>
+                    <a href="#" class="text-white-50 text-decoration-none">
+                        <small><i class="fas fa-question-circle me-1"></i>Forgot Password?</small>
+                    </a>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="btn btn-glass w-100 py-3 mb-4">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login to Dashboard
+                </button>
+
+                <!-- Note -->
+                <div class="alert alert-glass text-center mb-0" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small>Students cannot create accounts. Use credentials provided by admin.</small>
+                </div>
+            </form>
+
+            <!-- System Info -->
+            <div class="system-badge text-center mt-4">
+                <span class="badge bg-glass">
+                    <i class="fas fa-shield-alt me-1"></i>Secure Login
+                </span>
+                <span class="badge bg-glass ms-2">
+                    <i class="fas fa-clock me-1"></i>24/7 Access
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 30px;
+        padding: 2.5rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-container::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+        z-index: -1;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .login-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-10px) scale(1.05); }
+    }
+
+    .login-form .form-group {
+        position: relative;
+    }
+
+    .login-form .form-label {
+        color: white;
+        font-weight: 500;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        padding: 15px 20px 15px 45px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .input-wrapper input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .input-wrapper input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.9rem;
+    }
+
+    .field-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+    }
+
+    .input-wrapper input:focus + .field-icon {
+        color: white;
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .form-check-input {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+    }
+
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+
+    .form-check-input:focus {
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+    }
+
+    .btn-glass {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-glass::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-glass:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-glass:hover::before {
+        left: 100%;
+    }
+
+    .alert-glass {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        padding: 15px;
+    }
+
+    .bg-glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+        padding: 8px 15px;
+        border-radius: 30px;
+        color: white;
+        font-weight: 500;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .system-badge {
+        animation: fadeInUp 0.5s ease-out 0.3s both;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Form field overrides for Django form */
+    .input-wrapper input#id_username,
+    .input-wrapper input#id_password {
+        width: 100%;
+        padding: 15px 20px 15px 45px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        color: white;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .login-container {
+            padding: 2rem 1.5rem;
+        }
+        
+        .btn-glass {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .login-container {
+            padding: 1.5rem 1rem;
+        }
+        
+        .login-icon-wrapper {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .login-icon-wrapper i {
+            font-size: 2rem;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+        }
+    }
+
+    /* Loading state for button */
+    .btn-glass.loading {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+
+    .btn-glass.loading i {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add loading animation on form submit
+        const form = document.querySelector('.login-form');
+        const submitBtn = document.querySelector('.btn-glass');
+        
+        form.addEventListener('submit', function(e) {
+            submitBtn.classList.add('loading');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging in...';
+        });
+
+        // Auto-focus username field
+        document.getElementById('id_username')?.focus();
+
+        // Add floating label effect
+        const inputs = document.querySelectorAll('.input-wrapper input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.parentElement.classList.remove('focused');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

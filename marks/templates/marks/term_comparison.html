@@ -1,0 +1,142 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-balance-scale"></i> Term Comparison Analytics</h2>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Compare Two Terms</h4>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Select First Term</label>
+                    <select name="term1" class="form-select">
+                        <option value="">-- Select Term --</option>
+                        {% for term in terms %}
+                        <option value="{{ term.term }}|{{ term.academic_year }}" 
+                                {% if selected_term1 == term.term|add:"|"|add:term.academic_year %}selected{% endif %}>
+                            {{ term.term }} {{ term.academic_year }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-5">
+                    <label class="form-label">Select Second Term</label>
+                    <select name="term2" class="form-select">
+                        <option value="">-- Select Term --</option>
+                        {% for term in terms %}
+                        <option value="{{ term.term }}|{{ term.academic_year }}" 
+                                {% if selected_term2 == term.term|add:"|"|add:term.academic_year %}selected{% endif %}>
+                            {{ term.term }} {{ term.academic_year }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-compare"></i> Compare
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if comparison_data %}
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">Comparison Results</h4>
+        </div>
+        <div class="card-body">
+            <div class="row text-center mb-4">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>{{ comparison_data.term1.term }} {{ comparison_data.term1.year }}</h5>
+                            <div class="display-4 
+                                {% if comparison_data.percentage_change < 0 %}text-success{% endif %}">
+                                {{ comparison_data.term1.average|floatformat:1 }}%
+                            </div>
+                            <small class="text-muted">Average Score</small>
+                            <p class="mt-2">{{ comparison_data.term1.count }} records</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 d-flex align-items-center justify-content-center">
+                    <div class="text-center">
+                        <div class="display-4 
+                            {% if comparison_data.percentage_change > 0 %}text-success
+                            {% elif comparison_data.percentage_change < 0 %}text-danger
+                            {% else %}text-info{% endif %}">
+                            {% if comparison_data.difference > 0 %}+{% endif %}
+                            {{ comparison_data.difference|floatformat:1 }}
+                        </div>
+                        <div class="h4 
+                            {% if comparison_data.percentage_change > 0 %}text-success
+                            {% elif comparison_data.percentage_change < 0 %}text-danger
+                            {% else %}text-info{% endif %}">
+                            {% if comparison_data.percentage_change > 0 %}+{% endif %}
+                            {{ comparison_data.percentage_change|floatformat:1 }}%
+                        </div>
+                        <small class="text-muted">Change</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>{{ comparison_data.term2.term }} {{ comparison_data.term2.year }}</h5>
+                            <div class="display-4 
+                                {% if comparison_data.percentage_change > 0 %}text-success{% endif %}">
+                                {{ comparison_data.term2.average|floatformat:1 }}%
+                            </div>
+                            <small class="text-muted">Average Score</small>
+                            <p class="mt-2">{{ comparison_data.term2.count }} records</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trend Indicator -->
+            <div class="text-center mt-3">
+                {% if comparison_data.percentage_change > 5 %}
+                <div class="alert alert-success">
+                    <i class="fas fa-arrow-up"></i> 
+                    <strong>Significant Improvement:</strong> 
+                    Performance improved by {{ comparison_data.percentage_change|floatformat:1 }}%
+                </div>
+                {% elif comparison_data.percentage_change > 0 %}
+                <div class="alert alert-info">
+                    <i class="fas fa-arrow-up"></i> 
+                    <strong>Slight Improvement:</strong> 
+                    Performance improved by {{ comparison_data.percentage_change|floatformat:1 }}%
+                </div>
+                {% elif comparison_data.percentage_change < -5 %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-arrow-down"></i> 
+                    <strong>Significant Decline:</strong> 
+                    Performance declined by {{ comparison_data.percentage_change|stringformat:"+.1f"|slice:"1:" }}%
+                </div>
+                {% elif comparison_data.percentage_change < 0 %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-arrow-down"></i> 
+                    <strong>Slight Decline:</strong> 
+                   Performance declined by {{ comparison_data.percentage_change|stringformat:"+.1f"|slice:"1:" }}%
+                </div>
+                {% else %}
+                <div class="alert alert-secondary">
+                    <i class="fas fa-equals"></i> 
+                    <strong>Stable Performance:</strong> 
+                    No significant change in performance
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

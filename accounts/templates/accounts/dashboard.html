@@ -1,0 +1,622 @@
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}School Admin System{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --dark-blue: #2c3e50;
+            --light-blue: #3498db;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar-custom {
+            background: var(--primary-gradient);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 0.5rem 0;
+        }
+        
+        .navbar-custom .nav-link {
+            color: rgba(255,255,255,0.95) !important;
+            font-weight: 500;
+            margin: 0 2px;
+            padding: 8px 16px !important;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .navbar-custom .nav-link i {
+            font-size: 1.1rem;
+        }
+        
+        .navbar-custom .nav-link:hover {
+            background: rgba(255,255,255,0.2);
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.1);
+        }
+        
+        .navbar-custom .nav-link.active {
+            background: rgba(255,255,255,0.25);
+            font-weight: 600;
+        }
+        
+        .welcome-text {
+            color: white;
+            font-weight: 500;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50px;
+            margin-right: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--secondary-gradient);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .logout-btn {
+            background: rgba(220,53,69,0.95) !important;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 24px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logout-btn:hover {
+            background: #dc3545 !important;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 15px rgba(220,53,69,0.3);
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            border: none;
+            margin-top: 30px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .content-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+        
+        .alert-custom {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+            border-left: 4px solid;
+        }
+        
+        .navbar-brand-custom {
+            color: white !important;
+            font-weight: 800;
+            font-size: 1.8rem;
+            padding: 0 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 10px 20px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-brand-custom i {
+            font-size: 1.5rem;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .dropdown-custom .dropdown-menu {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 10px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-custom .dropdown-item {
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin: 2px 0;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-custom .dropdown-item:hover {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            transform: translateX(5px);
+        }
+        
+        @media (max-width: 992px) {
+            .navbar-custom .nav-item {
+                margin-bottom: 5px;
+            }
+            
+            .welcome-text {
+                margin: 10px 0;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .content-card {
+                padding: 25px;
+                margin-top: 20px;
+            }
+            
+            .navbar-nav {
+                padding: 10px 0;
+            }
+        }
+        
+        .floating-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--success-gradient);
+            color: white;
+            border: none;
+            box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 8px 25px rgba(67, 233, 123, 0.6);
+        }
+        
+        .page-title {
+            color: var(--dark-blue);
+            font-weight: 700;
+            margin-bottom: 25px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand-custom" href="{% url 'dashboard' %}">
+                <i class="fas fa-graduation-cap"></i>
+                SchoolAdmin
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon" style="filter: invert(1); font-size: 1.5rem;">☰</span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                {% if user.is_authenticated %}
+                <ul class="navbar-nav me-auto">
+                    {% if user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                           href="{% url 'dashboard' %}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'admin:index' %}">
+                            <i class="fas fa-cogs"></i> Admin Panel
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'student' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'student_list' %}">
+                            <i class="fas fa-users"></i> Students
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'teacher' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'teacher_list' %}">
+                            <i class="fas fa-chalkboard-teacher"></i> Teachers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'fee' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'fee_structure_list' %}">
+                            <i class="fas fa-money-bill-wave"></i> Fees
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'report' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'financial_report' %}">
+                            <i class="fas fa-chart-bar"></i> Reports
+                        </a>
+                    </li>
+                    <!-- Performance Analytics -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'performance' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'student_performance_analytics' %}">
+                            <i class="fas fa-chart-line"></i> Analytics
+                        </a>
+                    </li>
+                    
+                    {% elif user.is_teacher %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                           href="{% url 'dashboard' %}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'teacher_students' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'teacher_students' %}">
+                            <i class="fas fa-user-graduate"></i> My Students
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'mark' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'mark_list' %}">
+                            <i class="fas fa-clipboard-check"></i> Marks
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'performance' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'student_performance_analytics' %}">
+                            <i class="fas fa-chart-line"></i> Performance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'fee_summary' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'fee_summary' %}">
+                            <i class="fas fa-money-bill"></i> Fee Summary
+                        </a>
+                    </li>
+                    
+                    {% elif user.is_student %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                           href="{% url 'dashboard' %}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'student_profile' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'student_profile' %}">
+                            <i class="fas fa-user-circle"></i> My Profile
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'student_results' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'student_results' %}">
+                            <i class="fas fa-file-alt"></i> My Results
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'student_performance_detail' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'student_performance_detail' user.student.id %}">
+                            <i class="fas fa-chart-line"></i> Performance Trends
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'student_financial_dashboard' in request.resolver_match.url_name %}active{% endif %}" 
+                           href="{% url 'student_financial_dashboard' %}">
+                            <i class="fas fa-wallet"></i> My Finances
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Common Links for All Users -->
+                    <li class="nav-item dropdown dropdown-custom">
+                        <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-envelope"></i> Messages
+                            {% if unread_count > 0 %}
+                            <span class="notification-badge">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="messagesDropdown">
+                            {% if user.is_admin or user.is_teacher %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'message_list' %}">
+                                    <i class="fas fa-list"></i> All Messages
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'message_create' %}">
+                                    <i class="fas fa-paper-plane"></i> Send Message
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'outbox' %}">
+                                    <i class="fas fa-share-square"></i> Sent Messages
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'inbox' %}">
+                                    <i class="fas fa-inbox"></i> Inbox
+                                    {% if unread_count > 0 %}
+                                    <span class="badge bg-danger float-end">{{ unread_count }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'notification_list' %}">
+                                    <i class="fas fa-bell"></i> Notifications
+                                    {% if unread_count > 0 %}
+                                    <span class="badge bg-danger float-end">{{ unread_count }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <div class="navbar-nav align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="user-avatar me-2">
+                            {{ user.username|first|upper }}
+                        </div>
+                        <span class="welcome-text">
+                            <i class="fas fa-user"></i>
+                            {{ user.username }} 
+                            <small>({{ user.get_role_display }})</small>
+                        </span>
+                    </div>
+                    
+                    <div class="dropdown dropdown-custom ms-3">
+                        <button class="btn btn-danger logout-btn dropdown-toggle" type="button" 
+                                id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-sign-out-alt"></i> {{ user.username|truncatechars:8 }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'dashboard' %}">
+                                    <i class="fas fa-home"></i> Dashboard
+                                </a>
+                            </li>
+                            {% if user.is_student %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'student_profile' %}">
+                                    <i class="fas fa-user"></i> My Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'student_performance_detail' user.student.id %}">
+                                    <i class="fas fa-chart-line"></i> Performance Analysis
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}" class="dropdown-item p-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link text-danger w-100 text-start">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                {% else %}
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                    </li>
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show alert-custom" role="alert">
+                <div class="d-flex align-items-center">
+                    {% if message.tags == 'success' %}
+                    <i class="fas fa-check-circle me-2" style="font-size: 1.2rem;"></i>
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}
+                    <i class="fas fa-exclamation-circle me-2" style="font-size: 1.2rem;"></i>
+                    {% elif message.tags == 'warning' %}
+                    <i class="fas fa-exclamation-triangle me-2" style="font-size: 1.2rem;"></i>
+                    {% else %}
+                    <i class="fas fa-info-circle me-2" style="font-size: 1.2rem;"></i>
+                    {% endif %}
+                    <div>{{ message }}</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="content-card animate__animated animate__fadeInUp">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Quick Actions Floating Button -->
+    {% if user.is_authenticated %}
+    <button class="floating-btn" data-bs-toggle="modal" data-bs-target="#quickActionsModal">
+        <i class="fas fa-bolt"></i>
+    </button>
+    
+    <!-- Quick Actions Modal -->
+    <div class="modal fade" id="quickActionsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: var(--primary-gradient); color: white;">
+                    <h5 class="modal-title">
+                        <i class="fas fa-bolt me-2"></i> Quick Actions
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        {% if user.is_admin %}
+                        <div class="col-6">
+                            <a href="{% url 'student_list' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-user-plus"></i> Add Student
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'student_performance_analytics' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-chart-line"></i> View Analytics
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.is_teacher %}
+                        <div class="col-6">
+                            <a href="{% url 'mark_create' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-edit"></i> Enter Marks
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'student_performance_analytics' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-chart-bar"></i> Performance
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.is_student %}
+                        <div class="col-6">
+                            <a href="{% url 'student_results' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-file-alt"></i> View Results
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'student_performance_detail' user.student.id %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-chart-line"></i> Trends
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-6">
+                            <a href="{% url 'inbox' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-inbox"></i> Check Inbox
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-home"></i> Go Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Animate.css for animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <script>
+        // Add active class to current page link
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Floating button animation
+            const floatingBtn = document.querySelector('.floating-btn');
+            if (floatingBtn) {
+                floatingBtn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.1) rotate(90deg)';
+                });
+                
+                floatingBtn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1) rotate(0deg)';
+                });
+            }
+        });
+    </script>
+</body>
+</html> {% endcomment %}

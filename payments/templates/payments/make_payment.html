@@ -1,0 +1,77 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>Make Payment</h2>
+
+<div style="display: flex; gap: 30px;">
+    <div style="flex: 1; background-color: #f9f9f9; padding: 20px; border-radius: 5px;">
+        <h3>Current Balance</h3>
+        <p><strong>Student:</strong> {{ student.user.get_full_name }}</p>
+        <p><strong>Admission No:</strong> {{ student.admission_number }}</p>
+        <p><strong>Current Term:</strong> {{ current_fee.fee_structure.term }} {{ current_fee.fee_structure.academic_year }}</p>
+        <p style="font-size: 24px; color: #f44336; font-weight: bold;">
+            Balance Due: Ksh {{ current_fee.balance|floatformat:2 }}
+        </p>
+        
+        <div style="background-color: #fff3e0; padding: 15px; border-radius: 5px; margin-top: 20px;">
+            <h4>Payment Instructions</h4>
+            <ol>
+                <li>Enter your M-Pesa phone number (format: 2547XXXXXXXX)</li>
+                <li>Enter the amount you wish to pay</li>
+                <li>Click "Initiate Payment"</li>
+                <li>Check your phone for STK Push prompt</li>
+                <li>Enter your M-Pesa PIN to complete payment</li>
+            </ol>
+        </div>
+    </div>
+    
+    <div style="flex: 1;">
+        <h3>M-Pesa Payment</h3>
+        <form method="post" style="max-width: 400px;">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 15px;">
+                <label for="id_phone_number">M-Pesa Phone Number:</label>
+                {{ form.phone_number }}
+                {% if form.phone_number.errors %}
+                    <div style="color: red; font-size: 12px;">{{ form.phone_number.errors }}</div>
+                {% endif %}
+                <small style="color: #666;">Format: 2547XXXXXXXX (12 digits)</small>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="id_amount">Amount (Ksh):</label>
+                {{ form.amount }}
+                {% if form.amount.errors %}
+                    <div style="color: red; font-size: 12px;">{{ form.amount.errors }}</div>
+                {% endif %}
+                <small style="color: #666;">Maximum: Ksh {{ current_fee.balance|floatformat:2 }}</small>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="id_description">Description (Optional):</label>
+                {{ form.description }}
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px;">
+                    Initiate Payment
+                </button>
+                <a href="{% url 'student_financial_dashboard' %}" style="background-color: #757575; color: white; padding: 10px 20px; text-decoration: none;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+        
+        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 5px; margin-top: 20px;">
+            <h4>Alternative Payment Methods</h4>
+            <p>You can also make payments through:</p>
+            <ul>
+                <li>Bank Transfer (Contact accounts office for details)</li>
+                <li>Cash payment at school accounts office</li>
+                <li>Cheque payment</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

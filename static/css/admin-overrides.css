@@ -1,0 +1,110 @@
+/* static/css/admin-overrides.css */
+
+/* Custom fieldset styling */
+fieldset.module {
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+fieldset.module h2 {
+    background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin: -20px -20px 20px -20px;
+}
+
+/* Inline forms */
+.inline-group {
+    border: 1px solid #a5bff3;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Action buttons */
+.object-tools {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.object-tools a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.object-tools a:hover {
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+/* Filter sidebar */
+#changelist-filter {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+#changelist-filter h3 {
+    color: #4f46e5;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    gap: 4px;
+}
+
+.pagination .page-link {
+    border-radius: 6px;
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.pagination .active .page-link {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    border-color: #4f46e5;
+}
+
+/* Search box */
+#searchbar {
+    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+    padding: 10px 16px;
+    transition: all 0.3s;
+}
+
+#searchbar:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Login page customization */
+.login-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-box {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 400px;
+}

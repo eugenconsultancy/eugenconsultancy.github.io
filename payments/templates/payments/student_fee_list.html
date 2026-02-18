@@ -1,0 +1,77 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>Student Fees Management</h2>
+
+<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+    <a href="{% url 'assign_fee_to_student' %}" style="background-color: #4CAF50; color: white; padding: 10px 15px; text-decoration: none;">Assign Fee to Student</a>
+    <a href="{% url 'add_additional_charge' %}" style="background-color: #FF9800; color: white; padding: 10px 15px; text-decoration: none;">Add Additional Charge</a>
+    <a href="{% url 'record_payment' %}" style="background-color: #2196F3; color: white; padding: 10px 15px; text-decoration: none;">Record Payment</a>
+</div>
+
+<!-- Summary Statistics -->
+<div style="display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">
+    <div style="background-color: #ffebee; padding: 15px; border-radius: 5px; flex: 1; min-width: 200px;">
+        <h3 style="margin-top: 0;">Total Due</h3>
+        <p style="font-size: 24px; font-weight: bold; color: #f44336;">Ksh {{ total_due|floatformat:2 }}</p>
+    </div>
+    <div style="background-color: #e8f5e9; padding: 15px; border-radius: 5px; flex: 1; min-width: 200px;">
+        <h3 style="margin-top: 0;">Total Paid</h3>
+        <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">Ksh {{ total_paid|floatformat:2 }}</p>
+    </div>
+    <div style="background-color: #fff3e0; padding: 15px; border-radius: 5px; flex: 1; min-width: 200px;">
+        <h3 style="margin-top: 0;">Total Balance</h3>
+        <p style="font-size: 24px; font-weight: bold; color: #FF9800;">Ksh {{ total_balance|floatformat:2 }}</p>
+    </div>
+</div>
+
+<table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #f2f2f2;">
+            <th style="border: 1px solid #ddd; padding: 8px;">Student</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Admission No</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Fee Structure</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Amount Due</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Amount Paid</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Balance</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Status</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Due Date</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for fee in student_fees %}
+        <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ fee.student.user.get_full_name }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ fee.student.admission_number }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ fee.fee_structure.name }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Ksh {{ fee.amount_due|floatformat:2 }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">Ksh {{ fee.amount_paid|floatformat:2 }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">
+                {% if fee.balance > 0 %}
+                    <span style="color: #f44336; font-weight: bold;">Ksh {{ fee.balance|floatformat:2 }}</span>
+                {% else %}
+                    <span style="color: #4CAF50;">Paid</span>
+                {% endif %}
+            </td>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                {% if fee.is_paid %}
+                    <span style="color: #4CAF50; font-weight: bold;">Paid</span>
+                {% else %}
+                    <span style="color: #f44336;">Pending</span>
+                {% endif %}
+            </td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ fee.due_date }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                <a href="{% url 'record_payment' %}?student={{ fee.student.id }}" style="background-color: #2196F3; color: white; padding: 5px 10px; text-decoration: none; margin-right: 5px;">Add Payment</a>
+                <a href="#" style="background-color: #FF9800; color: white; padding: 5px 10px; text-decoration: none;">View</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="9" style="border: 1px solid #ddd; padding: 8px; text-align: center;">No student fees found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

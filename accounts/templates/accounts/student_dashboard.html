@@ -1,0 +1,359 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 mb-2">Welcome back, {{ user.get_full_name|default:user.username }}! 👋</h1>
+                            <p class="mb-0">Track your academic journey and performance trends</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-user-graduate me-2"></i>
+                                Student Dashboard
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Row -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                My Class
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if student_profile %}
+                                {{ student_profile.grade }}-{{ student_profile.section }}
+                                {% else %}
+                                N/A
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-school fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Admission Number
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if student_profile %}
+                                {{ student_profile.admission_number }}
+                                {% else %}
+                                N/A
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-id-card fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Overall Average
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ overall_average|default:"--" }}%
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Unread Notifications
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ unread_count }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bell fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Performance Analytics Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center" 
+                     style="background: linear-gradient(135deg, #15e45a 0%, #28f06b 100%);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-chart-line me-2"></i>Performance Analytics
+                    </h6>
+                    {% if student_id %}
+                    <a href="{% url 'student_performance_detail' student_id %}" 
+                       class="btn btn-light btn-sm">
+                        View Detailed Analysis <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        {% if student_id %}
+                        <p class="text-muted">Track your academic progress across terms</p>
+                        
+                        <!-- Performance Summary -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-primary">{{ subjects_count|default:"0" }}</h5>
+                                        <small class="text-muted">Subjects Enrolled</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-success">{{ overall_average|default:"--" }}%</h5>
+                                        <small class="text-muted">Overall Average</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Student profile not found. Analytics unavailable.
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if student_id %}
+                    <!-- Quick Performance Stats -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-trophy fa-2x text-warning mb-3"></i>
+                                    <h5>Performance Trends</h5>
+                                    <p class="text-muted small">See how you're improving over time</p>
+                                    <a href="{% url 'student_performance_detail' student_id %}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        View Trends
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-balance-scale fa-2x text-info mb-3"></i>
+                                    <h5>Subject Analysis</h5>
+                                    <p class="text-muted small">Identify strengths & weaknesses</p>
+                                    <a href="{% url 'student_results' %}" 
+                                       class="btn btn-outline-info btn-sm">
+                                        View Subjects
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Personal Info Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-user-circle me-2"></i>My Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if student_profile %}
+                    <div class="text-center mb-4">
+                        <div class="avatar-circle mb-3" 
+                             style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                    border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                            <span class="text-white h3">{{ user.get_full_name|first|upper|default:user.username|first|upper }}</span>
+                        </div>
+                        <h5 class="mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                        <p class="text-muted small">{{ student_profile.admission_number|default:"No admission number" }}</p>
+                    </div>
+                    
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-graduation-cap text-primary me-2"></i>Class</span>
+                            <span class="badge bg-primary">{{ student_profile.grade }}-{{ student_profile.section }}</span>
+                        </div>
+                        
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-id-badge text-success me-2"></i>Admission No.</span>
+                            <span class="text-success">{{ student_profile.admission_number }}</span>
+                        </div>
+                        
+                        {% if student_profile.date_of_birth %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-birthday-cake text-info me-2"></i>Date of Birth</span>
+                            <span>{{ student_profile.date_of_birth }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if student_profile.parent_phone %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-phone text-warning me-2"></i>Parent Contact</span>
+                            <span>{{ student_profile.parent_phone }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Student profile not found. Please contact administration.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3" style="background: #2c3e50;">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-graduation-cap me-2"></i>Student Access Features
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-user fa-2x text-primary mb-3"></i>
+                                <h6>Personal Profile</h6>
+                                <p class="text-muted small">View and manage your personal information</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-chart-line fa-2x text-success mb-3"></i>
+                                <h6>Performance Analytics</h6>
+                                <p class="text-muted small">
+                                    {% if student_id %}
+                                    Track trends and academic progress
+                                    {% else %}
+                                    Available with student profile
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-file-alt fa-2x text-info mb-3"></i>
+                                <h6>Academic Results</h6>
+                                <p class="text-muted small">Access marks, grades, and reports</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-wallet fa-2x text-warning mb-3"></i>
+                                <h6>Financial Dashboard</h6>
+                                <p class="text-muted small">Monitor fees and payments</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 15px;
+        border: none;
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .border-left-primary {
+        border-left: 4px solid #4e73df !important;
+    }
+    
+    .border-left-success {
+        border-left: 4px solid #1cc88a !important;
+    }
+    
+    .border-left-info {
+        border-left: 4px solid #36b9cc !important;
+    }
+    
+    .border-left-warning {
+        border-left: 4px solid #f6c23e !important;
+    }
+    
+    .feature-card {
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        transform: scale(1.05);
+    }
+    
+    .avatar-circle {
+        border: 3px solid white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}

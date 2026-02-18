@@ -1,0 +1,261 @@
+<!-- Enhanced Minimal Footer with Glassmorphism -->
+<footer class="footer mt-auto py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative; overflow: hidden;">
+    <!-- Subtle Animated Background Elements -->
+    <div class="position-absolute w-100 h-100" style="top: 0; left: 0; z-index: 0; opacity: 0.1;">
+        <div class="position-absolute rounded-circle" style="width: 150px; height: 150px; background: white; top: -50px; right: -50px;"></div>
+        <div class="position-absolute rounded-circle" style="width: 100px; height: 100px; background: white; bottom: -30px; left: -30px;"></div>
+    </div>
+    
+    <div class="container-fluid px-4" style="position: relative; z-index: 1;">
+        <!-- Compact Footer Grid -->
+        <div class="row g-2 align-items-center">
+            <!-- Brand & Copyright - Left -->
+            <div class="col-lg-4 col-md-12 text-lg-start text-center mb-2 mb-lg-0">
+                <div class="d-flex align-items-center justify-content-lg-start justify-content-center">
+                    <div class="bg-white bg-opacity-20 p-2 rounded-3 me-2" style="backdrop-filter: blur(5px); background: rgba(255,255,255,0.15);">
+                        <i class="fas fa-graduation-cap fa-lg text-white"></i>
+                    </div>
+                    <div>
+                        <span class="fw-semibold text-white" style="font-size: 1rem;">SchoolAdmin Pro</span>
+                        <p class="mb-0 text-white-50 small" style="font-size: 0.75rem;">&copy; {% now "Y" %} All rights reserved</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Links - Center -->
+            <div class="col-lg-4 col-md-6 text-center mb-2 mb-md-0">
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a href="{% url 'dashboard' %}" class="text-white text-decoration-none small px-3 py-2 rounded-pill hover-bg-light" style="font-size: 0.85rem; backdrop-filter: blur(5px); background: rgba(255,255,255,0.1);">
+                        <i class="fas fa-home me-1"></i>Dashboard
+                    </a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'inbox' %}" class="text-white text-decoration-none small px-3 py-2 rounded-pill hover-bg-light" style="font-size: 0.85rem; backdrop-filter: blur(5px); background: rgba(255,255,255,0.1);">
+                        <i class="fas fa-envelope me-1"></i>Messages
+                    </a>
+                    <a href="{% url 'notification_list' %}" class="text-white text-decoration-none small px-3 py-2 rounded-pill hover-bg-light" style="font-size: 0.85rem; backdrop-filter: blur(5px); background: rgba(255,255,255,0.1);">
+                        <i class="fas fa-bell me-1"></i>Alerts
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Social & Support - Right -->
+            <div class="col-lg-4 col-md-6 text-lg-end text-center">
+                <div class="d-flex flex-wrap align-items-center justify-content-lg-end justify-content-center gap-2">
+                    <!-- Contact Icons -->
+                    <a href="#" class="text-white text-decoration-none small px-3 py-2 rounded-pill hover-bg-light" style="font-size: 0.85rem; backdrop-filter: blur(5px); background: rgba(255,255,255,0.1);" data-bs-toggle="tooltip" title="Call Support">
+                        <i class="fas fa-phone-alt me-1"></i>+254 702 496 196
+                    </a>
+                    
+                    <!-- Social Icons - Compact -->
+                    <div class="d-flex gap-1">
+                        <a href="#" class="text-white text-decoration-none d-flex align-items-center justify-content-center rounded-circle hover-scale" 
+                           style="width: 32px; height: 32px; backdrop-filter: blur(5px); background: rgba(255,255,255,0.15); font-size: 0.9rem;" 
+                           data-bs-toggle="tooltip" title="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-white text-decoration-none d-flex align-items-center justify-content-center rounded-circle hover-scale" 
+                           style="width: 32px; height: 32px; backdrop-filter: blur(5px); background: rgba(255,255,255,0.15); font-size: 0.9rem;" 
+                           data-bs-toggle="tooltip" title="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-white text-decoration-none d-flex align-items-center justify-content-center rounded-circle hover-scale" 
+                           style="width: 32px; height: 32px; backdrop-filter: blur(5px); background: rgba(255,255,255,0.15); font-size: 0.9rem;" 
+                           data-bs-toggle="tooltip" title="LinkedIn">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="text-white text-decoration-none d-flex align-items-center justify-content-center rounded-circle hover-scale" 
+                           style="width: 32px; height: 32px; backdrop-filter: blur(5px); background: rgba(255,255,255,0.15); font-size: 0.9rem;" 
+                           data-bs-toggle="tooltip" title="Email">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Minimal Bottom Links (Hidden on very small screens) -->
+        <div class="row mt-2 d-none d-sm-flex">
+            <div class="col-12">
+                <div class="d-flex flex-wrap justify-content-center gap-3 small text-white-50" style="font-size: 0.7rem;">
+                    <a href="#" class="text-white-50 text-decoration-none hover-text-white">Privacy</a>
+                    <span>•</span>
+                    <a href="#" class="text-white-50 text-decoration-none hover-text-white">Terms</a>
+                    <span>•</span>
+                    <a href="#" class="text-white-50 text-decoration-none hover-text-white">Support</a>
+                    <span>•</span>
+                    <span>Version 2.0.0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Alternative Compact Version for Role-Specific Resources (Hidden by default) -->
+{% if user.is_authenticated %}
+<div class="compact-resources d-none">
+    <!-- This section is hidden and can be conditionally displayed if needed -->
+    <div class="container-fluid px-4 py-2 bg-dark bg-opacity-25">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex flex-wrap justify-content-center gap-3 small">
+                    {% if user.is_student %}
+                    <a href="{% url 'student_results' %}" class="text-white-50 text-decoration-none hover-text-white">
+                        <i class="fas fa-file-alt me-1"></i>Results
+                    </a>
+                    <a href="{% url 'student_financial_dashboard' %}" class="text-white-50 text-decoration-none hover-text-white">
+                        <i class="fas fa-wallet me-1"></i>Fees
+                    </a>
+                    {% endif %}
+                    
+                    {% if user.is_teacher %}
+                    <a href="{% url 'mark_list' %}" class="text-white-50 text-decoration-none hover-text-white">
+                        <i class="fas fa-clipboard-check me-1"></i>Marks
+                    </a>
+                    {% endif %}
+                    
+                    {% if user.is_admin %}
+                    <a href="{% url 'financial_report' %}" class="text-white-50 text-decoration-none hover-text-white">
+                        <i class="fas fa-chart-pie me-1"></i>Reports
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    /* Minimal Footer Styles */
+    .footer {
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    /* Hover Effects */
+    .hover-bg-light {
+        transition: all 0.3s ease;
+    }
+    
+    .hover-bg-light:hover {
+        background: rgba(255,255,255,0.25) !important;
+        transform: translateY(-2px);
+    }
+    
+    .hover-scale {
+        transition: all 0.3s ease;
+    }
+    
+    .hover-scale:hover {
+        transform: scale(1.1);
+        background: rgba(255,255,255,0.3) !important;
+    }
+    
+    .hover-text-white {
+        transition: color 0.3s ease;
+    }
+    
+    .hover-text-white:hover {
+        color: white !important;
+        text-decoration: underline !important;
+    }
+    
+    /* Background Utilities */
+    .bg-opacity-20 {
+        --bs-bg-opacity: 0.2;
+    }
+    
+    .text-white-50 {
+        color: rgba(255,255,255,0.7) !important;
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .footer .row > div {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer .d-flex {
+            flex-wrap: wrap;
+        }
+        
+        .rounded-circle {
+            width: 28px !important;
+            height: 28px !important;
+        }
+        
+        .footer .small {
+            font-size: 0.75rem !important;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .footer .container-fluid {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+        }
+        
+        .footer .py-3 {
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.75rem !important;
+        }
+        
+        .hover-bg-light {
+            padding: 0.25rem 0.75rem !important;
+        }
+    }
+    
+    /* Animation for subtle background elements */
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+    
+    .footer .position-absolute.rounded-circle {
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    .footer .position-absolute.rounded-circle:nth-child(2) {
+        animation-delay: -2s;
+        animation-duration: 8s;
+    }
+    
+    /* Tooltip customization */
+    [data-bs-toggle="tooltip"] {
+        cursor: pointer;
+    }
+    
+    /* Compact mode adjustments */
+    .compact-resources {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* Ensure footer stays at bottom */
+    .footer.mt-auto {
+        margin-top: auto !important;
+    }
+    
+    /* Smooth transitions */
+    .footer * {
+        transition: all 0.2s ease;
+    }
+</style>
+
+<!-- Initialize tooltips -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Bootstrap tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl, {
+                placement: 'top',
+                trigger: 'hover'
+            });
+        });
+    });
+</script>

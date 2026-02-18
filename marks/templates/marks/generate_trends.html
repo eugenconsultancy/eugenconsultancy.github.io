@@ -1,0 +1,396 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Generate Performance Trends{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="card mb-4">
+                <div class="card-header pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">Generate Performance Trends</h5>
+                            <p class="text-sm mb-0">
+                                Generate and analyze performance trends for all students
+                            </p>
+                        </div>
+                        <div>
+                            <a href="{% url 'student_performance_analytics' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Information Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2 text-info"></i>
+                        About Performance Trends
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h5 class="alert-heading">What are Performance Trends?</h5>
+                                <p>
+                                    Performance trends analyze student performance over multiple terms to identify:
+                                </p>
+                                <ul>
+                                    <li><strong>Improving Performance:</strong> Students showing consistent improvement</li>
+                                    <li><strong>Declining Performance:</strong> Students needing immediate attention</li>
+                                    <li><strong>Stable Performance:</strong> Students maintaining consistent grades</li>
+                                    <li><strong>Fluctuating Performance:</strong> Students with inconsistent results</li>
+                                </ul>
+                                <p class="mb-0">
+                                    This analysis helps in creating personalized recommendations for each student.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="card border-start border-success border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="text-sm mb-0">Total Students</h6>
+                                            <h4 class="font-weight-bolder mb-0">{{ total_students }}</h4>
+                                        </div>
+                                        <div class="icon icon-shape bg-gradient-success shadow text-center border-radius-md">
+                                            <i class="fas fa-users text-lg opacity-10"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-start border-info border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="text-sm mb-0">With Marks Data</h6>
+                                            <h4 class="font-weight-bolder mb-0">{{ students_with_marks }}</h4>
+                                        </div>
+                                        <div class="icon icon-shape bg-gradient-info shadow text-center border-radius-md">
+                                            <i class="fas fa-chart-bar text-lg opacity-10"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-start border-warning border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="text-sm mb-0">Multiple Terms</h6>
+                                            <h4 class="font-weight-bolder mb-0">{{ students_multiple_terms }}</h4>
+                                        </div>
+                                        <div class="icon icon-shape bg-gradient-warning shadow text-center border-radius-md">
+                                            <i class="fas fa-calendar-alt text-lg opacity-10"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-start border-primary border-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="text-sm mb-0">Trends Generated</h6>
+                                            <h4 class="font-weight-bolder mb-0">{{ trends_generated }}</h4>
+                                        </div>
+                                        <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                                            <i class="fas fa-tasks text-lg opacity-10"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generation Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cogs me-2 text-primary"></i>
+                        Generate Trends
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h5 class="alert-heading">Important Information</h5>
+                                <p class="mb-0">
+                                    <strong>Note:</strong> This process will analyze performance data for all students
+                                    and generate trend reports. The analysis may take a few moments depending on the
+                                    amount of data. Existing trend reports will be updated.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        
+                        <!-- Options -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Academic Year</label>
+                                    <select name="academic_year" class="form-select">
+                                        <option value="">All Years</option>
+                                        {% for year in academic_years %}
+                                            <option value="{{ year }}">{{ year }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="form-text text-muted">Filter by specific academic year (optional)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Term</label>
+                                    <select name="term" class="form-select">
+                                        <option value="">All Terms</option>
+                                        <option value="Term 1">Term 1</option>
+                                        <option value="Term 2">Term 2</option>
+                                        <option value="Term 3">Term 3</option>
+                                    </select>
+                                    <small class="form-text text-muted">Filter by specific term (optional)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Analysis Options -->
+                        <div class="mb-4">
+                            <h6 class="mb-3">Analysis Options</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="include_recommendations" id="include_recommendations" checked>
+                                <label class="form-check-label" for="include_recommendations">
+                                    Include personalized recommendations
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="update_existing" id="update_existing" checked>
+                                <label class="form-check-label" for="update_existing">
+                                    Update existing trend reports
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="send_notifications" id="send_notifications">
+                                <label class="form-check-label" for="send_notifications">
+                                    Send notifications to teachers (for significant changes)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <div>
+                                <a href="{% url 'student_performance_analytics' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i> Cancel
+                                </a>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-info me-2" id="previewBtn">
+                                    <i class="fas fa-eye me-1"></i> Preview Sample
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="generateBtn">
+                                    <i class="fas fa-play me-1"></i> Generate Trends
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Progress Section (hidden by default) -->
+                <div class="card-footer" id="progressSection" style="display: none;">
+                    <h6 class="mb-3">Generation Progress</h6>
+                    <div class="progress mb-3">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             id="progressBar" role="progressbar" style="width: 0%" 
+                             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                            <span id="progressText">0%</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status" id="loadingSpinner">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 mb-0" id="progressMessage">
+                            Starting trend generation...
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Preview Modal -->
+            <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Sample Trend Analysis</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                This is a sample of what the trend analysis will generate.
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Sample Student Analysis</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Student Information</h6>
+                                            <p><strong>Name:</strong> John Doe<br>
+                                            <strong>Class:</strong> Form 4<br>
+                                            <strong>Student ID:</strong> STD001</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Performance Trend</h6>
+                                            <span class="badge bg-success">Improving</span>
+                                            <p><strong>Average Score:</strong> 78.5%<br>
+                                            <strong>Change:</strong> +12.3%</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <h6>Term-wise Performance</h6>
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Term</th>
+                                                    <th>Average Score</th>
+                                                    <th>Grade</th>
+                                                    <th>Trend</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Term 1 2024</td>
+                                                    <td>72.3%</td>
+                                                    <td>B</td>
+                                                    <td>Stable</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Term 2 2024</td>
+                                                    <td>78.5%</td>
+                                                    <td>A-</td>
+                                                    <td class="text-success">Improving</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Term 3 2024</td>
+                                                    <td>81.2%</td>
+                                                    <td>A</td>
+                                                    <td class="text-success">Improving</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <h6>Recommendations</h6>
+                                        <ul>
+                                            <li>Continue with current study habits</li>
+                                            <li>Focus on maintaining consistency in Mathematics</li>
+                                            <li>Consider advanced topics in Science</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Preview button
+    const previewBtn = document.getElementById('previewBtn');
+    const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+    
+    if (previewBtn) {
+        previewBtn.addEventListener('click', function() {
+            previewModal.show();
+        });
+    }
+    
+    // Form submission with progress
+    const form = document.querySelector('form');
+    const generateBtn = document.getElementById('generateBtn');
+    const progressSection = document.getElementById('progressSection');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressMessage = document.getElementById('progressMessage');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    
+    if (form && generateBtn) {
+        generateBtn.addEventListener('click', function(e) {
+            // Show progress section
+            progressSection.style.display = 'block';
+            
+            // Scroll to progress section
+            progressSection.scrollIntoView({ behavior: 'smooth' });
+            
+            // Simulate progress (this would be replaced with actual AJAX calls)
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                progressText.textContent = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    progressMessage.textContent = 'Trend generation complete!';
+                    loadingSpinner.style.display = 'none';
+                } else if (progress >= 70) {
+                    progressMessage.textContent = 'Generating recommendations...';
+                } else if (progress >= 40) {
+                    progressMessage.textContent = 'Analyzing performance data...';
+                } else {
+                    progressMessage.textContent = 'Collecting student data...';
+                }
+            }, 500);
+        });
+    }
+    
+    // Add form validation
+    form.addEventListener('submit', function(e) {
+        const confirmed = confirm('Are you sure you want to generate performance trends? This may take a few moments.');
+        if (!confirmed) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

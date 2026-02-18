@@ -1,0 +1,381 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-2">
+                <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Teacher Profile
+            </h1>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-primary me-2">{{ teacher.department }}</span>
+                <span class="badge bg-success">{{ teacher.employee_id }}</span>
+                <span class="text-muted ms-3">
+                    <i class="fas fa-calendar-alt me-1"></i>Joined {{ teacher.created_at|date:"F Y" }}
+                </span>
+            </div>
+        </div>
+        <div>
+            {% if user.is_admin %}
+            <div class="btn-group">
+                <a href="{% url 'teacher_update' teacher.pk %}" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>Edit Profile
+                </a>
+                <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" 
+                        data-bs-toggle="dropdown">
+                    <span class="visually-hidden">More Actions</span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">
+                        <i class="fas fa-print me-2"></i>Print Profile
+                    </a></li>
+                    <li><a class="dropdown-item" href="#">
+                        <i class="fas fa-envelope me-2"></i>Send Message
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#">
+                        <i class="fas fa-user-slash me-2"></i>Deactivate
+                    </a></li>
+                </ul>
+            </div>
+            {% endif %}
+            <a href="{% url 'teacher_list' %}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Personal Information Card -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-user-circle me-2"></i>Personal Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-auto">
+                            {% if teacher.user.profile_picture %}
+                            <img src="{{ teacher.user.profile_picture.url }}" 
+                                 alt="Profile Picture" 
+                                 class="rounded-circle shadow"
+                                 style="width: 120px; height: 120px; object-fit: cover; border: 4px solid white;">
+                            {% else %}
+                            <div class="rounded-circle d-flex align-items-center justify-content-center shadow"
+                                 style="width: 120px; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <span class="text-white h2">{{ teacher.user.get_full_name|first|upper }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col">
+                            <h3 class="mb-1">{{ teacher.user.get_full_name }}</h3>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-id-badge me-1"></i>{{ teacher.employee_id }}
+                            </p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-primary px-3 py-2">
+                                    <i class="fas fa-building me-1"></i>{{ teacher.department }}
+                                </span>
+                                {% if teacher.office_room %}
+                                <span class="badge bg-info px-3 py-2">
+                                    <i class="fas fa-door-open me-1"></i>{{ teacher.office_room }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3 p-2 rounded" style="background-color: #f8f9fa;">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="fas fa-envelope text-primary fa-lg"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">Email</small>
+                                    <div class="fw-medium">{{ teacher.user.email|default:"Not provided" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3 p-2 rounded" style="background-color: #f8f9fa;">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="fas fa-phone text-primary fa-lg"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">Phone</small>
+                                    <div class="fw-medium">{{ teacher.phone|default:"Not provided" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teaching Information Card -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-book-open me-2"></i>Teaching Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Subjects -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-book me-2 text-primary"></i>Subjects Taught
+                        </h6>
+                        {% if teacher.subjects %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for subject in teacher.subjects.split %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                                <i class="fas fa-book me-1"></i>{{ subject|title }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>No subjects assigned.
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Classes -->
+                    <div>
+                        <h6 class="mb-3">
+                            <i class="fas fa-graduation-cap me-2 text-success"></i>Classes/Grades Taught
+                        </h6>
+                        {% if teacher.classes %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for class_name in teacher.classes.split %}
+                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+                                <i class="fas fa-users me-1"></i>{{ class_name|title }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>No classes assigned.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Role and Responsibilities Card -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-user-tie me-2"></i>Role & Responsibilities
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Official Role -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <i class="fas fa-award text-white"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Official Role</h6>
+                                <span class="badge bg-primary px-3 py-2">{{ teacher.user.get_teacher_role_display_name }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Roles -->
+                    {% if teacher.extra_roles %}
+                    <div class="mb-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-tasks me-2 text-warning"></i>Additional Roles
+                        </h6>
+                        <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                            {{ teacher.extra_roles|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Extracurricular Activities -->
+                    {% if teacher.extracurricular_activities %}
+                    <div>
+                        <h6 class="mb-3">
+                            <i class="fas fa-running me-2 text-success"></i>Extracurricular Activities
+                        </h6>
+                        <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                            {{ teacher.extracurricular_activities|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Professional Information Card -->
+            <div class="card shadow-lg border-0">
+                <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-graduation-cap me-2"></i>Professional Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Qualification -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-certificate me-2 text-primary"></i>Qualification
+                        </h6>
+                        <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                            {{ teacher.qualification|default:"Not specified"|linebreaks }}
+                        </div>
+                    </div>
+                    
+                    <!-- Experience -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-briefcase me-2 text-info"></i>Experience
+                        </h6>
+                        <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                            {{ teacher.experience|default:"Not specified"|linebreaks }}
+                        </div>
+                    </div>
+                    
+                    <!-- Specialization -->
+                    <div>
+                        <h6 class="mb-3">
+                            <i class="fas fa-star me-2 text-warning"></i>Specialization
+                        </h6>
+                        <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                            {{ teacher.specialization|default:"Not specified"|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Assigned Subjects Section -->
+    {% if teacher.assigned_subjects.exists %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-lg border-0">
+                <div class="card-header" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-clipboard-list me-2"></i>Assigned Subjects (From Marks System)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for subject in teacher.assigned_subjects.all %}
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="p-3 rounded border" style="background-color: #f8f9fa;">
+                                <h6 class="mb-1">{{ subject.name }}</h6>
+                                <small class="text-muted">Code: {{ subject.subject_code }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Action Buttons -->
+    {% if user.is_admin %}
+    <div class="mt-4 pt-4 border-top">
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'teacher_update' teacher.pk %}" class="btn btn-warning px-4">
+                <i class="fas fa-edit me-2"></i>Edit Teacher Information
+            </a>
+            <a href="{% url 'teacher_list' %}" class="btn btn-outline-secondary px-4">
+                <i class="fas fa-list me-2"></i>View All Teachers
+            </a>
+            <button class="btn btn-outline-primary px-4">
+                <i class="fas fa-file-pdf me-2"></i>Generate Report
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: none;
+    }
+    
+    .badge {
+        border-radius: 10px;
+        font-weight: 500;
+    }
+    
+    .btn-group .btn {
+        border-radius: 10px;
+    }
+    
+    .dropdown-menu {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    /* Gradient backgrounds for info cards */
+    .gradient-1 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .gradient-2 {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .gradient-3 {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .btn-group {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-group .btn {
+            margin-bottom: 5px;
+            width: 100%;
+        }
+        
+        .dropdown-toggle-split {
+            width: 100%;
+        }
+        
+        .d-flex.justify-content-center {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .d-flex.justify-content-center > * {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

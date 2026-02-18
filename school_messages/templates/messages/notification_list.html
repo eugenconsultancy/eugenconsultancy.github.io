@@ -1,0 +1,66 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>My Notifications</h2>
+
+<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+    {% if total_unread > 0 %}
+        <a href="{% url 'mark_all_notifications_read' %}" style="background-color: #4CAF50; color: white; padding: 10px 15px; text-decoration: none;">Mark All as Read</a>
+    {% endif %}
+    <a href="{% url 'inbox' %}" style="background-color: #2196F3; color: white; padding: 10px 15px; text-decoration: none;">Go to Inbox</a>
+</div>
+
+<!-- Unread Notifications -->
+{% if unread_notifications %}
+<h3>Unread Notifications ({{ total_unread }})</h3>
+<div style="margin-bottom: 30px;">
+    {% for notification in unread_notifications %}
+    <div style="background-color: #fff8e1; border-left: 4px solid #FF9800; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h4 style="margin-top: 0; color: #333;">
+                    {% if notification.is_important %}⚠️ {% endif %}
+                    {{ notification.title }}
+                </h4>
+                <p style="margin-bottom: 5px;">{{ notification.message }}</p>
+                <small style="color: #666;">{{ notification.created_at|date:"M d, Y H:i" }}</small>
+            </div>
+            <div>
+                {% if notification.link %}
+                    <a href="{{ notification.link }}" style="background-color: #2196F3; color: white; padding: 5px 10px; text-decoration: none; margin-right: 5px;">View</a>
+                {% endif %}
+                <a href="{% url 'mark_notification_read' notification.pk %}" style="background-color: #4CAF50; color: white; padding: 5px 10px; text-decoration: none;">Mark Read</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Read Notifications -->
+<h3>Recently Read</h3>
+{% if read_notifications %}
+<div>
+    {% for notification in read_notifications %}
+    <div style="background-color: #f9f9f9; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h4 style="margin-top: 0; color: #666;">{{ notification.title }}</h4>
+                <p style="margin-bottom: 5px; color: #777;">{{ notification.message }}</p>
+                <small style="color: #999;">{{ notification.created_at|date:"M d, Y H:i" }}</small>
+            </div>
+            <div>
+                {% if notification.link %}
+                    <a href="{{ notification.link }}" style="background-color: #757575; color: white; padding: 5px 10px; text-decoration: none;">View</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="background-color: #f5f5f5; padding: 40px; text-align: center; border-radius: 5px;">
+    <p>No notifications found.</p>
+</div>
+{% endif %}
+{% endblock %}

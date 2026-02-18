@@ -1,0 +1,282 @@
+{% extends 'accounts/base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-user-graduate"></i> 
+            Performance Analysis: {{ student.full_name }}
+        </h2>
+        <a href="{% url 'student_performance_analytics' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Analytics
+        </a>
+    </div>
+    
+    <!-- Overall Trend Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-{% if analysis.overall_percentage > 0 %}success{% elif analysis.overall_percentage < 0 %}danger{% else %}info{% endif %} text-white">
+            <h4 class="mb-0">Overall Performance Trend</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <div class="display-4">
+                        {{ analysis.overall_percentage|floatformat:1 }}%
+                    </div>
+                    <p class="text-muted">Overall Change</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="display-4">
+                        {% if analysis.overall_percentage > 0 %}+{% endif %}{{ analysis.overall_change|floatformat:1 }}
+                    </div>
+                    <p class="text-muted">Points Change</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="display-4">
+                        {{ analysis.overall_trend }}
+                    </div>
+                    <p class="text-muted">Trend Status</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Term-by-Term Performance -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Term-by-Term Performance</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Term</th>
+                            <th>Average Score</th>
+                            <th>Subjects</th>
+                            <th>Performance Level</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for perf in analysis.performances %}
+                        <tr>
+                            <td>{{ perf.term }} {{ perf.year }}</td>
+                            <td>
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar 
+                                        {% if perf.average_score >= 80 %}bg-success
+                                        {% elif perf.average_score >= 60 %}bg-info
+                                        {% elif perf.average_score >= 40 %}bg-warning
+                                        {% else %}bg-danger{% endif %}" 
+                                        role="progressbar" 
+                                        style="width: {{ perf.average_score }}%;">
+                                        {{ perf.average_score|floatformat:1 }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ perf.subject_count }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if perf.average_score >= 80 %}bg-success
+                                    {% elif perf.average_score >= 60 %}bg-info
+                                    {% elif perf.average_score >= 40 %}bg-warning
+                                    {% else %}bg-danger{% endif %}">
+                                    {% if perf.average_score >= 80 %}Excellent
+                                    {% elif perf.average_score >= 60 %}Good
+                                    {% elif perf.average_score >= 40 %}Average
+                                    {% else %}Needs Improvement{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-info" 
+                                        onclick="showSubjectDetails('{{ perf.term_key }}')">
+                                    View Subjects
+                                </button>
+                            </td>
+                        </tr>
+                        <!-- Subject Details (hidden by default) -->
+                        <tr id="details-{{ perf.term_key }}" style="display: none;">
+                            <td colspan="5">
+                                <h6>Subject-wise Performance:</h6>
+                                <div class="row">
+                                    {% for subject_name, score in perf.subjects.items %}
+                                    <div class="col-md-3 mb-2">
+                                        <div class="card">
+                                            <div class="card-body p-2">
+                                                <small class="d-block">{{ subject_name }}</small>
+                                                <strong>{{ score|floatformat:1 }}%</strong>
+                                                <span class="badge bg-secondary float-end">
+                                                    {{ perf.grades|get_item:subject_name }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Term Comparisons -->
+    {% if analysis.has_comparisons %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Term-to-Term Comparisons</h4>
+        </div>
+        <div class="card-body">
+            {% for comp in analysis.comparisons %}
+            <div class="comparison-card mb-3 p-3 border rounded">
+                <h5>
+                    {{ comp.current_term }} vs {{ comp.previous_term }}
+                    <span class="badge float-end 
+                        {% if comp.comparison.trend == 'improving' %}bg-success
+                        {% elif comp.comparison.trend == 'declining' %}bg-danger
+                        {% else %}bg-info{% endif %}">
+                        {{ comp.comparison.trend|title }}
+                    </span>
+                </h5>
+                
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="h4 
+                                {% if comp.comparison.percentage_change > 0 %}text-success
+                                {% elif comp.comparison.percentage_change < 0 %}text-danger
+                                {% else %}text-info{% endif %}">
+                                {% if comp.comparison.percentage_change > 0 %}+{% endif %}
+                                {{ comp.comparison.percentage_change|floatformat:1 }}%
+                            </div>
+                            <small class="text-muted">Percentage Change</small>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="h4">{{ comp.comparison.current_term.average_score|floatformat:1 }}%</div>
+                            <small class="text-muted">Current Term Average</small>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="h4">{{ comp.comparison.previous_term.average_score|floatformat:1 }}%</div>
+                            <small class="text-muted">Previous Term Average</small>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="h4">
+                                {% if comp.comparison.strongest_subject %}
+                                {{ comp.comparison.strongest_subject }}
+                                {% else %}N/A{% endif %}
+                            </div>
+                            <small class="text-muted">Strongest Subject</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Subject Improvements -->
+                {% if comp.comparison.subject_comparison %}
+                <div class="mt-3">
+                    <h6>Subject Performance Changes:</h6>
+                    <div class="row">
+                        {% for subject_name, data in comp.comparison.subject_comparison.items %}
+                        {% if data.change != 0 %}
+                        <div class="col-md-4 mb-2">
+                            <div class="card {% if data.change > 0 %}border-success{% else %}border-danger{% endif %}">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between">
+                                        <small>{{ subject_name }}</small>
+                                        <span class="badge 
+                                            {% if data.change > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if data.change > 0 %}+{% endif %}{{ data.change|floatformat:1 }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <small class="text-muted">{{ data.previous_score|floatformat:1 }}% →</small>
+                                        <small class="text-muted">{{ data.current_score|floatformat:1 }}%</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Recommendations -->
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h4 class="mb-0"><i class="fas fa-lightbulb"></i> Recommendations</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>For Improvement:</h5>
+                    <ul>
+                        {% if analysis.overall_percentage < 0 %}
+                        <li>Focus on improving performance in weakest subjects</li>
+                        <li>Consider additional tutoring or study groups</li>
+                        <li>Review study habits and time management</li>
+                        {% else %}
+                        <li>Maintain current study routines</li>
+                        <li>Continue focusing on strong subjects</li>
+                        <li>Set higher goals for next term</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Next Steps:</h5>
+                    <ul>
+                        <li>Schedule meeting with teachers for feedback</li>
+                        <li>Create personalized study plan</li>
+                        <li>Track progress weekly</li>
+                        <li>Set specific academic goals</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showSubjectDetails(termKey) {
+    var element = document.getElementById('details-' + termKey);
+    if (element.style.display === 'none') {
+        element.style.display = 'table-row';
+    } else {
+        element.style.display = 'none';
+    }
+}
+</script>
+
+<style>
+.comparison-card {
+    background-color: #f8f9fa;
+    border-left: 4px solid #007bff;
+}
+.progress {
+    background-color: #e9ecef;
+}
+.progress-bar {
+    transition: width 0.6s ease;
+}
+.badge {
+    font-size: 0.8em;
+}
+</style>
+{% endblock %}

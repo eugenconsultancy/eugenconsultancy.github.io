@@ -1,0 +1,111 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>Payment Status</h2>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <div style="background-color: #f9f9f9; padding: 30px; border-radius: 5px; text-align: center;">
+        <!-- Status Icon -->
+        <div style="font-size: 72px; margin-bottom: 20px;">
+            {% if payment.status == 'completed' %}
+                ✅
+            {% elif payment.status == 'pending' %}
+                ⏳
+            {% elif payment.status == 'failed' %}
+                ❌
+            {% else %}
+                ❓
+            {% endif %}
+        </div>
+        
+        <h3>
+            {% if payment.status == 'completed' %}
+                Payment Successful!
+            {% elif payment.status == 'pending' %}
+                Payment Processing
+            {% elif payment.status == 'failed' %}
+                Payment Failed
+            {% else %}
+                Payment Status Unknown
+            {% endif %}
+        </h3>
+        
+        <!-- Payment Details -->
+        <div style="background-color: white; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: left;">
+            <p><strong>Student:</strong> {{ student.user.get_full_name }}</p>
+            <p><strong>Amount:</strong> Ksh {{ payment.amount|floatformat:2 }}</p>
+            <p><strong>Payment Method:</strong> {{ payment.get_payment_method_display }}</p>
+            <p><strong>Status:</strong> {{ payment.get_status_display }}</p>
+            <p><strong>Date:</strong> {{ payment.payment_date|date:"M d, Y H:i" }}</p>
+            
+            {% if payment.mpesa_code %}
+                <p><strong>M-Pesa Code:</strong> {{ payment.mpesa_code }}</p>
+            {% endif %}
+            
+            {% if payment.receipt_number %}
+                <p><strong>Receipt Number:</strong> {{ payment.receipt_number }}</p>
+            {% endif %}
+            
+            {% if payment.description %}
+                <p><strong>Description:</strong> {{ payment.description }}</p>
+            {% endif %}
+        </div>
+        
+        <!-- Status Message -->
+        <div style="margin: 20px 0;">
+            {% if payment.status == 'completed' %}
+                <p style="color: #4CAF50; font-weight: bold;">
+                    Your payment has been successfully processed. A receipt has been generated.
+                </p>
+            {% elif payment.status == 'pending' %}
+                <p style="color: #FF9800; font-weight: bold;">
+                    Your payment is being processed. Please check back in a few minutes.
+                </p>
+            {% elif payment.status == 'failed' %}
+                <p style="color: #f44336; font-weight: bold;">
+                    The payment could not be processed. Please try again or contact support.
+                </p>
+                <p>{{ payment.description }}</p>
+            {% endif %}
+        </div>
+        
+        <!-- Actions -->
+        <div style="margin-top: 30px;">
+            {% if payment.status == 'completed' %}
+                <a href="#" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;">
+                    Download Receipt
+                </a>
+            {% elif payment.status == 'pending' %}
+                <a href="{% url 'payment_status' payment.id %}" style="background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;">
+                    Refresh Status
+                </a>
+            {% endif %}
+            
+            <a href="{% url 'student_financial_dashboard' %}" style="background-color: #757575; color: white; padding: 10px 20px; text-decoration: none;">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <!-- Instructions -->
+    <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin-top: 20px;">
+        <h4>Next Steps:</h4>
+        <ul>
+            {% if payment.status == 'completed' %}
+                <li>Keep your receipt for future reference</li>
+                <li>Your balance has been updated automatically</li>
+                <li>Check your financial dashboard for updated balance</li>
+            {% elif payment.status == 'pending' %}
+                <li>Please wait a few minutes for processing</li>
+                <li>Check your phone for M-Pesa confirmation if applicable</li>
+                <li>Refresh this page to check updated status</li>
+            {% elif payment.status == 'failed' %}
+                <li>Check if you have sufficient funds</li>
+                <li>Ensure your phone number is correct</li>
+                <li>Try making the payment again</li>
+                <li>Contact support if the issue persists</li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

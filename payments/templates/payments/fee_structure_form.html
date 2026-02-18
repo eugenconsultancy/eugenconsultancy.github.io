@@ -1,0 +1,305 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header Card -->
+            <div class="card shadow-lg border-0 mb-4" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 mb-2">
+                                <i class="fas fa-money-bill-wave me-2"></i>{{ title }} Fee Structure
+                            </h1>
+                            <p class="mb-0 opacity-75">Configure and manage fee structures for different grades and terms</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-light text-success px-3 py-2 rounded-pill">
+                                <i class="fas fa-calculator me-1"></i> Financial Setup
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card shadow-lg border-0 mb-4">
+                <form method="post" class="p-4">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row g-4 mb-4">
+                        <!-- Left Column - Basic Information -->
+                        <div class="col-lg-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-header bg-light border-0">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-info-circle text-primary me-2"></i>Basic Information
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    {% for field in form %}
+                                        {% if field.name in 'name,description,grade,term,academic_year,is_active' %}
+                                        <div class="mb-3">
+                                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-{{ field.name|slice:'0:1'|lower }} me-1 text-primary"></i>
+                                                {{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                            </label>
+                                            {{ field }}
+                                            {% if field.help_text %}
+                                            <div class="form-text">
+                                                <i class="fas fa-info-circle me-1"></i>{{ field.help_text }}
+                                            </div>
+                                            {% endif %}
+                                            {% if field.errors %}
+                                            <div class="text-danger small mt-1">
+                                                <i class="fas fa-exclamation-circle me-1"></i>{{ field.errors }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column - Main Fees -->
+                        <div class="col-lg-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-header bg-light border-0">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-money-bill text-success me-2"></i>Main Fees
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    {% for field in form %}
+                                        {% if field.name in 'tuition_fee,boarding_fee,activity_fee,exam_fee' %}
+                                        <div class="mb-3">
+                                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-coins me-1 text-warning"></i>
+                                                {{ field.label }}
+                                            </label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light">Ksh</span>
+                                                {{ field }}
+                                            </div>
+                                            {% if field.errors %}
+                                            <div class="text-danger small mt-1">
+                                                <i class="fas fa-exclamation-circle me-1"></i>{{ field.errors }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Fees -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-light border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-plus-circle text-info me-2"></i>Additional Fees
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                {% for field in form %}
+                                    {% if field.name in 'library_fee,medical_fee,sports_fee,development_fee,other_charges,late_payment_fee' %}
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-file-invoice-dollar me-1 text-secondary"></i>
+                                                {{ field.label }}
+                                            </label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light">Ksh</span>
+                                                {{ field }}
+                                            </div>
+                                            {% if field.errors %}
+                                            <div class="text-danger small mt-1">
+                                                <i class="fas fa-exclamation-circle me-1"></i>{{ field.errors }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
+                        <div>
+                            <a href="{% url 'fee_structure_list' %}" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-arrow-left me-2"></i>Back to List
+                            </a>
+                            <button type="reset" class="btn btn-outline-warning ms-2">
+                                <i class="fas fa-redo me-2"></i>Reset Form
+                            </button>
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-success btn-lg px-5">
+                                <i class="fas fa-save me-2"></i>Save Fee Structure
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Summary Card (Only for Update) -->
+            {% if title == 'Update' %}
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body text-white p-4">
+                    <h4 class="mb-4">
+                        <i class="fas fa-chart-bar me-2"></i>Fee Structure Summary
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 bg-white bg-opacity-10 rounded">
+                                <h6 class="mb-1 opacity-75">Total Fee</h6>
+                                <h3 class="mb-0">Ksh {{ form.instance.total_fee|floatformat:2 }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 bg-white bg-opacity-10 rounded">
+                                <h6 class="mb-1 opacity-75">Status</h6>
+                                <h3 class="mb-0">
+                                    {% if form.instance.is_active %}
+                                    <span class="badge bg-success px-3 py-2">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-danger px-3 py-2">Inactive</span>
+                                    {% endif %}
+                                </h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 bg-white bg-opacity-10 rounded">
+                                <h6 class="mb-1 opacity-75">Created</h6>
+                                <h4 class="mb-0">{{ form.instance.created_at|date:"M d, Y" }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    select, input[type="text"], input[type="number"], textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        background-color: #f8fafc;
+    }
+    
+    select:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+        border-color: #43e97b;
+        box-shadow: 0 0 0 3px rgba(67, 233, 123, 0.1);
+        background-color: white;
+        outline: none;
+    }
+    
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+        border: 2px solid #e2e8f0;
+        border-right: none;
+        color: #495057;
+        font-weight: 500;
+    }
+    
+    .input-group .form-control {
+        border-left: none;
+    }
+    
+    .form-label {
+        color: #2d3748;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    
+    .form-check-input:checked {
+        background-color: #43e97b;
+        border-color: #43e97b;
+    }
+    
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(67, 233, 123, 0.4);
+    }
+    
+    .btn-outline-secondary {
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-weight: 500;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-calculate total fee
+    const feeInputs = document.querySelectorAll('input[type="number"]');
+    const totalFeeDisplay = document.querySelector('[data-total-fee]');
+    
+    function calculateTotalFee() {
+        let total = 0;
+        feeInputs.forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            total += value;
+        });
+        
+        if (totalFeeDisplay) {
+            totalFeeDisplay.textContent = 'Ksh ' + total.toFixed(2);
+        }
+    }
+    
+    feeInputs.forEach(input => {
+        input.addEventListener('input', calculateTotalFee);
+    });
+    
+    // Initialize calculation
+    calculateTotalFee();
+});
+</script>
+{% endblock %}

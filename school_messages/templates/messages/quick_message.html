@@ -1,0 +1,109 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>Quick Message</h2>
+
+<div style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+            <h3 style="margin-top: 0;">Send a Quick Message</h3>
+            <p style="color: #666;">Use this form to quickly send common types of messages to users.</p>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label for="{{ form.subject_type.id_for_label }}">Message Type:</label>
+            {{ form.subject_type }}
+            {% if form.subject_type.errors %}
+                <div style="color: red; font-size: 12px;">{{ form.subject_type.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label for="{{ form.custom_subject.id_for_label }}">Custom Subject (optional):</label>
+            {{ form.custom_subject }}
+            <small style="color: #666; display: block;">Leave blank to use default subject for the selected type</small>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label for="{{ form.content.id_for_label }}">Message Content:</label>
+            {{ form.content }}
+            {% if form.content.errors %}
+                <div style="color: red; font-size: 12px;">{{ form.content.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label for="{{ form.send_to.id_for_label }}">Send To:</label>
+            {{ form.send_to }}
+            <small style="color: #666; display: block;">Select who should receive this message</small>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px;">
+                Send Message
+            </button>
+            <a href="{% url 'message_list' %}" style="background-color: #757575; color: white; padding: 10px 20px; text-decoration: none;">
+                Cancel
+            </a>
+        </div>
+    </form>
+    
+    <!-- Message Templates -->
+    <div style="background-color: #e3f2fd; padding: 20px; border-radius: 5px; margin-top: 30px;">
+        <h4>Message Templates</h4>
+        <p>Use these templates for common messages:</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <button type="button" onclick="loadTemplate('holiday')" style="background-color: #fff; border: 1px solid #ddd; padding: 10px; cursor: pointer; text-align: left;">
+                <strong>Holiday Notice</strong><br>
+                <small>Inform about upcoming holidays</small>
+            </button>
+            
+            <button type="button" onclick="loadTemplate('fee_reminder')" style="background-color: #fff; border: 1px solid #ddd; padding: 10px; cursor: pointer; text-align: left;">
+                <strong>Fee Reminder</strong><br>
+                <small>Remind about fee payments</small>
+            </button>
+            
+            <button type="button" onclick="loadTemplate('exam_schedule')" style="background-color: #fff; border: 1px solid #ddd; padding: 10px; cursor: pointer; text-align: left;">
+                <strong>Exam Schedule</strong><br>
+                <small>Share exam dates and times</small>
+            </button>
+            
+            <button type="button" onclick="loadTemplate('event')" style="background-color: #fff; border: 1px solid #ddd; padding: 10px; cursor: pointer; text-align: left;">
+                <strong>School Event</strong><br>
+                <small>Announce upcoming events</small>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function loadTemplate(type) {
+    const templates = {
+        'holiday': {
+            subject_type: 'holiday',
+            content: 'Dear students and parents,\n\nThis is to inform you about the upcoming school holiday. Please check the school calendar for exact dates.\n\nBest regards,\nSchool Administration'
+        },
+        'fee_reminder': {
+            subject_type: 'fee_reminder',
+            content: 'Dear parents,\n\nThis is a friendly reminder that the school fees for the current term are due. Please ensure payment is made by the due date to avoid penalties.\n\nThank you for your cooperation.\nAccounts Department'
+        },
+        'exam_schedule': {
+            subject_type: 'exam_schedule',
+            content: 'Dear students,\n\nThe examination schedule for the term has been released. Please check your class timetable for specific dates and times.\n\nWishing you all the best in your preparations.\nExaminations Department'
+        },
+        'event': {
+            subject_type: 'event',
+            content: 'Dear students and parents,\n\nWe are excited to announce an upcoming school event. More details will be provided soon.\n\nWe look forward to your participation.\nEvent Committee'
+        }
+    };
+    
+    if (templates[type]) {
+        document.getElementById('id_subject_type').value = templates[type].subject_type;
+        document.getElementById('id_content').value = templates[type].content;
+    }
+}
+</script>
+{% endblock %}

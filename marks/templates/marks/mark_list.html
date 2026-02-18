@@ -1,0 +1,66 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>{% if user.is_admin %}All Marks{% else %}My Entered Marks{% endif %}</h2>
+
+{% if user.is_teacher %}
+<a href="{% url 'mark_create' %}" style="background-color: #4CAF50; color: white; padding: 10px 15px; text-decoration: none; display: inline-block; margin-bottom: 20px;">Add New Marks</a>
+{% endif %}
+
+<table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #f2f2f2;">
+            <th style="border: 1px solid #ddd; padding: 8px;">Student</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Subject</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">CAT1</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">CAT2</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Main Exam</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Total</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Grade</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Term</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Teacher</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for mark in marks %}
+        <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ mark.student.user.get_full_name }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ mark.subject.name }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ mark.cat1_score|default:"-" }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ mark.cat2_score|default:"-" }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ mark.main_exam_score }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold;">{{ mark.total_score }}%</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
+                <span style="
+                    display: inline-block;
+                    padding: 2px 8px;
+                    border-radius: 3px;
+                    color: white;
+                    {% if mark.grade == 'A' %}background-color: #4CAF50;
+                    {% elif mark.grade == 'B' %}background-color: #8BC34A;
+                    {% elif mark.grade == 'C' %}background-color: #FFC107;
+                    {% elif mark.grade == 'D' %}background-color: #FF9800;
+                    {% elif mark.grade == 'E' %}background-color: #FF5722;
+                    {% else %}background-color: #f44336;
+                    {% endif %}
+                ">
+                    {{ mark.grade }}
+                </span>
+            </td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ mark.term }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ mark.teacher.user.get_full_name|default:"-" }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                {% if user.is_admin or user == mark.teacher.user %}
+                    <a href="{% url 'mark_update' mark.pk %}" style="background-color: #FF9800; color: white; padding: 5px 10px; text-decoration: none; margin-right: 5px;">Edit</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="10" style="border: 1px solid #ddd; padding: 8px; text-align: center;">No marks found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

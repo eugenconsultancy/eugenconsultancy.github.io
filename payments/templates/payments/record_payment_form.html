@@ -1,0 +1,41 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>Record Manual Payment</h2>
+
+<form method="post" style="max-width: 600px;">
+    {% csrf_token %}
+    
+    {% for field in form %}
+    <div style="margin-bottom: 15px;">
+        <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 5px;">
+            {{ field.label }}:
+        </label>
+        {{ field }}
+        {% if field.errors %}
+            <div style="color: red; font-size: 12px;">{{ field.errors }}</div>
+        {% endif %}
+        {% if field.help_text %}
+            <div style="color: #666; font-size: 12px;">{{ field.help_text }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    <div style="margin-top: 20px;">
+        <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px;">Record Payment</button>
+        <a href="{% url 'payment_list' %}" style="background-color: #757575; color: white; padding: 10px 20px; text-decoration: none;">Cancel</a>
+    </div>
+</form>
+
+<div style="background-color: #e8f5e9; padding: 15px; border-radius: 5px; margin-top: 30px;">
+    <h4>Payment Methods:</h4>
+    <ul>
+        <li><strong>M-Pesa:</strong> Mobile money payments</li>
+        <li><strong>Bank Transfer:</strong> Direct bank transfers</li>
+        <li><strong>Cash:</strong> Physical cash payments</li>
+        <li><strong>Cheque:</strong> Check payments</li>
+        <li><strong>Other:</strong> Any other payment method</li>
+    </ul>
+    <p><strong>Note:</strong> This form is for recording payments made outside the M-Pesa system.</p>
+</div>
+{% endblock %}

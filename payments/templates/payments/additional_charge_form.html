@@ -1,0 +1,43 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>Add Additional Charge</h2>
+
+<form method="post" style="max-width: 600px;">
+    {% csrf_token %}
+    
+    {% for field in form %}
+    <div style="margin-bottom: 15px;">
+        <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 5px;">
+            {{ field.label }}:
+        </label>
+        {{ field }}
+        {% if field.errors %}
+            <div style="color: red; font-size: 12px;">{{ field.errors }}</div>
+        {% endif %}
+        {% if field.help_text %}
+            <div style="color: #666; font-size: 12px;">{{ field.help_text }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    <div style="margin-top: 20px;">
+        <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px;">Add Charge</button>
+        <a href="{% url 'student_fee_list' %}" style="background-color: #757575; color: white; padding: 10px 20px; text-decoration: none;">Cancel</a>
+    </div>
+</form>
+
+<div style="background-color: #fff3e0; padding: 15px; border-radius: 5px; margin-top: 30px;">
+    <h4>Charge Types:</h4>
+    <ul>
+        <li><strong>Library Fine:</strong> For overdue books or lost library materials</li>
+        <li><strong>Damage Fee:</strong> For damaged school property or equipment</li>
+        <li><strong>Uniform Fee:</strong> For replacement of lost or damaged uniforms</li>
+        <li><strong>Book Replacement:</strong> For lost or damaged textbooks</li>
+        <li><strong>Sports Equipment:</strong> For lost or damaged sports gear</li>
+        <li><strong>School Trip:</strong> For educational trips and excursions</li>
+        <li><strong>Other:</strong> Any other miscellaneous charges</li>
+    </ul>
+    <p><strong>Note:</strong> Additional charges are automatically added to the student's current fee balance.</p>
+</div>
+{% endblock %}

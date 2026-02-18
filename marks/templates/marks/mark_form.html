@@ -1,0 +1,29 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>{{ title }}</h2>
+
+<form method="post" style="max-width: 600px;">
+    {% csrf_token %}
+    
+    {% for field in form %}
+    <div style="margin-bottom: 15px;">
+        <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 5px;">
+            {{ field.label }}:
+        </label>
+        {{ field }}
+        {% if field.errors %}
+            <div style="color: red; font-size: 12px;">{{ field.errors }}</div>
+        {% endif %}
+        {% if field.help_text %}
+            <div style="color: #666; font-size: 12px;">{{ field.help_text }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    <div style="margin-top: 20px;">
+        <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px;">Save</button>
+        <a href="{% url 'mark_list' %}" style="background-color: #757575; color: white; padding: 10px 20px; text-decoration: none;">Cancel</a>
+    </div>
+</form>
+{% endblock %}

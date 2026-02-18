@@ -1,0 +1,93 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>Messages & Notifications</h2>
+
+<div style="display: flex; gap: 20px; margin-bottom: 30px;">
+    <a href="{% url 'message_create' %}" style="background-color: #4CAF50; color: white; padding: 10px 15px; text-decoration: none;">Send New Message</a>
+    <a href="{% url 'holiday_notice_create' %}" style="background-color: #2196F3; color: white; padding: 10px 15px; text-decoration: none;">Create Holiday Notice</a>
+    <a href="{% url 'quick_message' %}" style="background-color: #FF9800; color: white; padding: 10px 15px; text-decoration: none;">Quick Message</a>
+    <a href="{% url 'inbox' %}" style="background-color: #9C27B0; color: white; padding: 10px 15px; text-decoration: none;">
+        Inbox {% if unread_count > 0 %}<span style="background-color: #f44336; color: white; padding: 2px 8px; border-radius: 10px; margin-left: 5px;">{{ unread_count }}</span>{% endif %}
+    </a>
+</div>
+
+<!-- Quick Stats -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <div style="background-color: #e8f5e9; padding: 20px; border-radius: 5px;">
+        <h3 style="margin-top: 0;">Total Messages</h3>
+        <p style="font-size: 24px; font-weight: bold;">{{ messages.count }}</p>
+    </div>
+    
+    <div style="background-color: #e3f2fd; padding: 20px; border-radius: 5px;">
+        <h3 style="margin-top: 0;">Unread</h3>
+        <p style="font-size: 24px; font-weight: bold;">{{ unread_count }}</p>
+    </div>
+    
+    <div style="background-color: #fff3e0; padding: 20px; border-radius: 5px;">
+        <h3 style="margin-top: 0;">Recent</h3>
+        <p style="font-size: 24px; font-weight: bold;">{{ recent_messages.count }}</p>
+    </div>
+</div>
+
+<!-- Recent Messages -->
+<h3>Recent Messages</h3>
+<table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #f2f2f2;">
+            <th style="border: 1px solid #ddd; padding: 8px;">Subject</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Type</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Sender</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Priority</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in recent_messages %}
+        <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                <strong>{{ message.subject }}</strong>
+                {% if message.requires_acknowledgement %}
+                    <span style="background-color: #FF9800; color: white; padding: 2px 5px; border-radius: 3px; font-size: 12px; margin-left: 5px;">Ack</span>
+                {% endif %}
+            </td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ message.get_message_type_display }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ message.sender.username }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ message.created_at|date:"M d, Y" }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                <span style="
+                    padding: 2px 8px;
+                    border-radius: 3px;
+                    color: white;
+                    {% if message.priority == 'urgent' %}background-color: #f44336;
+                    {% elif message.priority == 'high' %}background-color: #FF9800;
+                    {% elif message.priority == 'low' %}background-color: #9E9E9E;
+                    {% else %}background-color: #4CAF50;
+                    {% endif %}
+                ">
+                    {{ message.get_priority_display }}
+                </span>
+            </td>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                <a href="{% url 'message_detail' message.pk %}" style="background-color: #2196F3; color: white; padding: 5px 10px; text-decoration: none;">View</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="border: 1px solid #ddd; padding: 8px; text-align: center;">No messages found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Quick Links -->
+<div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin-top: 30px;">
+    <h3>Quick Links</h3>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="{% url 'inbox' %}" style="background-color: #2196F3; color: white; padding: 10px 15px; text-decoration: none;">Go to Inbox</a>
+        <a href="{% url 'outbox' %}" style="background-color: #FF9800; color: white; padding: 10px 15px; text-decoration: none;">View Sent Messages</a>
+        <a href="{% url 'notification_list' %}" style="background-color: #9C27B0; color: white; padding: 10px 15px; text-decoration: none;">View Notifications</a>
+    </div>
+</div>
+{% endblock %}

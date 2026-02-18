@@ -1,0 +1,365 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header Card -->
+            <div class="card shadow-lg border-0 mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 mb-2">
+                                <i class="fas fa-paper-plane me-2"></i>{{ title }}
+                            </h1>
+                            <p class="mb-0 opacity-75">Send messages to students, teachers, or the entire school</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-light text-primary px-3 py-2 rounded-pill">
+                                <i class="fas fa-comment-alt me-1"></i> New Message
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-0">
+                    <form method="post" enctype="multipart/form-data" class="p-4" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            {% for error in form.non_field_errors %}
+                            {{ error }}
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="row g-4 mb-4">
+                            <!-- Left Column - Message Details -->
+                            <div class="col-lg-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-header bg-light border-0">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-edit text-primary me-2"></i>Message Details
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Subject -->
+                                        <div class="mb-4">
+                                            <label for="{{ form.subject.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-heading me-1 text-primary"></i>Subject *
+                                            </label>
+                                            {{ form.subject }}
+                                            {% if form.subject.errors %}
+                                            <div class="text-danger small mt-1">
+                                                <i class="fas fa-exclamation-circle me-1"></i>{{ form.subject.errors }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Message Type & Priority -->
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.message_type.id_for_label }}" class="form-label fw-semibold">
+                                                        <i class="fas fa-tag me-1 text-info"></i>Message Type
+                                                    </label>
+                                                    {{ form.message_type }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.priority.id_for_label }}" class="form-label fw-semibold">
+                                                        <i class="fas fa-exclamation me-1 text-warning"></i>Priority
+                                                    </label>
+                                                    {{ form.priority }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Content -->
+                                        <div class="mb-3">
+                                            <label for="{{ form.content.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-align-left me-1 text-success"></i>Content *
+                                            </label>
+                                            {{ form.content }}
+                                            {% if form.content.errors %}
+                                            <div class="text-danger small mt-1">
+                                                <i class="fas fa-exclamation-circle me-1"></i>{{ form.content.errors }}
+                                            </div>
+                                            {% endif %}
+                                            <div class="form-text">
+                                                <i class="fas fa-lightbulb me-1"></i>Be clear and concise. You can use basic formatting.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column - Recipients -->
+                            <div class="col-lg-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-header bg-light border-0">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-users text-primary me-2"></i>Recipients
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Send to All -->
+                                        <div class="mb-4">
+                                            <div class="form-check form-switch mb-3">
+                                                {{ form.send_to_all }}
+                                                <label class="form-check-label fw-semibold" for="{{ form.send_to_all.id_for_label }}">
+                                                    <i class="fas fa-globe me-1 text-primary"></i>Send to all users
+                                                </label>
+                                            </div>
+                                            <div class="alert alert-info py-2 mb-0">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                <small>If checked, message will be sent to all students and teachers automatically.</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Specific Recipients -->
+                                        <div id="specific-recipients" class="{% if form.send_to_all.value %}d-none{% endif %}">
+                                            <!-- Students -->
+                                            <div class="mb-4">
+                                                <label for="{{ form.students.id_for_label }}" class="form-label fw-semibold">
+                                                    <i class="fas fa-user-graduate me-1 text-success"></i>Select Students
+                                                </label>
+                                                {{ form.students }}
+                                                <div class="form-text">
+                                                    <i class="fas fa-mouse-pointer me-1"></i>Hold Ctrl/Cmd to select multiple students
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Teachers -->
+                                            <div class="mb-3">
+                                                <label for="{{ form.teachers.id_for_label }}" class="form-label fw-semibold">
+                                                    <i class="fas fa-chalkboard-teacher me-1 text-warning"></i>Select Teachers
+                                                </label>
+                                                {{ form.teachers }}
+                                                <div class="form-text">
+                                                    <i class="fas fa-mouse-pointer me-1"></i>Hold Ctrl/Cmd to select multiple teachers
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Acknowledgement -->
+                                        <div class="mt-4 pt-3 border-top">
+                                            <div class="form-check form-switch">
+                                                {{ form.requires_acknowledgement }}
+                                                <label class="form-check-label fw-semibold" for="{{ form.requires_acknowledgement.id_for_label }}">
+                                                    <i class="fas fa-check-circle me-1 text-danger"></i>Require acknowledgement
+                                                </label>
+                                            </div>
+                                            <div class="form-text ms-4">
+                                                <i class="fas fa-shield-alt me-1"></i>Recipients must confirm they have read this message
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Information -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-light border-0">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-plus-circle text-primary me-2"></i>Additional Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.tags.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-tags me-1 text-info"></i>Tags
+                                            </label>
+                                            {{ form.tags }}
+                                            <div class="form-text">
+                                                <i class="fas fa-bolt me-1"></i>Comma-separated tags help organize messages
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.attachments.id_for_label }}" class="form-label fw-semibold">
+                                                <i class="fas fa-paperclip me-1 text-secondary"></i>Attachment
+                                            </label>
+                                            {{ form.attachments }}
+                                            <div class="form-text">
+                                                <i class="fas fa-file me-1"></i>Optional file attachment (max 10MB)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
+                            <div>
+                                <a href="{% url 'message_list' %}" class="btn btn-outline-secondary px-4">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Messages
+                                </a>
+                                <button type="reset" class="btn btn-outline-warning ms-2">
+                                    <i class="fas fa-redo me-2"></i>Reset Form
+                                </button>
+                            </div>
+                            <div>
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Form styling */
+    select, textarea, input[type="text"], input[type="file"] {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        background-color: #f8fafc;
+        font-size: 14px;
+    }
+    
+    select:focus, textarea:focus, input[type="text"]:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        background-color: white;
+        outline: none;
+    }
+    
+    textarea {
+        min-height: 150px;
+        resize: vertical;
+    }
+    
+    select[multiple] {
+        height: 150px;
+        background-image: none;
+    }
+    
+    /* Form labels */
+    .form-label {
+        color: #2d3748;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    
+    /* Form switch styling */
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+        margin-right: 10px;
+    }
+    
+    .form-switch .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+    
+    /* Cards */
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        background-color: #f8fafc !important;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    /* Buttons */
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-outline-secondary {
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-weight: 500;
+    }
+    
+    /* Alert styling */
+    .alert {
+        border-radius: 10px;
+        border: none;
+    }
+    
+    .alert-info {
+        background-color: #e0f2fe;
+        color: #0369a1;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+        .row.g-4 {
+            margin-left: 0;
+            margin-right: 0;
+        }
+        
+        .btn-lg {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sendToAllCheckbox = document.querySelector('#{{ form.send_to_all.id_for_label }}');
+    const specificRecipientsDiv = document.getElementById('specific-recipients');
+    
+    sendToAllCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            specificRecipientsDiv.classList.add('d-none');
+        } else {
+            specificRecipientsDiv.classList.remove('d-none');
+        }
+    });
+    
+    // Add animation to form elements
+    const formElements = document.querySelectorAll('select, textarea, input[type="text"]');
+    formElements.forEach(element => {
+        element.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        element.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    });
+});
+</script>
+{% endblock %}

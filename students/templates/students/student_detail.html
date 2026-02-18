@@ -1,0 +1,391 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-2">
+                <i class="fas fa-user-graduate text-primary me-2"></i>Student Profile
+            </h1>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-primary me-2">{{ student.grade }}{{ student.section }}</span>
+                <span class="badge bg-success">{{ student.admission_number }}</span>
+                <span class="text-muted ms-3">
+                    <i class="fas fa-calendar-alt me-1"></i>Joined {{ student.created_at|date:"F Y" }}
+                </span>
+            </div>
+        </div>
+        <div>
+            {% if user.is_admin %}
+            <div class="btn-group">
+                <a href="{% url 'student_update' student.pk %}" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>Edit Profile
+                </a>
+                <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" 
+                        data-bs-toggle="dropdown">
+                    <span class="visually-hidden">More Actions</span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">
+                        <i class="fas fa-print me-2"></i>Print Profile
+                    </a></li>
+                    <li><a class="dropdown-item" href="#">
+                        <i class="fas fa-envelope me-2"></i>Send Message
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#">
+                        <i class="fas fa-trash-alt me-2"></i>Deactivate
+                    </a></li>
+                </ul>
+            </div>
+            {% endif %}
+            <a href="{% url 'student_list' %}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-7">
+            <!-- Personal Information Card -->
+            <div class="card shadow-lg border-0 h-100">
+                <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-user-circle me-2"></i>Personal Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-auto">
+                            {% if student.user.profile_picture %}
+                            <img src="{{ student.user.profile_picture.url }}" 
+                                 alt="Profile Picture" 
+                                 class="rounded-circle shadow"
+                                 style="width: 120px; height: 120px; object-fit: cover; border: 4px solid white;">
+                            {% else %}
+                            <div class="rounded-circle d-flex align-items-center justify-content-center shadow"
+                                 style="width: 120px; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <span class="text-white h2">{{ student.user.get_full_name|first|upper }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col">
+                            <h3 class="mb-1">{{ student.user.get_full_name }}</h3>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-id-card me-1"></i>{{ student.admission_number }}
+                            </p>
+                            <div class="badge bg-primary px-3 py-2">
+                                <i class="fas fa-graduation-cap me-1"></i>{{ student.grade }}{{ student.section }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3 p-2 rounded" style="background-color: #f8f9fa;">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="fas fa-calendar-day text-primary fa-lg"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">Date of Birth</small>
+                                    <div class="fw-medium">{{ student.date_of_birth }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3 p-2 rounded" style="background-color: #f8f9fa;">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="fas fa-envelope text-primary fa-lg"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">Email</small>
+                                    <div class="fw-medium">{{ student.user.email|default:"Not provided" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3 p-2 rounded" style="background-color: #f8f9fa;">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="fas fa-phone text-primary fa-lg"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">Phone</small>
+                                    <div class="fw-medium">{{ student.phone|default:"Not provided" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="d-flex align-items-start mb-3 p-2 rounded" style="background-color: #f8f9fa;">
+                                <div class="flex-shrink-0 me-3 mt-1">
+                                    <i class="fas fa-home text-primary fa-lg"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">Address</small>
+                                    <div class="fw-medium">{{ student.address|linebreaksbr }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div class="col-lg-5">
+            <!-- Parent Information Card -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-users me-2"></i>Parent/Guardian Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width: 60px; height: 60px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <i class="fas fa-user-friends text-white fa-lg"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">{{ student.parent_name }}</h5>
+                            <p class="text-muted mb-0">Parent/Guardian</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="d-flex align-items-center p-3 rounded" style="background-color: #f8f9fa;">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="fas fa-phone-alt text-success fa-lg"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">Contact Phone</small>
+                                    <div class="fw-medium h5 mb-0">{{ student.parent_phone }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-envelope me-1"></i>Send Message to Parent
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm ms-2">
+                            <i class="fas fa-phone me-1"></i>Call Parent
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Student Overview
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="p-2 rounded" style="background-color: #e3f2fd;">
+                                <div class="h4 mb-1 text-primary">{{ student.subjects|linebreaksbr|wordcount }}</div>
+                                <small class="text-muted">Subjects</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="p-2 rounded" style="background-color: #f3e5f5;">
+                                <div class="h4 mb-1 text-purple">{{ student.clubs|linebreaksbr|wordcount }}</div>
+                                <small class="text-muted">Clubs</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded" style="background-color: #e8f5e9;">
+                                <div class="h4 mb-1 text-success">{{ student.societies|linebreaksbr|wordcount }}</div>
+                                <small class="text-muted">Societies</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded" style="background-color: #fff3e0;">
+                                <div class="h4 mb-1 text-warning">{{ student.user.date_joined|timesince }}</div>
+                                <small class="text-muted">In System</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Information Row -->
+    <div class="row g-4 mt-2">
+        <!-- Academic Information -->
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0 h-100">
+                <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-book-open me-2"></i>Academic Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-clipboard-list me-2 text-primary"></i>Enrolled Subjects
+                        </h6>
+                        {% if student.subjects %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for subject in student.subjects.split %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                                <i class="fas fa-book me-1"></i>{{ subject|title }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>No subjects assigned yet.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Extracurricular Activities -->
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0 h-100">
+                <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-running me-2"></i>Extracurricular Activities
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Clubs -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-users me-2 text-success"></i>Clubs Registered
+                        </h6>
+                        {% if student.clubs %}
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            {% for club in student.clubs.split %}
+                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+                                <i class="fas fa-user-friends me-1"></i>{{ club|title }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">
+                            <i class="fas fa-minus-circle me-1"></i>No clubs registered
+                        </p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Societies -->
+                    <div>
+                        <h6 class="mb-3">
+                            <i class="fas fa-university me-2 text-info"></i>Societies Joined
+                        </h6>
+                        {% if student.societies %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for society in student.societies.split %}
+                            <span class="badge bg-info bg-opacity-10 text-info px-3 py-2">
+                                <i class="fas fa-handshake me-1"></i>{{ society|title }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">
+                            <i class="fas fa-minus-circle me-1"></i>No societies joined
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    {% if user.is_admin %}
+    <div class="mt-4 pt-4 border-top">
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'student_update' student.pk %}" class="btn btn-warning px-4">
+                <i class="fas fa-edit me-2"></i>Edit Student Information
+            </a>
+            <a href="{% url 'student_list' %}" class="btn btn-outline-secondary px-4">
+                <i class="fas fa-list me-2"></i>View All Students
+            </a>
+            <button class="btn btn-outline-primary px-4">
+                <i class="fas fa-file-pdf me-2"></i>Generate Report
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: none;
+    }
+    
+    .badge {
+        border-radius: 10px;
+        font-weight: 500;
+    }
+    
+    .btn-group .btn {
+        border-radius: 10px;
+    }
+    
+    .dropdown-menu {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    /* Gradient backgrounds for info cards */
+    .gradient-1 {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .gradient-2 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .gradient-3 {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .btn-group {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-group .btn {
+            margin-bottom: 5px;
+            width: 100%;
+        }
+        
+        .dropdown-toggle-split {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

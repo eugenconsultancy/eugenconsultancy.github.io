@@ -1,0 +1,38 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>My Students</h2>
+<p><strong>Teacher:</strong> {{ teacher.user.get_full_name }}</p>
+<p><strong>Classes Taught:</strong> {{ teacher.classes }}</p>
+
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+    <thead>
+        <tr style="background-color: #f2f2f2;">
+            <th style="border: 1px solid #ddd; padding: 8px;">Admission No.</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Name</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Grade</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Section</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Parent</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in students %}
+        <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ student.admission_number }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ student.user.get_full_name }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ student.grade }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ student.section }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ student.parent_name }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                <a href="{% url 'student_detail' student.pk %}" style="background-color: #2196F3; color: white; padding: 5px 10px; text-decoration: none;">View</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="border: 1px solid #ddd; padding: 8px; text-align: center;">No students found in your classes.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

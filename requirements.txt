@@ -1,0 +1,10 @@
+Django>=5.0
+django-unfold>=0.18.0
+
+# Optional dependencies
+django-crispy-forms>=2.0
+crispy-bootstrap5>=0.7
+django-extensions>=3.2.0
+django-import-export>=4.0.0
+django-guardian>=2.4.0
+Pillow>=10.0.0

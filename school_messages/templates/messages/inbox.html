@@ -1,0 +1,100 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>My Inbox</h2>
+
+<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+    <a href="{% url 'message_list' %}" style="background-color: #4CAF50; color: white; padding: 10px 15px; text-decoration: none;">All Messages</a>
+    <a href="{% url 'outbox' %}" style="background-color: #2196F3; color: white; padding: 10px 15px; text-decoration: none;">Outbox</a>
+</div>
+
+<!-- Unread Messages -->
+{% if unread_messages %}
+<h3>Unread Messages ({{ unread_count }})</h3>
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+    <thead>
+        <tr style="background-color: #e6fbdb;">
+            <th style="border: 1px solid #c5f4f7; padding: 8px;">Subject</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Sender</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Priority</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in unread_messages %}
+        <tr style="background-color: #fff8e1;">
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                <strong>{{ item.message.subject }}</strong>
+                {% if item.message.requires_acknowledgement %}
+                    <span style="background-color: #FF9800; color: white; padding: 2px 5px; border-radius: 3px; font-size: 12px; margin-left: 5px;">Requires Acknowledgement</span>
+                {% endif %}
+            </td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ item.message.sender.username }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ item.message.created_at|date:"M d, Y" }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                <span style="
+                    padding: 2px 8px;
+                    border-radius: 3px;
+                    color: white;
+                    {% if item.message.priority == 'urgent' %}background-color: #f44336;
+                    {% elif item.message.priority == 'high' %}background-color: #FF9800;
+                    {% else %}background-color: #4CAF50;
+                    {% endif %}
+                ">
+                    {{ item.message.get_priority_display }}
+                </span>
+            </td>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                <a href="{% url 'message_detail' item.message.pk %}" style="background-color: #2196F3; color: white; padding: 5px 10px; text-decoration: none;">Read</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+<!-- Read Messages -->
+<h3>Read Messages</h3>
+{% if read_messages %}
+<table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #b5c7fa;">
+            <th style="border: 1px solid #ddd; padding: 8px;">Subject</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Sender</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Read Date</th>
+            <th style="border: 1px solid #ddd; padding: 8px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in read_messages %}
+        <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                {{ item.message.subject }}
+                {% if item.recipient and item.recipient.acknowledged %}
+                    <span style="background-color: #4CAF50; color: white; padding: 2px 5px; border-radius: 3px; font-size: 12px; margin-left: 5px;">Acknowledged</span>
+                {% endif %}
+            </td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ item.message.sender.username }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">{{ item.message.created_at|date:"M d, Y" }}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                {% if item.recipient and item.recipient.read_at %}
+                    {{ item.recipient.read_at|date:"M d, Y H:i" }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td style="border: 1px solid #ddd; padding: 8px;">
+                <a href="{% url 'message_detail' item.message.pk %}" style="background-color: #757575; color: white; padding: 5px 10px; text-decoration: none;">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div style="background-color: #f9d2e4; padding: 40px; text-align: center; border-radius: 5px;">
+    <p>No messages in your inbox.</p>
+</div>
+{% endif %}
+{% endblock %}

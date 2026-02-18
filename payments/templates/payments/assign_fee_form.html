@@ -1,0 +1,50 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<h2>Assign Fee to Student</h2>
+
+<form method="post" style="max-width: 600px;">
+    {% csrf_token %}
+    
+    {% for field in form %}
+    <div style="margin-bottom: 15px;">
+        <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 5px;">
+            {{ field.label }}:
+        </label>
+        {{ field }}
+        {% if field.errors %}
+            <div style="color: red; font-size: 12px;">{{ field.errors }}</div>
+        {% endif %}
+        {% if field.help_text %}
+            <div style="color: #666; font-size: 12px;">{{ field.help_text }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    <!-- Initial Payment Field -->
+    <div style="margin-bottom: 15px;">
+        <label for="initial_payment" style="display: block; margin-bottom: 5px;">
+            Initial Payment (Optional):
+        </label>
+        <input type="number" name="initial_payment" id="initial_payment" step="0.01" min="0" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <small style="color: #666;">Enter any initial payment amount if applicable</small>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-right: 10px;">Assign Fee</button>
+        <a href="{% url 'student_fee_list' %}" style="background-color: #757575; color: white; padding: 10px 20px; text-decoration: none;">Cancel</a>
+    </div>
+</form>
+
+<div style="background-color: #e8f5e9; padding: 15px; border-radius: 5px; margin-top: 30px;">
+    <h4>Instructions:</h4>
+    <ol>
+        <li>Select the student from the dropdown</li>
+        <li>Choose the appropriate fee structure</li>
+        <li>Add any additional or penalty charges if applicable</li>
+        <li>Set the due date for payment</li>
+        <li>Optionally enter any initial payment amount</li>
+        <li>Click "Assign Fee" to save</li>
+    </ol>
+</div>
+{% endblock %}

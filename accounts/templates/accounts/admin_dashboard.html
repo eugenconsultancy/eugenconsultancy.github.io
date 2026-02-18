@@ -1,0 +1,505 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 mb-2">Welcome back, {{ user.get_full_name|default:user.username }}! 👋</h1>
+                            <p class="mb-0">Manage the school system and monitor all activities</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-crown me-2"></i>
+                                Admin Dashboard
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Row -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Students
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ student_count|default:"0" }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-graduate fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Teachers
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ teacher_count|default:"0" }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chalkboard-teacher fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Fee Balance
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                KES {{ total_balance|default:"0.00" }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-money-bill-wave fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pending Payments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ pending_payments|default:"0" }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Quick Actions Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center" 
+                     style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'student_create' %}" 
+                               class="btn btn-primary btn-lg w-100 py-3 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-user-plus fa-2x me-3"></i>
+                                <div class="text-start">
+                                    <div class="h6 mb-1">Add Student</div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'teacher_create' %}" 
+                               class="btn btn-success btn-lg w-100 py-3 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-user-tie fa-2x me-3"></i>
+                                <div class="text-start">
+                                    <div class="h6 mb-1">Add Teacher</div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'student_list' %}" 
+                               class="btn btn-info btn-lg w-100 py-3 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-users fa-2x me-3"></i>
+                                <div class="text-start">
+                                    <div class="h6 mb-1">View Students</div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'fee_structure_list' %}" 
+                               class="btn btn-warning btn-lg w-100 py-3 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-money-bill-wave fa-2x me-3"></i>
+                                <div class="text-start">
+                                    <div class="h6 mb-1">Manage Fees</div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'student_performance_analytics' %}" 
+                               class="btn btn-danger btn-lg w-100 py-3 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-chart-line fa-2x me-3"></i>
+                                <div class="text-start">
+                                    <div class="h6 mb-1">Analytics</div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'admin:index' %}" 
+                               class="btn btn-secondary btn-lg w-100 py-3 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-cogs fa-2x me-3"></i>
+                                <div class="text-start">
+                                    <div class="h6 mb-1">Admin Panel</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Password Management Section -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center" 
+         style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+        <h6 class="m-0 font-weight-bold text-white">
+            <i class="fas fa-key me-2"></i>Password Management
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 border-0 bg-light">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-graduate fa-2x text-primary mb-3"></i>
+                        <h5>Student Passwords</h5>
+                        <p class="text-muted small">View and manage student passwords</p>
+                        <div class="mt-3">
+                            <a href="{% url 'student_list' %}" 
+                               class="btn btn-outline-primary btn-sm me-2">
+                                All Students
+                            </a>
+                            <a href="{% url 'student_create' %}" 
+                               class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Add Student
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 border-0 bg-light">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chalkboard-teacher fa-2x text-success mb-3"></i>
+                        <h5>Teacher Passwords</h5>
+                        <p class="text-muted small">View and manage teacher passwords</p>
+                        <div class="mt-3">
+                            <a href="{% url 'teacher_list' %}" 
+                               class="btn btn-outline-success btn-sm me-2">
+                                All Teachers
+                            </a>
+                            <a href="{% url 'teacher_create' %}" 
+                               class="btn btn-success btn-sm">
+                                <i class="fas fa-plus"></i> Add Teacher
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-warning mt-3">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-shield-alt fa-2x text-warning"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="alert-heading">Password Security</h6>
+                    <p class="mb-0">
+                        <strong>Auto-generated passwords:</strong> All new students receive 8-character auto-generated passwords.<br>
+                        <strong>Teacher access:</strong> Teachers can view passwords for students in their classes.<br>
+                        <strong>Admin access:</strong> You can view all passwords from the admin panel.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <!-- Performance Analytics Section -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-chart-line me-2"></i>Performance Analytics
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-bar fa-2x text-primary mb-3"></i>
+                                    <h5>Student Performance</h5>
+                                    <p class="text-muted small">Monitor overall academic performance</p>
+                                    <a href="{% url 'student_performance_analytics' %}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        View Analytics
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-balance-scale fa-2x text-info mb-3"></i>
+                                    <h5>Term Comparison</h5>
+                                    <p class="text-muted small">Compare performance across terms</p>
+                                    <a href="{% url 'term_comparison_analytics' %}" 
+                                       class="btn btn-outline-info btn-sm">
+                                        Compare Terms
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info border-0 shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-lightbulb fa-2x text-info"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="alert-heading">Analytics Insight</h6>
+                                <p class="mb-0">Use analytics tools to identify trends, track academic performance, and make data-driven decisions for school improvement.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- System Information Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-info-circle me-2"></i>System Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-circle mb-3" 
+                             style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                    border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                            <span class="text-white h3">{{ user.get_full_name|first|upper|default:user.username|first|upper }}</span>
+                        </div>
+                        <h5 class="mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                        <p class="text-muted small">Administrator</p>
+                    </div>
+                    
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-sign-in-alt text-primary me-2"></i>Last Login</span>
+                            <span>{{ user.last_login|date:"F d, Y H:i"|default:"Never" }}</span>
+                        </div>
+                        
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-calendar text-success me-2"></i>Joined</span>
+                            <span>{{ user.date_joined|date:"F d, Y" }}</span>
+                        </div>
+                        
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-envelope text-info me-2"></i>Email</span>
+                            <span>{{ user.email|default:"No email" }}</span>
+                        </div>
+                        
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-shield-alt text-warning me-2"></i>Role</span>
+                            <span class="badge bg-warning">Administrator</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+            <!-- Quick Links -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-dark text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-link me-2"></i>Quick Links
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'teacher_list' %}" 
+                           class="btn btn-outline-primary">
+                            <i class="fas fa-chalkboard-teacher me-2"></i>Manage Teachers
+                        </a>
+
+                        <a href="{% url 'teacher_passwords_view' %}" 
+               class="btn btn-outline-danger">
+                <i class="fas fa-key me-2"></i>Teacher Passwords
+            </a>
+            
+            <a href="{% url 'student_list' %}" 
+               class="btn btn-outline-info">
+                <i class="fas fa-users me-2"></i>Student Passwords
+            </a>
+                        
+                        <a href="{% url 'financial_report' %}" 
+                           class="btn btn-outline-success">
+                            <i class="fas fa-file-invoice-dollar me-2"></i>Financial Reports
+                        </a>
+                        
+                        <a href="{% url 'student_fee_list' %}" 
+                           class="btn btn-outline-info">
+                            <i class="fas fa-wallet me-2"></i>Student Fees
+                        </a>
+                        
+                        <a href="{% url 'generate_performance_trends' %}" 
+                           class="btn btn-outline-warning">
+                            <i class="fas fa-cogs me-2"></i>Generate Trends
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Features Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3" style="background: #f8bff8;">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-cogs me-2"></i>System Administration
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-users fa-2x text-primary mb-3"></i>
+                                <h6>User Management</h6>
+                                <p class="text-muted small">Manage students, teachers, and accounts</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-chart-line fa-2x text-success mb-3"></i>
+                                <h6>Analytics</h6>
+                                <p class="text-muted small">Track performance and generate reports</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-money-bill-wave fa-2x text-info mb-3"></i>
+                                <h6>Financial Management</h6>
+                                <p class="text-muted small">Manage fees, payments, and finances</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-3">
+                            <div class="feature-card text-center p-3 border rounded h-100">
+                                <i class="fas fa-cog fa-2x text-warning mb-3"></i>
+                                <h6>System Configuration</h6>
+                                <p class="text-muted small">Configure system settings and preferences</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-secondary mt-3">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-circle fa-2x"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="alert-heading mb-1">Full Administrative Access</h6>
+                                <p class="mb-0">You have full administrative privileges to manage all aspects of the school system including user accounts, academic records, financial transactions, and system configuration.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 15px;
+        border: none;
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .border-left-primary {
+        border-left: 4px solid #4e73df !important;
+    }
+    
+    .border-left-success {
+        border-left: 4px solid #1cc88a !important;
+    }
+    
+    .border-left-info {
+        border-left: 4px solid #36b9cc !important;
+    }
+    
+    .border-left-warning {
+        border-left: 4px solid #f6c23e !important;
+    }
+    
+    .feature-card {
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        background: linear-gradient(135deg, #aebdfdd8 0%, #c393f3c4 100%);
+        transform: scale(1.05);
+    }
+    
+    .avatar-circle {
+        border: 3px solid white;
+        box-shadow: 0 4px 6px rgba(224, 218, 218, 0.97);
+    }
+    
+    .btn-lg {
+        border-radius: 10px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}

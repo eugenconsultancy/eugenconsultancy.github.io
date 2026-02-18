@@ -1,0 +1,132 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-chart-line"></i> Student Performance Analytics</h2>
+    
+    <div class="row mt-4">
+        <!-- Overall Stats -->
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Students</h5>
+                    <h2>{{ total_students }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Marks Records</h5>
+                    <h2>{{ total_marks }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Terms Analyzed</h5>
+                    <h2>{{ term_stats|length }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Performers -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4><i class="fas fa-trophy"></i> Top 5 Performers</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Student</th>
+                            <th>Average Score</th>
+                            <th>Subjects</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for performer in top_performers %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ performer.student.full_name }}</td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ performer.average_score }}%;">
+                                        {{ performer.average_score|floatformat:1 }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ performer.total_subjects }}</td>
+                            <td>
+                                <a href="{% url 'student_performance_detail' performer.student.id %}" 
+                                   class="btn btn-sm btn-info">View Details</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No performance data available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Term Statistics -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4><i class="fas fa-calendar-alt"></i> Term Performance Statistics</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for stat in term_stats %}
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ stat.term }} {{ stat.year }}</h5>
+                            <p class="card-text">
+                                Average Score: <strong>{{ stat.average_score|floatformat:1 }}%</strong><br>
+                                Total Records: {{ stat.total_marks }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4><i class="fas fa-bolt"></i> Quick Actions</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <a href="{% url 'term_comparison_analytics' %}" class="btn btn-primary btn-block">
+                        <i class="fas fa-balance-scale"></i> Compare Terms
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{% url 'generate_performance_trends' %}" class="btn btn-success btn-block">
+                        <i class="fas fa-cogs"></i> Generate Trends
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{% url 'mark_list' %}" class="btn btn-info btn-block">
+                        <i class="fas fa-list"></i> View All Marks
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
