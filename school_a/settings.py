@@ -1,10 +1,11 @@
 """
-Django settings for school_a project.
+Django settings for school_a project - RENDER DEPLOYMENT READY
 """
 
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import dj_database_url
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,34 +14,41 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # =============================================
-# SECURITY SETTINGS
+# SECURITY SETTINGS - PRODUCTION READY
 # =============================================
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv(
-    'SECRET_KEY', 
-    'django-insecure-your-secret-key-here'
-)
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't')
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 
-# Parse ALLOWED_HOSTS from comma-separated string
-allowed_hosts_str = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1')
-ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',') if host.strip()]
+# Parse ALLOWED_HOSTS from environment or use default for Render
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,.onrender.com').split(',')
+
+# Render.com specific settings
+RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # =============================================
-# SECURITY MIDDLEWARE SETTINGS
+# SECURITY MIDDLEWARE SETTINGS - PRODUCTION
 # =============================================
 
-# Security settings based on DEBUG mode
-CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'False').lower() in ('true', '1', 't')
-SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'False').lower() in ('true', '1', 't')
-SESSION_COOKIE_HTTPONLY = True
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
-# Parse CSRF_TRUSTED_ORIGINS from environment variable
-csrf_origins_str = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000,http://127.0.0.1:8000')
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_str.split(',') if origin.strip()]
+# CSRF Trusted Origins
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.onrender.com').split(',')
 
 # Session settings
 SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
@@ -62,7 +70,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Your project apps (CORRECTED - without .Config)
+    # Third party apps
+    'whitenoise.runserver_nostatic',  # For WhiteNoise
+    
+    # Your project apps
     'accounts',
     'students',
     'teachers',
@@ -75,8 +86,8 @@ MIDDLEWARE = [
     # Security middleware
     'django.middleware.security.SecurityMiddleware',
     
-    # WhiteNoise for static files (optional - uncomment if using)
-    # 'whitenoise.middleware.WhiteNoiseMiddleware',
+    # WhiteNoise for static files - MUST be here
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     
     # Session management
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -119,15 +130,29 @@ TEMPLATES = [
 WSGI_APPLICATION = 'school_a.wsgi.application'
 
 # =============================================
-# DATABASE
+# DATABASE - POSTGRESQL FOR PRODUCTION
 # =============================================
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Use DATABASE_URL from environment (set by Render)
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    # Production - PostgreSQL
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Development - SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # =============================================
 # PASSWORD VALIDATION
@@ -153,20 +178,20 @@ AUTH_PASSWORD_VALIDATORS = [
 # =============================================
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
-
 USE_I18N = True
-
 USE_TZ = True
 
 # =============================================
-# STATIC & MEDIA FILES
+# STATIC & MEDIA FILES - WHITENOISE CONFIGURATION
 # =============================================
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# WhiteNoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -192,27 +217,27 @@ LOGOUT_REDIRECT_URL = 'login'
 # =============================================
 
 MPESA_CONFIG = {
-    'CONSUMER_KEY': os.getenv('MPESA_CONSUMER_KEY', 'your_consumer_key_here'),
-    'CONSUMER_SECRET': os.getenv('MPESA_CONSUMER_SECRET', 'your_consumer_secret_here'),
-    'SHORTCODE': os.getenv('MPESA_SHORTCODE', 'your_shortcode_here'),
-    'PASSKEY': os.getenv('MPESA_PASSKEY', 'your_passkey_here'),
-    'CALLBACK_URL': os.getenv('MPESA_CALLBACK_URL', 'https://yourdomain.com/payments/mpesa-callback/'),
-    'ENVIRONMENT': os.getenv('MPESA_ENVIRONMENT', 'sandbox'),  # 'sandbox' or 'production'
+    'CONSUMER_KEY': os.getenv('MPESA_CONSUMER_KEY', ''),
+    'CONSUMER_SECRET': os.getenv('MPESA_CONSUMER_SECRET', ''),
+    'SHORTCODE': os.getenv('MPESA_SHORTCODE', ''),
+    'PASSKEY': os.getenv('MPESA_PASSKEY', ''),
+    'CALLBACK_URL': os.getenv('MPESA_CALLBACK_URL', ''),
+    'ENVIRONMENT': os.getenv('MPESA_ENVIRONMENT', 'sandbox'),
 }
 
 # =============================================
 # EMAIL CONFIGURATION
 # =============================================
 
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 25))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False').lower() in ('true', '1', 't')
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 't')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
 # =============================================
-# DJANGO UNFOLD CONFIGURATION - FIXED
+# DJANGO UNFOLD CONFIGURATION
 # =============================================
 
 UNFOLD = {
@@ -223,15 +248,13 @@ UNFOLD = {
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
     
-    # Custom CSS stylesheets
     "STYLES": [
-        "/static/css/unfold-custom.css",  # Primary custom styles
-        "/static/css/admin-overrides.css",  # Additional overrides
+        "/static/css/unfold-custom.css",
+        "/static/css/admin-overrides.css",
     ],
     
-    # Custom JavaScript files
     "SCRIPTS": [
-        "/static/js/unfold-custom.js",  # Custom JavaScript functionality
+        "/static/js/unfold-custom.js",
     ],
     
     "COLORS": {
@@ -256,7 +279,7 @@ UNFOLD = {
             {
                 "title": "Dashboard",
                 "icon": "dashboard",
-                "items": [  # FIXED: Changed from "link" to "items" array
+                "items": [
                     {
                         "title": "Admin Dashboard",
                         "icon": "dashboard",
@@ -351,7 +374,7 @@ UNFOLD = {
             {
                 "title": "Analytics",
                 "icon": "analytics",
-                "items": [  # FIXED: Changed from "link" to "items" array
+                "items": [
                     {
                         "title": "Performance Analytics",
                         "icon": "trending_up",
@@ -378,27 +401,5 @@ UNFOLD = {
             },
         ],
     },
-    
-    # Version information
     "VERSION": "1.0.0",
-    
-    # REMOVE or COMMENT OUT TABS - it's causing conflicts
-    # "TABS": [
-    #     {
-    #         "models": [
-    #             "accounts.user",
-    #             "auth.group",
-    #         ],
-    #         "items": [
-    #             {
-    #                 "title": "Users",
-    #                 "link": "/admin/accounts/user/",
-    #             },
-    #             {
-    #                 "title": "Groups",
-    #                 "link": "/admin/auth/group/",
-    #             },
-    #         ],
-    #     },
-    # ],
 }
